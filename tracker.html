@@ -199,16 +199,16 @@ const PROGRAM = {
     ]
   },
   mobility: {
-    sectionRest: 60, transition: 12,
+    sectionRest: 60, transitionSame: 5, transitionNew: 10,
     sections: [
       { name:"Section 1 · Ankle Flow", items:[
         { name:"Gastroc wall stretch",  sets:2, perSide:true, dur:45, rx:"2 × 45 sec/side", cue:"Knee straight, heel pressed into floor." },
         { name:"Soleus wall stretch",   sets:2, perSide:true, dur:45, rx:"2 × 45 sec/side", cue:"Bend back knee ~20°, no position change from the gastroc stretch." },
-        { name:"Banded talocrural mobilization", sets:2, perSide:true, dur:35, rx:"2 × 10 reps/side", cue:"Band at ankle crease pulling posteriorly, heel stays down." },
-        { name:"Eccentric calf raises", sets:2, perSide:true, dur:75, rx:"2 × 15/side · rise 2 sec on both feet, lower 3 sec on one leg", cue:"Use a stair edge for full range." }
+        { name:"Banded talocrural mobilization", sets:2, perSide:true, manual:true, reps:10, rx:"2 × 10 reps/side", cue:"Band at ankle crease pulling posteriorly, heel stays down." },
+        { name:"Eccentric calf raises", sets:2, perSide:true, manual:true, reps:15, rx:"2 × 15/side · rise 2 sec on both feet, lower 3 sec on one leg", cue:"Use a stair edge for full range." }
       ]},
       { name:"Section 1b · Right MTP Mobilization", noRestBefore:true, items:[
-        { name:"Passive MTP mobilization (right)", sets:2, perSide:false, dur:60, rx:"2 × 10–15 reps · 3–4 sec hold at end range", cue:"Stabilize the metatarsal head with the opposite hand, push the toe straight upward — not laterally." },
+        { name:"Passive MTP mobilization (right)", sets:2, perSide:false, manual:true, reps:12, rx:"2 × 10–15 reps · 3–4 sec hold at end range", cue:"Stabilize the metatarsal head with the opposite hand, push the toe straight upward — not laterally." },
         { name:"Toe extension stretch (right)", sets:3, perSide:false, dur:30, rx:"3 × 30 sec", cue:"Sustained hold at end range." }
       ]},
       { name:"Section 2 · Hip Rotation Flow", items:[
@@ -383,7 +383,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 /* ===================== mobility step builder =====================
    Builds a flat list of steps: exercise steps + auto transitions + section rests. */
-function buildFlow(sections, transitionSec, sectionRestSec){
+function buildFlow(sections, sectionRestSec){
   const steps = [];
   sections.forEach((sec, si)=>{
     if (si > 0 && !sec.noRestBefore){
@@ -398,27 +398,32 @@ function buildFlow(sections, transitionSec, sectionRestSec){
           if (side) label += " — " + side;
           steps.push({
             type:"ex", name:label, base:item.name, cue:item.cue, rx:item.rx,
-            dur:item.dur, section:sec.name, side, set:s, sets:item.sets
+            dur:item.dur, manual:!!item.manual, reps:item.reps,
+            section:sec.name, side, set:s, sets:item.sets
           });
         });
       }
     });
   });
-  // weave in transitions between consecutive steps (not before rests, not after rests)
+  // Weave in transition buffers. Rep-based (manual) steps wait for a tap,
+  // so they never need a lead-in; timed steps get 5 sec for a side switch /
+  // next set of the same exercise, 10 sec when moving to a new exercise.
   const out = [];
   for (let i=0; i<steps.length; i++){
     const cur = steps[i], prev = out.length ? out[out.length-1] : null;
-    if (prev && prev.type !== "rest" && cur.type !== "rest"){
-      const switching = prev.base === cur.base && prev.side !== cur.side && cur.side;
+    if (prev && prev.type !== "rest" && cur.type !== "rest" && !cur.manual){
+      const sameEx = prev.base === cur.base;
+      const switching = sameEx && prev.side !== cur.side && cur.side;
       out.push({ type:"trans", name: switching ? "Switch sides" : "Get set",
-        next: cur, dur: transitionSec, section: cur.section });
+        next: cur, dur: sameEx ? PROGRAM.mobility.transitionSame : PROGRAM.mobility.transitionNew,
+        section: cur.section });
     }
     out.push(cur);
   }
   return out;
 }
-function mobilitySteps(){ return buildFlow(PROGRAM.mobility.sections, PROGRAM.mobility.transition, PROGRAM.mobility.sectionRest); }
-function postMatchSteps(){ return buildFlow([{name:PROGRAM.postMatch.name, items:PROGRAM.postMatch.items}], PROGRAM.mobility.transition, 60); }
+function mobilitySteps(){ return buildFlow(PROGRAM.mobility.sections, PROGRAM.mobility.sectionRest); }
+function postMatchSteps(){ return buildFlow([{name:PROGRAM.postMatch.name, items:PROGRAM.postMatch.items}], 60); }
 
 /* ===================== session engine ===================== */
 let tickHandle = null;
@@ -456,8 +461,17 @@ function beginLift(variant){
 
 function armStep(){
   const s = S(); const st = s.steps[s.idx];
-  s.timer = { endsAt: Date.now() + st.dur*1000, total: st.dur, paused: false, remaining: null };
+  if (st.manual) s.timer = null; // rep-based: waits for the user to log the set
+  else s.timer = { endsAt: Date.now() + st.dur*1000, total: st.dur, paused: false, remaining: null };
   lastWarnSec = null;
+}
+function logMobilitySet(){
+  const s = S(); const st = s.steps[s.idx];
+  const el = document.getElementById("in-mreps");
+  const reps = el ? (parseInt(el.value) || 0) : (st.reps || 0);
+  (s.repEntries = s.repEntries || []).push({ name: st.base, side: st.side, set: st.set, reps });
+  ensureAudio(); beep(880, .1); buzz(40);
+  advanceFlow(false);
 }
 function armTimer(sec){
   const s = S();
@@ -496,10 +510,10 @@ function backStep(){
   const s = S(); if (s.stage !== "flow") return;
   let i = s.idx - 1;
   while (i >= 0 && s.steps[i].type !== "ex") i--;
-  // if we're early in the current step, go to previous exercise; otherwise restart current
+  // if we're partway into a timed step, restart it; otherwise go to the previous exercise
   const cur = s.steps[s.idx];
-  const elapsed = cur ? cur.dur - timerRemaining() : 99;
-  if (cur && cur.type === "ex" && elapsed > 4){ armStep(); } // restart current
+  const elapsed = (cur && cur.type === "ex" && !cur.manual) ? cur.dur - timerRemaining() : 0;
+  if (elapsed > 4){ armStep(); } // restart current
   else if (i >= 0){ s.idx = i; armStep(); }
   else { armStep(); }
   save(); renderSession();
@@ -516,7 +530,7 @@ function finishFlow(){
   const s = S();
   const dur = Math.round((Date.now() - s.startedAt)/60000);
   state.logs.push({ id: uid(), type: s.kind === "postmatch" ? "postmatch" : "mobility",
-    date: s.date, minutes: dur });
+    date: s.date, minutes: dur, repWork: s.repEntries || [] });
   if (s.thenStrength){
     const v = s.thenStrength;
     state.activeSession = {
@@ -665,8 +679,9 @@ function resumeSession(){
         let guard = 0;
         while (overdue > 0 && s.idx < s.steps.length - 1 && guard++ < 200){
           s.idx++;
-          const d = s.steps[s.idx].dur;
-          s.timer = { endsAt: s.timer.endsAt + d*1000, total: d, paused: false };
+          const st = s.steps[s.idx];
+          if (st.manual){ s.timer = null; overdue = 0; break; } // rep-based step waits for the user
+          s.timer = { endsAt: s.timer.endsAt + st.dur*1000, total: st.dur, paused: false };
           overdue = (Date.now() - s.timer.endsAt)/1000;
         }
         if (overdue > 0){ finishFlowSilently(); return; }
@@ -682,7 +697,7 @@ function resumeSession(){
 function finishFlowSilently(){
   const s = S();
   state.logs.push({ id: uid(), type: s.kind === "postmatch" ? "postmatch" : "mobility",
-    date: s.date, minutes: Math.round((Date.now()-s.startedAt)/60000) });
+    date: s.date, minutes: Math.round((Date.now()-s.startedAt)/60000), repWork: s.repEntries || [] });
   if (s.thenStrength){
     state.activeSession = { id: uid(), kind:"strength", variant: s.thenStrength, date: todayStr(),
       startedAt: Date.now(), stage:"lift", lift:{ b:0,e:0,set:1,phase:"work",entries:[] }, timer:null };
@@ -722,6 +737,26 @@ function flowHTML(s){
   const paused = s.timer && s.timer.paused;
   const kindLabel = s.kind === "postmatch" ? "Post-match mobility" :
     (s.thenStrength ? "Warm-up · Mobility block" : "Daily mobility block");
+  const isManual = st.type === "ex" && st.manual;
+  const middle = isManual
+    ? `<div style="margin:20px 0;">
+        <label>Reps done${st.side ? " ("+st.side.toLowerCase()+")" : ""}</label>
+        <input type="number" id="in-mreps" inputmode="numeric" min="0" value="${st.reps || 0}">
+        <button class="primary big-btn" onclick="logMobilitySet()">Log set ${st.set}/${st.sets} ✓ — next</button>
+      </div>`
+    : `<div class="bigtime ${cls}" id="bigtime">--</div>
+      <div class="progressbar"><div id="stepbar"></div></div>`;
+  const controls = isManual
+    ? `<div class="controls" style="grid-template-columns:1fr 1fr;">
+        <button onclick="backStep()">⏮ Back</button>
+        <button onclick="skipStep()">Skip ⏭</button>
+      </div>`
+    : `<div class="controls">
+        <button onclick="backStep()">⏮ Back</button>
+        <button class="pausebtn" onclick="pauseToggle()">${paused ? "▶ Resume" : "⏸ Pause"}</button>
+        <button onclick="plus15()">+15 s</button>
+        <button onclick="skipStep()">Skip ⏭</button>
+      </div>`;
   return `<div class="sess-inner">
     <div class="sess-top">
       <span class="sess-section">${esc(st.section || kindLabel)}</span>
@@ -734,15 +769,9 @@ function flowHTML(s){
     <div class="sess-name">${esc(title)}</div>
     <div class="sess-rx">${esc(rx)}</div>
     <div class="sess-cue">${esc(cue)}</div>
-    <div class="bigtime ${cls}" id="bigtime">--</div>
-    <div class="progressbar"><div id="stepbar"></div></div>
+    ${middle}
     ${nxt && st.type==="ex" ? `<div class="nextup"><div class="nu-label">Next up</div><b>${esc(nxt.name)}</b> — ${esc(nxt.rx)}</div>` : `<div class="nextup" style="visibility:${st.type==='ex'?'visible':'hidden'}"><div class="nu-label">Next up</div>Last exercise — almost done</div>`}
-    <div class="controls">
-      <button onclick="backStep()">⏮ Back</button>
-      <button class="pausebtn" onclick="pauseToggle()">${paused ? "▶ Resume" : "⏸ Pause"}</button>
-      <button onclick="plus15()">+15 s</button>
-      <button onclick="skipStep()">Skip ⏭</button>
-    </div>
+    ${controls}
   </div>`;
 }
 /* full-routine overview while a session is running */
@@ -758,7 +787,7 @@ function showStepList(){
       if (st.type !== "ex") return;
       if (st.section !== lastSection){ html += `<h3>${esc(st.section)}</h3>`; lastSection = st.section; }
       const cls = i === curEx ? "cur" : (i < s.idx ? "done" : "");
-      html += `<div class="sl-row ${cls}" onclick="jumpToStep(${i})">${i < s.idx ? "✓ " : (i===curEx ? "▶ " : "")}${esc(st.name)} <span class="faint">· ${st.dur}s</span></div>`;
+      html += `<div class="sl-row ${cls}" onclick="jumpToStep(${i})">${i < s.idx ? "✓ " : (i===curEx ? "▶ " : "")}${esc(st.name)} <span class="faint">· ${st.manual ? st.reps + " reps" : st.dur + "s"}</span></div>`;
     });
     html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
     showModal(html);
@@ -1330,8 +1359,11 @@ function exportMarkdown(){
   const mobs = L("mobility");
   md += `Completed: ${mobs.length} total. Current streak: ${mobilityStreak()} days.\n\n`;
   if (mobs.length){
-    md += `| Date | Duration (min) |\n|---|---|\n`;
-    mobs.forEach(m=>{ md += `| ${m.date} | ${m.minutes||"—"} |\n`; });
+    md += `| Date | Duration (min) | Rep-based work logged |\n|---|---|---|\n`;
+    mobs.forEach(m=>{
+      const reps = (m.repWork||[]).map(r=>`${r.name.replace(/\s*\(right\)/,"")}${r.side?" "+r.side[0]:""} ${r.reps}`).join(", ");
+      md += `| ${m.date} | ${m.minutes||"—"} | ${reps||"—"} |\n`;
+    });
     md += `\n`;
   }
   const pms = L("postmatch");

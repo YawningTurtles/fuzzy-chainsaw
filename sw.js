@@ -1,7 +1,7 @@
 /* Service worker for the Kinetic Chain Tracker.
    Serves the app from cache first (so it works offline / in airplane mode)
    and refreshes the cache in the background whenever there is a connection. */
-const CACHE = "kct-v2";
+const CACHE = "kct-v3";
 const ASSETS = ["./", "./index.html", "./tracker.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {

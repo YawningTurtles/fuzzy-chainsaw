@@ -37,7 +37,7 @@ input,select,textarea{font:inherit; background:var(--panel2); color:var(--text);
 input[type=number]{font-size:1.3rem; text-align:center; font-variant-numeric:tabular-nums;}
 textarea{min-height:80px;}
 label{display:block; font-size:.9rem; color:var(--dim); margin:10px 0 4px;}
-.wrap{max-width:640px; margin:0 auto; padding:14px 14px 8px;}
+.wrap{max-width:640px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) 14px 8px;}
 .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
   padding:16px; margin-bottom:12px;}
 .card.accent{border-color:var(--accent-dim);}
@@ -71,7 +71,8 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 #session{position:fixed; inset:0; background:var(--bg); z-index:100; overflow-y:auto;
   display:none; padding-bottom:env(safe-area-inset-bottom);}
 #session.open{display:block;}
-.sess-inner{max-width:640px; margin:0 auto; padding:14px; min-height:100%;
+.sess-inner{max-width:640px; margin:0 auto; min-height:100%;
+  padding:calc(14px + env(safe-area-inset-top)) 14px 14px;
   display:flex; flex-direction:column;}
 .sess-top{display:flex; justify-content:space-between; align-items:center; gap:8px;}
 .sess-section{color:var(--accent); font-size:.9rem; font-weight:700;
@@ -97,7 +98,19 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .yn button{flex:1; min-height:70px; font-size:1.2rem; font-weight:700;}
 svg.chart{width:100%; height:auto; display:block;}
 .modal-back{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200;
-  display:flex; align-items:center; justify-content:center; padding:18px;}
+  display:flex; align-items:center; justify-content:center;
+  padding:calc(18px + env(safe-area-inset-top)) 18px 18px;}
+.daychips{display:flex; gap:6px; margin:10px 0 14px; overflow-x:auto; padding-bottom:4px;}
+.daychips button{min-height:60px; min-width:64px; flex:1; padding:6px 4px; font-size:.85rem;
+  display:flex; flex-direction:column; align-items:center; gap:2px; border:1px solid var(--line);}
+.daychips button b{font-size:1.05rem;}
+.daychips button.sel{background:var(--accent); color:#06170f; border-color:var(--accent);}
+.daychips button .todaydot{width:5px; height:5px; border-radius:50%; background:var(--amber);}
+.steplist{max-height:62vh; overflow-y:auto; margin:8px 0;}
+.steplist .sl-row{padding:10px 6px; border-bottom:1px solid var(--line); font-size:.95rem;}
+.steplist .sl-row.cur{color:var(--accent); font-weight:700;}
+.steplist .sl-row.done{color:var(--faint);}
+.steplist h3{margin:12px 0 4px; color:var(--blue);}
 .modal{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
   padding:20px; max-width:440px; width:100%;}
 .done-check{color:var(--accent); font-weight:700;}
@@ -113,6 +126,7 @@ ul.tight li{margin:4px 0;}
 <div id="modalhost"></div>
 <nav class="nav" id="nav">
   <button data-v="home"><span class="ico">🏠</span>Home</button>
+  <button data-v="plan"><span class="ico">📅</span>Plan</button>
   <button data-v="progress"><span class="ico">📈</span>Progress</button>
   <button data-v="data"><span class="ico">💾</span>Data</button>
 </nav>
@@ -222,6 +236,11 @@ const PROGRAM = {
       { name:"Massage gun — psoas region (optional)", sets:1, perSide:true, dur:90, rx:"90 sec/side · optional, as tolerated", cue:"Skip this step if you don't have the massage gun handy." }
     ]
   },
+  recoveryAddOns: [
+    "Supine hip IR stretch with band — 2 × 30 sec/side",
+    "Foam roll adductors and lateral hip — 90 sec/area",
+    "Massage gun general lower body"
+  ],
   rules: {
     form: "Form rule: front knee tracks over the second toe on Bulgarian split squats and step-downs with no medial collapse. If the knee caves, hold the current load until it tracks clean.",
     symptom: "Symptom rule: no next-morning increase in knee symptoms after any session or match. If symptoms increase, repeat the current week's loads instead of advancing.",
@@ -706,7 +725,10 @@ function flowHTML(s){
   return `<div class="sess-inner">
     <div class="sess-top">
       <span class="sess-section">${esc(st.section || kindLabel)}</span>
-      <button class="ghost small" onclick="endSessionEarly()">End</button>
+      <span style="display:flex; gap:8px;">
+        <button class="ghost small" onclick="showStepList()">☰ All</button>
+        <button class="ghost small" onclick="endSessionEarly()">End</button>
+      </span>
     </div>
     <div class="faint">${esc(kindLabel)} · exercise ${doneEx} of ${exSteps.length}</div>
     <div class="sess-name">${esc(title)}</div>
@@ -723,6 +745,45 @@ function flowHTML(s){
     </div>
   </div>`;
 }
+/* full-routine overview while a session is running */
+function showStepList(){
+  const s = S(); if (!s) return;
+  if (s.stage === "flow"){
+    // highlight the exercise we're on (or about to start, if mid-transition)
+    let curEx = s.idx;
+    while (curEx < s.steps.length && s.steps[curEx].type !== "ex") curEx++;
+    let html = `<h2>Full routine</h2><p class="faint" style="margin:0;">Tap an exercise to jump to it.</p><div class="steplist">`;
+    let lastSection = "";
+    s.steps.forEach((st,i)=>{
+      if (st.type !== "ex") return;
+      if (st.section !== lastSection){ html += `<h3>${esc(st.section)}</h3>`; lastSection = st.section; }
+      const cls = i === curEx ? "cur" : (i < s.idx ? "done" : "");
+      html += `<div class="sl-row ${cls}" onclick="jumpToStep(${i})">${i < s.idx ? "✓ " : (i===curEx ? "▶ " : "")}${esc(st.name)} <span class="faint">· ${st.dur}s</span></div>`;
+    });
+    html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+    showModal(html);
+  } else {
+    const L = s.lift;
+    let html = `<h2>Session plan</h2><div class="steplist">`;
+    PROGRAM.strength.blocks.forEach((b,bi)=>{
+      html += `<h3>${esc(b.name)}</h3>`;
+      b.exercises.forEach((ex,ei)=>{
+        const done = L.entries.filter(e=>e.ex===ex.id).length;
+        const cur = bi===L.b && ei===L.e;
+        const ld = loadFor(ex, s.variant, state.program.week);
+        const cls = cur ? "cur" : (done >= ex.sets ? "done" : "");
+        html += `<div class="sl-row ${cls}">${done >= ex.sets ? "✓ " : (cur ? "▶ " : "")}${esc(ex.name)} — ${esc(ex.repsLabel)} · ${esc(ld.label)} <span class="faint">· ${done}/${ex.sets} sets logged</span></div>`;
+      });
+    });
+    html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+    showModal(html);
+  }
+}
+function jumpToStep(i){
+  const s = S(); if (!s || s.stage !== "flow") return;
+  s.idx = i; armStep(); save(); closeModal(); renderSession();
+}
+
 function nextExercise(s){
   for (let i=s.idx+1; i<s.steps.length; i++) if (s.steps[i].type === "ex") return s.steps[i];
   return null;
@@ -737,7 +798,10 @@ function liftHTML(s){
   const variantLabel = s.variant === "tue" ? "Tuesday · moderate (~85%)" : "Friday · primary (full loads)";
   const head = `<div class="sess-top">
       <span class="sess-section">${esc(block.name)}</span>
-      <button class="ghost small" onclick="endSessionEarly()">End</button>
+      <span style="display:flex; gap:8px;">
+        <button class="ghost small" onclick="showStepList()">☰ All</button>
+        <button class="ghost small" onclick="endSessionEarly()">End</button>
+      </span>
     </div>
     <div class="faint">${esc(variantLabel)} · Week ${state.program.week}</div>`;
 
@@ -920,8 +984,76 @@ function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.v===view));
   const app = document.getElementById("app");
   if (view === "home") app.innerHTML = homeHTML();
+  else if (view === "plan") app.innerHTML = planHTML();
   else if (view === "progress") app.innerHTML = progressHTML();
   else app.innerHTML = dataHTML();
+}
+
+/* ----- plan view: browse any day of the week ----- */
+let planDay = null; // 0=Sun..6=Sat, null = today
+function pickPlanDay(d){ planDay = d; render(); window.scrollTo(0,0); }
+function planHTML(){
+  const today = new Date().getDay();
+  const sel = planDay == null ? today : planDay;
+  const day = PROGRAM.weeklyTemplate[sel];
+  const names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const chips = names.map((n,i)=>
+    `<button class="${i===sel?'sel':''}" onclick="pickPlanDay(${i})"><b>${n}</b><span style="font-size:.7rem;">${shortType(PROGRAM.weeklyTemplate[i].type)}</span>${i===today?'<span class="todaydot"></span>':''}</button>`).join("");
+  return `<h1>Week plan</h1>
+    <p class="faint" style="margin:0;">Program week ${state.program.week} of ${PROGRAM.weeks} — loads below are for this week. Tap a day to look ahead.</p>
+    <div class="daychips">${chips}</div>
+    <div class="card accent">
+      <h2>${names[sel]} · ${esc(day.label)}${sel===today ? ' <span class="chip green">today</span>' : ""}</h2>
+      <p class="dim" style="margin:4px 0 0;">${esc(day.note)}</p>
+    </div>
+    ${dayDetailHTML(day.type)}
+    ${mobilityPlanHTML()}`;
+}
+function shortType(t){
+  return {match:"match", recovery:"recover", strength_moderate:"strength", strength_primary:"strength", jog:"jog"}[t] || t;
+}
+function dayDetailHTML(type){
+  if (type === "strength_moderate" || type === "strength_primary"){
+    const variant = type === "strength_moderate" ? "tue" : "fri";
+    const w = state.program.week;
+    const blocks = PROGRAM.strength.blocks.map(b=>{
+      const rows = b.exercises.map(ex=>{
+        const ld = loadFor(ex, variant, w);
+        return `<tr><td><b>${esc(ex.name)}</b><br><span class="faint">${esc(ex.tempo)} · ${esc(ex.cue)}</span></td>
+          <td style="white-space:nowrap;">${esc(ex.repsLabel)}</td>
+          <td style="white-space:nowrap;"><b>${esc(ld.label)}</b></td></tr>`;
+      }).join("");
+      return `<h3 style="margin-top:12px;">${esc(b.name)}</h3>
+        <div class="tablewrap"><table><tr><th>Exercise</th><th>Sets</th><th>Load</th></tr>${rows}</table></div>`;
+    }).join("");
+    return `<div class="card">
+      <h2>Strength — ${variant==="tue" ? "moderate (~85%)" : "primary (full loads)"} · Week ${w}</h2>
+      <p class="faint" style="margin:4px 0 0;">Mobility block first as warm-up. Rest: 90 sec between sets, 2 min between blocks.</p>
+      ${blocks}</div>`;
+  }
+  if (type === "match"){
+    const rows = PROGRAM.postMatch.items.map(it=>
+      `<tr><td><b>${esc(it.name)}</b><br><span class="faint">${esc(it.cue)}</span></td><td style="white-space:nowrap;">${esc(it.rx)}</td></tr>`).join("");
+    return `<div class="card"><h2>Post-match mobility (~10 min)</h2>
+      <div class="tablewrap"><table><tr><th>Exercise</th><th>Rx</th></tr>${rows}</table></div></div>`;
+  }
+  if (type === "jog"){
+    return `<div class="card"><h2>Saturday jog rules</h2>
+      <ul class="tight">${PROGRAM.jogRules.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>`;
+  }
+  return `<div class="card"><h2>Recovery add-ons (optional, as time allows)</h2>
+    <ul class="tight">${PROGRAM.recoveryAddOns.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>`;
+}
+function mobilityPlanHTML(){
+  const secs = PROGRAM.mobility.sections.map(sec=>{
+    const rows = sec.items.map(it=>
+      `<tr><td><b>${esc(it.name)}</b><br><span class="faint">${esc(it.cue)}</span></td><td style="white-space:nowrap;">${esc(it.rx)}</td></tr>`).join("");
+    return `<h3 style="margin-top:12px;">${esc(sec.name)}</h3>
+      <div class="tablewrap"><table><tr><th>Exercise</th><th>Rx</th></tr>${rows}</table></div>`;
+  }).join("");
+  return `<div class="card"><h2>Daily mobility block (every day)</h2>
+    <p class="faint" style="margin:4px 0 0;">Flow-based: no rest within a section, 60 sec between sections. On match days do it earlier in the day as the pre-match warm-up.</p>
+    ${secs}</div>`;
 }
 
 function homeHTML(){

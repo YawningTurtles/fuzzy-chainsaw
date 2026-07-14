@@ -447,7 +447,15 @@ function startMobility(kind, thenStrength){ // kind: 'mobility' | 'postmatch'
 function startStrength(variant){ // 'tue' | 'fri'
   ensureAudio();
   const didMobilityToday = state.logs.some(l=>l.type==="mobility" && l.date===todayStr());
-  if (!didMobilityToday){ startMobility("mobility", variant); return; }
+  if (!didMobilityToday){
+    showModal(`<h2>Warm up first?</h2>
+      <p class="dim">The program runs the daily mobility block as the warm-up before lifting. You haven't logged it today.</p>
+      <div class="yn">
+        <button class="primary" onclick="closeModal(); startMobility('mobility','${variant}')">Warm-up,<br>then lift</button>
+        <button onclick="closeModal(); beginLift('${variant}')">Straight to lifting</button>
+      </div>`);
+    return;
+  }
   beginLift(variant);
 }
 function beginLift(variant){
@@ -618,10 +626,20 @@ function answerForm(clean){
               : "Logged. Form rule: hold current loads until the knee tracks clean.");
 }
 function endSessionEarly(){
+  const s = S();
+  const skipToLift = (s && s.stage === "flow" && s.thenStrength)
+    ? `<button class="primary big-btn" onclick="skipWarmupToLift()">Skip the rest of the warm-up — start lifting</button>` : "";
   showModal(`<h2>End session?</h2>
     <p class="dim">Progress in this session will not be logged.</p>
+    ${skipToLift}
     <div class="yn"><button class="warn" onclick="confirmEnd()">End it</button>
     <button onclick="closeModal()">Keep going</button></div>`);
+}
+function skipWarmupToLift(){
+  const s = S(); if (!s || !s.thenStrength) return;
+  const v = s.thenStrength;
+  closeModal();
+  beginLift(v);
 }
 function confirmEnd(){
   closeModal();
@@ -1156,9 +1174,9 @@ function homeHTML(){
 function todayButtons(day, mobDone){
   switch(day.type){
     case "strength_moderate":
-      return `<button class="primary big-btn" onclick="startStrength('tue')">▶ Start strength (moderate)${mobDone?"":" — warm-up included"}</button>`;
+      return `<button class="primary big-btn" onclick="startStrength('tue')">▶ Start strength (moderate)</button>${mobDone?"":'<p class="faint" style="margin-top:8px;">You\'ll be asked whether to run the mobility warm-up first.</p>'}`;
     case "strength_primary":
-      return `<button class="primary big-btn" onclick="startStrength('fri')">▶ Start strength (primary)${mobDone?"":" — warm-up included"}</button>`;
+      return `<button class="primary big-btn" onclick="startStrength('fri')">▶ Start strength (primary)</button>${mobDone?"":'<p class="faint" style="margin-top:8px;">You\'ll be asked whether to run the mobility warm-up first.</p>'}`;
     case "match":
       return `<button class="primary big-btn" onclick="startMobility('postmatch')">▶ Post-match mobility</button>
         <button class="big-btn" onclick="showModal(matchFormHTML())">Log the match</button>

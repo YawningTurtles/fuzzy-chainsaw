@@ -461,7 +461,29 @@ function setWeekManually(w){
   state.program.week = w;
   state.program.weekStart = mondayStr(new Date());
   state.program.notice = null;
+  restampFrom(todayStr());
   save(); render();
+}
+/* Day records stamp their program week when created, so changing the current
+   week has to re-stamp today and anything ahead of it. Past days keep the week
+   they were actually trained in — that stays historical truth. */
+function restampFrom(fromDate){
+  Object.keys(state.days).forEach(date=>{
+    if (date >= fromDate) state.days[date].week = programWeekFor(date);
+  });
+}
+function restartProgression(){
+  showModal(`<h2>Restart at Week 1?</h2>
+    <p>This week becomes <b>Week 1</b> of the 6-week progression, and the loads for today onward reset to Week 1 values.</p>
+    <p class="dim">Everything you've already logged is kept — past sessions, morning checks, matches, jogs and WBLT measurements are untouched, and they keep the week they were actually trained in.</p>
+    <div class="yn">
+      <button class="primary" onclick="doRestart()">Restart at Week 1</button>
+      <button class="ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+function doRestart(){
+  closeModal();
+  setWeekManually(1);
+  toast("Progression restarted — this week is Week 1 ✓");
 }
 
 /* ===================== loads and locks =====================
@@ -1343,6 +1365,8 @@ function progHTML(){
       <p class="faint">Override the current week:</p>
       <div class="row">${[1,2,3,4,5,6].map(w=>
         `<button class="small ${w===week?"primary":""}" onclick="setWeekManually(${w})">${w}</button>`).join("")}</div>
+      <button class="ghost big-btn" onclick="restartProgression()">↺ Restart the 6-week progression at Week 1</button>
+      <p class="faint" style="margin-top:6px;">Sets this week to Week 1 and keeps everything you've logged.</p>
     </div>
     ${lockCards}
     <div class="card">

@@ -35,12 +35,14 @@ button:disabled{opacity:.4;}
 input,select,textarea{font:inherit; background:var(--panel2); color:var(--text);
   border:1px solid var(--line); border-radius:10px; padding:12px; min-height:52px; width:100%;}
 input[type=number]{font-size:1.3rem; text-align:center; font-variant-numeric:tabular-nums;}
+input[type=time]{font-size:1.1rem; text-align:center;}
 textarea{min-height:80px;}
 label{display:block; font-size:.9rem; color:var(--dim); margin:10px 0 4px;}
 .wrap{max-width:640px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) 14px 8px;}
 .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
   padding:16px; margin-bottom:12px;}
 .card.accent{border-color:var(--accent-dim);}
+.card.muted{opacity:.55;}
 .banner{border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; font-size:.95rem;
   display:flex; gap:10px; align-items:flex-start;}
 .banner.amber{background:#2b230d; border:1px solid #5c4a17; color:#ecd390;}
@@ -53,20 +55,55 @@ label{display:block; font-size:.9rem; color:var(--dim); margin:10px 0 4px;}
   border-radius:999px; padding:3px 12px; font-size:.85rem; color:var(--dim);}
 .chip.green{color:var(--accent); border-color:var(--accent-dim);}
 .chip.red{color:var(--red); border-color:#6b2a25;}
+.chip.amber{color:var(--amber); border-color:#5c4a17;}
+.chip.blue{color:var(--blue); border-color:#1f3f6b;}
 .dim{color:var(--dim);} .faint{color:var(--faint); font-size:.85rem;}
 .big-btn{width:100%; margin-top:10px;}
 .nav{position:fixed; bottom:0; left:0; right:0; background:rgba(13,17,23,.96);
   border-top:1px solid var(--line); display:flex; z-index:50;
   padding-bottom:env(safe-area-inset-bottom); backdrop-filter:blur(8px);}
 .nav button{flex:1; background:none; border-radius:0; min-height:64px; color:var(--faint);
-  font-size:.85rem; display:flex; flex-direction:column; gap:2px; align-items:center; justify-content:center;}
-.nav button .ico{font-size:1.4rem;}
+  font-size:.8rem; display:flex; flex-direction:column; gap:2px; align-items:center; justify-content:center;}
+.nav button .ico{font-size:1.35rem;}
 .nav button.active{color:var(--accent);}
 table{width:100%; border-collapse:collapse; font-size:.92rem; margin:8px 0;}
 th,td{text-align:left; padding:7px 8px; border-bottom:1px solid var(--line);}
 th{color:var(--dim); font-weight:600; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em;}
 td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .tablewrap{overflow-x:auto;}
+/* ===== set entry ===== */
+.setblock{border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin:10px 0;
+  background:var(--panel2);}
+.setblock.done{background:transparent; border-style:dashed; padding:10px 14px;}
+.setblock.pending{opacity:.45;}
+.setblock.blocked{opacity:.35;}
+.set-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;}
+.set-head>.chip{flex-shrink:0; align-self:center;}
+.set-head>h2{flex:1 1 60%; min-width:0;}
+.set-title{font-weight:700; font-size:1.05rem;}
+.entrygrid{display:grid; grid-template-columns:92px 1fr; gap:10px; margin-top:10px; align-items:end;}
+.entrygrid label{margin-top:0; white-space:nowrap;}
+.loadtable th,.loadtable td{padding:6px 4px; font-size:.88rem;}
+.gate{display:flex; gap:10px; margin:12px 0 4px;}
+.gate button{flex:1; min-height:66px; font-size:1rem; font-weight:700; line-height:1.2;
+  border:2px solid var(--line); background:var(--panel);}
+.gate button.selpass{background:var(--accent); color:#06170f; border-color:var(--accent);}
+.gate button.selfail{background:var(--red); color:#1a0605; border-color:var(--red);}
+.rirrow{display:flex; gap:8px; margin-top:4px;}
+.rirrow button{flex:1; min-height:54px; font-weight:700; border:1px solid var(--line);}
+.rirrow button.sel{background:var(--blue); color:#04121f; border-color:var(--blue);}
+.rirrow button.target{border-color:var(--blue);}
+.loadbig{font-size:1.9rem; font-weight:800; color:var(--accent); line-height:1.1;}
+/* ===== week view ===== */
+.weekrow{display:flex; gap:10px; align-items:center; padding:11px 8px;
+  border-bottom:1px solid var(--line);}
+.weekrow.today{background:#12241c; border-radius:10px; border-bottom-color:transparent;}
+.weekrow .wd{width:42px; flex-shrink:0; font-weight:700; font-size:.95rem;}
+.weekrow .wd small{display:block; color:var(--faint); font-weight:400; font-size:.75rem;}
+.weekrow .wbody{flex:1; min-width:0; font-size:.92rem;}
+.weekrow .wstat{display:flex; gap:4px; flex-shrink:0; font-size:1rem;}
+.dot{width:9px; height:9px; border-radius:50%; display:inline-block; background:var(--line);}
+.dot.on{background:var(--accent);} .dot.miss{background:#3a2320;}
 /* ===== session screen ===== */
 #session{position:fixed; inset:0; background:var(--bg); z-index:100; overflow-y:auto;
   display:none; padding-bottom:env(safe-area-inset-bottom);}
@@ -93,31 +130,34 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .controls{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-top:12px;}
 .controls button{min-height:62px; font-size:1rem; font-weight:600;}
 .controls .pausebtn{background:var(--accent); color:#06170f;}
-.setform .row{margin:8px 0;}
 .yn{display:flex; gap:12px; margin-top:12px;}
 .yn button{flex:1; min-height:70px; font-size:1.2rem; font-weight:700;}
 svg.chart{width:100%; height:auto; display:block;}
 .modal-back{position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200;
-  display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:center; justify-content:center; overflow-y:auto;
   padding:calc(18px + env(safe-area-inset-top)) 18px 18px;}
-.daychips{display:flex; gap:6px; margin:10px 0 14px; overflow-x:auto; padding-bottom:4px;}
-.daychips button{min-height:60px; min-width:64px; flex:1; padding:6px 4px; font-size:.85rem;
-  display:flex; flex-direction:column; align-items:center; gap:2px; border:1px solid var(--line);}
-.daychips button b{font-size:1.05rem;}
-.daychips button.sel{background:var(--accent); color:#06170f; border-color:var(--accent);}
-.daychips button .todaydot{width:5px; height:5px; border-radius:50%; background:var(--amber);}
+.modal{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:20px; max-width:440px; width:100%;}
+.scorebtns{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
+.scorebtns button{min-height:64px; text-align:left; font-weight:600;}
+.scorebtns button b{display:block; font-size:1.05rem;}
+.scorebtns button span{color:var(--dim); font-size:.85rem; font-weight:400;}
 .steplist{max-height:62vh; overflow-y:auto; margin:8px 0;}
 .steplist .sl-row{padding:10px 6px; border-bottom:1px solid var(--line); font-size:.95rem;}
 .steplist .sl-row.cur{color:var(--accent); font-weight:700;}
 .steplist .sl-row.done{color:var(--faint);}
 .steplist h3{margin:12px 0 4px; color:var(--blue);}
-.modal{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-  padding:20px; max-width:440px; width:100%;}
 .done-check{color:var(--accent); font-weight:700;}
 ul.tight{margin:6px 0; padding-left:20px;}
 ul.tight li{margin:4px 0;}
 .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .statbig{font-size:2.2rem; font-weight:800; color:var(--accent); line-height:1;}
+.checkrow{display:flex; align-items:center; gap:12px; padding:12px 4px; border-top:1px solid var(--line);}
+.checkrow .cbox{width:34px; height:34px; border-radius:9px; border:2px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;}
+.checkrow .cbox.on{background:var(--accent); border-color:var(--accent); color:#06170f;}
+.checkrow button{background:none; padding:0; min-height:44px; flex:1; text-align:left;
+  display:flex; align-items:center; gap:12px;}
 </style>
 </head>
 <body>
@@ -125,79 +165,91 @@ ul.tight li{margin:4px 0;}
 <div id="session"></div>
 <div id="modalhost"></div>
 <nav class="nav" id="nav">
-  <button data-v="home"><span class="ico">🏠</span>Home</button>
-  <button data-v="plan"><span class="ico">📅</span>Plan</button>
-  <button data-v="progress"><span class="ico">📈</span>Progress</button>
+  <button data-v="today"><span class="ico">🏋️</span>Today</button>
+  <button data-v="week"><span class="ico">📅</span>Week</button>
+  <button data-v="prog"><span class="ico">📈</span>Progression</button>
   <button data-v="data"><span class="ico">💾</span>Data</button>
 </nav>
 
 <script>
 "use strict";
 /* =====================================================================
-   Kinetic Chain Performance Program v2 — embedded as data.
-   Source of truth: kinetic-chain-program-v2.md
+   Workout Tracker — Spec v3: Daily Single-Movement Rotation
+   Supersedes the twice-weekly session model of v2.
+   Mobility block and monitoring rules carry over from
+   kinetic-chain-program-v2.md unchanged.
    ===================================================================== */
+
+const MOVEMENTS = {
+  bss: {
+    id:"bss", name:"Bulgarian split squat", short:"BSS",
+    reps:8, perSide:true, unit:"lbs/hand",
+    tempo:"3 sec down · 1 sec pause · 2 sec up",
+    cue:"Rear foot on bench. Front shin near vertical. Knee tracks over second toe.",
+    loads:{ 100:[10,10,15,15,20,25], 85:[5,5,10,10,15,15] },
+    labels:{
+      100:["10 lbs/hand","10 lbs/hand","15 lbs/hand","15 lbs/hand","20 lbs/hand","25 lbs/hand"],
+      85:["Bodyweight or 5 lbs/hand","Bodyweight or 5 lbs/hand","10 lbs/hand","10 lbs/hand","15 lbs/hand","15 lbs/hand"]
+    }
+  },
+  sl_rdl: {
+    id:"sl_rdl", name:"Single-leg RDL (B-stance)", short:"SL RDL",
+    reps:8, perSide:true, unit:"lbs",
+    tempo:"3 sec down · 1 sec pause · 2 sec up",
+    cue:"B-stance: rear toes lightly down for balance, weight through the front leg. Dumbbell in the hand opposite the working leg. Hinge at the hip.",
+    loads:{ 100:[15,15,20,20,25,25], 85:[10,10,15,15,20,20] },
+    labels:null
+  },
+  step_down: {
+    id:"step_down", name:"Eccentric step-down", short:"Step-down",
+    reps:8, perSide:true, unit:"lbs at chest",
+    tempo:"4 sec lower · tap heel · 2 sec up",
+    cue:"Stand on bench. Knee tracks over second toe, no medial collapse. Film from the front periodically.",
+    loads:{ 100:[0,0,10,10,15,15], 85:[0,0,0,0,10,10] },
+    labels:{
+      100:["Bodyweight","Bodyweight","10 lbs at chest","10 lbs at chest","15 lbs at chest","15 lbs at chest"],
+      85:["Bodyweight","Bodyweight","Bodyweight","Bodyweight","10 lbs at chest","10 lbs at chest"]
+    }
+  }
+};
+
 const PROGRAM = {
-  title: "Kinetic Chain Performance Program v2",
+  title: "Kinetic Chain Performance Program",
+  specVersion: 3,
   weeks: 6,
-  // 0=Sunday ... 6=Saturday
-  weeklyTemplate: [
-    { type:"match",             label:"Match day",              note:"Match ~90 min + post-match mobility. Do the mobility block earlier in the day as your pre-match warm-up." },
-    { type:"recovery",          label:"Recovery",               note:"Recovery + daily mobility block (15–18 min). Foam roll and massage gun are optional add-ons." },
-    { type:"strength_moderate", label:"Strength (moderate)",    note:"~85% of Friday loads. Precedes Wednesday fixture. ~45 min + mobility block." },
-    { type:"match",             label:"Match day",              note:"Match ~40 min + post-match mobility. Do the mobility block earlier in the day as your pre-match warm-up." },
-    { type:"recovery",          label:"Recovery",               note:"Recovery + daily mobility block (15–18 min). Foam roll and massage gun are optional add-ons." },
-    { type:"strength_primary",  label:"Strength (primary)",     note:"Full loads. 48 hr buffer from both matches. ~45 min + mobility block." },
-    { type:"jog",               label:"Easy jog",               note:"25 min jog (hard cap 30). Zone 1–2, strictly conversational pace, flat route. Mobility block after the jog." }
+  rirStandard: 2,
+  rirPostMatch: 3,
+  postMatchWindowMin: 90,
+  setRest: 90,
+  // Fixed weekly rotation. Index 0 = Sunday ... 6 = Saturday.
+  rotation: [
+    { day:0, type:"match_post", label:"Match + post-match lift", loadPct:100,
+      movements:[{ id:"sl_rdl", sets:3 }], est:"~6 min", match:true },
+    { day:1, type:"recovery", label:"Recovery", loadPct:null,
+      movements:[], est:"mobility block only" },
+    { day:2, type:"strength", label:"Strength", loadPct:100,
+      movements:[{ id:"bss", sets:3 }, { id:"step_down", sets:2 }], est:"~12 min" },
+    { day:3, type:"match_post", label:"Match + post-match lift", loadPct:85,
+      movements:[{ id:"sl_rdl", sets:3 }], est:"~6 min", match:true },
+    { day:4, type:"recovery", label:"Recovery", loadPct:null,
+      movements:[], est:"mobility block only" },
+    { day:5, type:"strength", label:"Strength", loadPct:100,
+      movements:[{ id:"step_down", sets:3 }], est:"~6 min" },
+    { day:6, type:"strength", label:"Strength + jog", loadPct:85,
+      movements:[{ id:"bss", sets:3 }], est:"~6 min", jog:true }
   ],
   jogRules: [
     "Strictly conversational pace. If full sentences are hard, slow down.",
     "Hard cap at 30 minutes. Aerobic maintenance only — matches provide intensity.",
     "If legs feel heavy Sunday morning or match performance dips, trim to 20 min or move the jog to Monday and make Saturday full rest."
   ],
-  strength: {
-    setRest: 90, blockRest: 120,
-    blocks: [
-      { id:"A", name:"Block A — Single-Leg Strength", exercises: [
-        { id:"bss", name:"Bulgarian split squat", sets:3, reps:8, repsLabel:"3 × 8/side",
-          tempo:"3 sec down · 1 sec pause · 2 sec up",
-          cue:"Rear foot on bench. Front shin near vertical. Knee tracks over second toe.",
-          equipment:"Bench, dumbbells", unit:"lbs/hand",
-          fri:[10,10,15,15,20,25], tue:[5,5,10,10,15,15],
-          friLabel:["10 lbs/hand","10 lbs/hand","15 lbs/hand","15 lbs/hand","20 lbs/hand (20–25 range)","25 lbs/hand (20–25 range)"],
-          tueLabel:["BW or 5 lbs/hand","BW or 5 lbs/hand","10 lbs/hand","10 lbs/hand","15 lbs/hand","15 lbs/hand"] },
-        { id:"slrdl", name:"Single-leg RDL", sets:3, reps:8, repsLabel:"3 × 8/side",
-          tempo:"3 sec down · 1 sec pause · 2 sec up",
-          cue:"Dumbbell in hand opposite stance leg. Hinge at hip, free leg extends behind.",
-          equipment:"Dumbbell", unit:"lbs",
-          fri:[15,15,20,20,25,25], tue:[10,10,15,15,20,20] },
-        { id:"stepdown", name:"Eccentric step-down", sets:3, reps:8, repsLabel:"3 × 8/side",
-          tempo:"4 sec lower · tap heel · 2 sec up",
-          cue:"Stand on bench. Knee tracks over second toe, no medial collapse. Film from front periodically.",
-          equipment:"Bench, dumbbell when loaded", unit:"lbs at chest",
-          fri:[0,0,10,10,15,15], tue:[0,0,0,0,10,10],
-          friLabel:["Bodyweight","Bodyweight","10 lbs at chest","10 lbs at chest","15 lbs at chest","15 lbs at chest"],
-          tueLabel:["Bodyweight","Bodyweight","Bodyweight","Bodyweight","10 lbs at chest","10 lbs at chest"] }
-      ]},
-      { id:"B", name:"Block B — Core Anti-Extension", exercises: [
-        { id:"deadbug", name:"Dead bugs", sets:3, reps:8, repsLabel:"3 × 8/side",
-          tempo:"2 sec extend · 2 sec return",
-          cue:"Low back flat to floor throughout.",
-          equipment:"Yoga mat, band", unit:"", fri:[0,0,0,0,0,0], tue:[0,0,0,0,0,0],
-          friLabel:["Unbanded","Unbanded","Banded","Banded","Banded","Banded"],
-          tueLabel:["Unbanded","Unbanded","Banded","Banded","Banded","Banded"] },
-        { id:"plank", name:"Plank with PPT", sets:3, timed:[40,40,45,45,45,45], repsLabel:"3 × timed hold",
-          tempo:"Isometric",
-          cue:"Squeeze glutes, tuck tailbone, hold posterior pelvic tilt.",
-          equipment:"Yoga mat", unit:"sec" },
-        { id:"pullover", name:"DB pullover", sets:3, reps:10, repsLabel:"3 × 10",
-          tempo:"3 sec lower · 1 sec pause · 2 sec return",
-          cue:"Stop the moment the low back wants to arch.",
-          equipment:"Bench, dumbbell", unit:"lbs",
-          fri:[15,15,20,20,20,20], tue:[15,15,15,15,15,15] } // Tue = ~85% of Fri, rounded to 5 lb
-      ]}
-    ]
-  },
+  symptomScale: [
+    { score:0, label:"No change", note:"Same as any other morning." },
+    { score:1, label:"Mild increase", note:"Noticeable, settles as you move." },
+    { score:2, label:"Moderate increase", note:"Present through the morning." },
+    { score:3, label:"Significant increase", note:"Limiting how you move." }
+  ],
+  // Daily mobility block — unchanged from v2. Runs every day including recovery days.
   mobility: {
     sectionRest: 60, transitionSame: 5, transitionNew: 10,
     sections: [
@@ -207,7 +259,7 @@ const PROGRAM = {
         { name:"Banded talocrural mobilization", sets:2, perSide:true, manual:true, reps:10, rx:"2 × 10 reps/side", cue:"Band at ankle crease pulling posteriorly, heel stays down." },
         { name:"Eccentric calf raises", sets:2, perSide:true, manual:true, reps:15, rx:"2 × 15/side · rise 2 sec on both feet, lower 3 sec on one leg", cue:"Use a stair edge for full range." }
       ]},
-      { name:"Section 1b · Right MTP Mobilization", noRestBefore:true, items:[
+      { name:"Section 1b · Right MTP Mobilization", mtp:true, noRestBefore:true, items:[
         { name:"Passive MTP mobilization (right)", sets:2, perSide:false, manual:true, reps:12, rx:"2 × 10–15 reps · 3–4 sec hold at end range", cue:"Stabilize the metatarsal head with the opposite hand, push the toe straight upward — not laterally." },
         { name:"Toe extension stretch (right)", sets:3, perSide:false, dur:30, rx:"3 × 30 sec", cue:"Sustained hold at end range." }
       ]},
@@ -225,7 +277,7 @@ const PROGRAM = {
       ]}
     ]
   },
-  postMatch: {
+  postMatchMobility: {
     name:"Post-Match Mobility (~10 min)",
     items:[
       { name:"Half-kneeling hip flexor stretch with PPT", sets:2, perSide:true, dur:30, rx:"2 × 30 sec/side", cue:"Squeeze rear glute, tuck tailbone, lean forward." },
@@ -242,13 +294,50 @@ const PROGRAM = {
     "Massage gun general lower body"
   ],
   rules: {
-    form: "Form rule: front knee tracks over the second toe on Bulgarian split squats and step-downs with no medial collapse. If the knee caves, hold the current load until it tracks clean.",
-    symptom: "Symptom rule: no next-morning increase in knee symptoms after any session or match. If symptoms increase, repeat the current week's loads instead of advancing.",
+    kneeGate: "Every set logs knee tracking over the second toe. A failed set ends that exercise for the day and the failure is recorded against the load.",
+    symptom: "Next-morning symptom check, scored and attributed to the prior day's activity. Two consecutive failed checks attributed to the same movement lock that movement's load.",
     behavioral: "Ongoing cue: deliberate big-toe push-off during walking and running, both sides. Right side needs conscious cueing due to MTP stiffness. Metatarsal pad soreness under appropriate load is expected adaptation, not a red flag."
   },
   wblt: "Monthly WBLT spot check: feet straight on tile grout lines, knee to wall, heel flat, measure to 0.25 inch. If left falls more than 0.5 inch behind right, restore daily left-side ankle bias (3 sets left daily, right 3×/week).",
   redFlags: "Stop and get evaluated for: joint effusion or swelling, night pain, locking, catching, giving way, focal joint-line tenderness, or symptoms worsening session over session."
 };
+
+/* ===================== date helpers ===================== */
+function localISO(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+function todayStr(){ return localISO(new Date()); }
+function dowOf(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d).getDay(); }
+function mondayStr(d){
+  const c = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  c.setDate(c.getDate() - ((c.getDay()+6)%7));
+  return localISO(c);
+}
+function mondayOf(iso){ const [y,m,d]=iso.split("-").map(Number); return mondayStr(new Date(y,m-1,d)); }
+function addDays(iso, n){
+  const [y,m,d] = iso.split("-").map(Number);
+  return localISO(new Date(y, m-1, d+n));
+}
+function fmtDate(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:"short", month:"short", day:"numeric"});
+}
+function fmtShort(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString(undefined,{month:"short", day:"numeric"});
+}
+function daysBetween(a,b){
+  const [ay,am,ad]=a.split("-").map(Number), [by,bm,bd]=b.split("-").map(Number);
+  return Math.round((new Date(by,bm-1,bd) - new Date(ay,am-1,ad)) / 86400000);
+}
+function fmtTime(ts){
+  if (!ts) return "—";
+  return new Date(ts).toLocaleTimeString(undefined,{hour:"numeric", minute:"2-digit"});
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function clampWeek(w){ return Math.min(Math.max(w||1,1), PROGRAM.weeks); }
 
 /* ===================== state ===================== */
 const LS_KEY = "kct_v1";
@@ -256,91 +345,171 @@ let state = null;
 
 function defaultState(){
   return {
-    v: 1,
+    v: 3,
     firstSeen: todayStr(),
-    program: { week: 1, weekStart: mondayStr(new Date()), locked: false, notice: null },
-    logs: [],               // all history: mobility / strength / match / jog / wblt / symptom / postmatch
-    pendingSymptom: [],     // [{date, source}] — asked the next time the app opens on a later day
+    program: { week: 1, weekStart: mondayStr(new Date()), notice: null },
+    days: {},            // keyed by YYYY-MM-DD
+    symptomChecks: [],   // {date, score, attribution, movements[], week, forDate}
+    logs: [],            // WBLT entries + preserved v2 history
     lastExport: null,
     activeSession: null,
     settings: { sound: true, vibrate: true }
   };
+}
+function blankDay(date){
+  const rot = rotationFor(date);
+  return {
+    date,
+    type: rot.type,
+    movements: rot.movements.map(m=>m.id),
+    movement: rot.movements.length ? rot.movements[0].id : null, // spec-compat single field
+    loadPct: rot.loadPct,
+    week: null,
+    work: {},            // {movementId: {sets:[...], failed:bool}}
+    sets: [],            // spec-compat flattened mirror
+    matchEndTime: null,
+    matchLogged: false,
+    mobilityComplete: false,
+    mtpComplete: false,
+    jog: null
+  };
+}
+function rotationFor(dateOrDow){
+  const dow = typeof dateOrDow === "number" ? dateOrDow : dowOf(dateOrDow);
+  return PROGRAM.rotation[dow];
+}
+function getDay(date, create){
+  let d = state.days[date];
+  if (!d){
+    if (!create) return null;
+    d = state.days[date] = blankDay(date);
+  }
+  if (d.week == null) d.week = programWeekFor(date);
+  return d;
+}
+function dayOrBlank(date){ return state.days[date] || blankDay(date); }
+
+/* migrate a v2 (session-model) save into the v3 day model, losing nothing */
+function migrate(old){
+  if (!old || old.v >= 3) return old;
+  const out = defaultState();
+  out.firstSeen = old.firstSeen || todayStr();
+  out.program = { week: (old.program && old.program.week) || 1,
+                  weekStart: (old.program && old.program.weekStart) || mondayStr(new Date()),
+                  notice: null };
+  out.lastExport = old.lastExport || null;
+  out.settings = old.settings || { sound:true, vibrate:true };
+  out.migratedFromV2 = true;
+  (old.logs || []).forEach(l=>{
+    const touch = () => {
+      if (!out.days[l.date]) out.days[l.date] = blankDay(l.date);
+      return out.days[l.date];
+    };
+    if (l.type === "mobility"){
+      const d = touch(); d.mobilityComplete = true; d.mtpComplete = true;
+      if (l.repWork) d.repWork = l.repWork;
+    } else if (l.type === "postmatch"){
+      touch().postMatchMobility = true;
+    } else if (l.type === "match"){
+      const d = touch();
+      d.matchLogged = true; d.matchMinutes = l.minutes;
+      d.matchNote = l.note; d.matchSymptoms = l.symptoms;
+    } else if (l.type === "jog"){
+      touch().jog = { minutes: l.minutes, conversational: l.conversational };
+    } else if (l.type === "symptom"){
+      out.symptomChecks.push({ date: l.date, score: l.increased ? 2 : 0,
+        attribution: "lift", movements: [], week: out.program.week,
+        forDate: l.forDate || addDays(l.date,-1), legacy: true });
+    } else {
+      out.logs.push(l); // WBLT + v2 strength sessions, kept for history and export
+    }
+  });
+  return out;
 }
 function load(){
   try {
     const raw = localStorage.getItem(LS_KEY);
     state = raw ? JSON.parse(raw) : defaultState();
   } catch(e){ state = defaultState(); }
-  if (!state.program) state = defaultState();
+  state = migrate(state);
+  if (!state || !state.program) state = defaultState();
+  if (!state.days) state.days = {};
+  if (!state.symptomChecks) state.symptomChecks = [];
+  if (!state.logs) state.logs = [];
 }
 let saveTimer = null;
 function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); }
 
-/* ===================== date helpers ===================== */
-function localISO(d){ // YYYY-MM-DD in local time
-  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${dd}`;
-}
-function todayStr(){ return localISO(new Date()); }
-function mondayStr(d){
-  const c = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  c.setDate(c.getDate() - ((c.getDay()+6)%7));
-  return localISO(c);
-}
-function addDays(iso, n){
-  const [y,m,d] = iso.split("-").map(Number);
-  const c = new Date(y, m-1, d+n);
-  return localISO(c);
-}
-function fmtDate(iso){
-  const [y,m,d] = iso.split("-").map(Number);
-  return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:"short", month:"short", day:"numeric"});
-}
-function daysBetween(a,b){ // b - a in whole days
-  const [ay,am,ad]=a.split("-").map(Number), [by,bm,bd]=b.split("-").map(Number);
-  return Math.round((new Date(by,bm-1,bd) - new Date(ay,am-1,ad)) / 86400000);
-}
-function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-function round5(x){ return Math.round(x/5)*5; }
-function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-
-/* ===================== program week rollover ===================== */
+/* ===================== program week ===================== */
 function rolloverWeek(){
   const p = state.program;
   const nowMon = mondayStr(new Date());
   let guard = 0;
   while (daysBetween(p.weekStart, nowMon) >= 7 && guard++ < 400){
     p.weekStart = addDays(p.weekStart, 7);
-    if (p.locked){
-      p.locked = false;
-      p.notice = `Repeating Week ${p.week} loads this week — you reported a next-morning increase in knee symptoms, so per the program's symptom rule the load progression is held for one week instead of advancing.`;
-    } else if (p.week < PROGRAM.weeks){
-      p.week++;
-      p.notice = null;
-    } else {
-      p.notice = "You've finished the 6-week progression. Staying on Week 6 loads — export your data and review the program.";
-    }
+    if (p.week < PROGRAM.weeks) p.week++;
+    else p.notice = "You've finished the 6-week progression. Holding at Week 6 loads — export your data for a program review.";
   }
   saveSoon();
+}
+function programWeekFor(date){
+  const diff = daysBetween(state.program.weekStart, mondayOf(date));
+  return clampWeek(state.program.week + Math.round(diff/7));
 }
 function setWeekManually(w){
   state.program.week = w;
   state.program.weekStart = mondayStr(new Date());
-  state.program.locked = false;
   state.program.notice = null;
   save(); render();
 }
 
-/* ===================== loads ===================== */
-function loadFor(ex, variant, week){ // variant: 'tue' | 'fri'
-  const i = Math.min(Math.max(week,1), 6) - 1;
-  if (ex.timed) return { num: ex.timed[i], label: `${ex.timed[i]} sec hold`, timed: true };
-  const arr = variant === "tue" ? ex.tue : ex.fri;
-  const labels = variant === "tue" ? ex.tueLabel : ex.friLabel;
-  const num = arr ? arr[i] : 0;
-  const label = labels ? labels[i] : (num ? `${num} ${ex.unit}` : "Bodyweight");
-  return { num, label, timed: false };
+/* ===================== loads and locks =====================
+   Two consecutive failed symptom checks attributed to the same movement lock
+   that movement's load. Match-day (Wed/Sun) failures lock the match-day sets;
+   standard-day loads only lock after standard-day failures. */
+function computeLocks(){
+  const locks = {};
+  Object.keys(MOVEMENTS).forEach(mid=>{
+    const checks = state.symptomChecks
+      .filter(c => (c.movements||[]).includes(mid))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    if (checks.length < 2) return;
+    const last2 = checks.slice(-2);
+    if (!last2.every(c => c.score > 0)) return;
+    const cats = last2.map(c => String(c.attribution||"").indexOf("match") >= 0 ? "match" : "standard");
+    locks[mid] = {
+      category: cats.includes("match") ? "match" : "standard",
+      week: clampWeek(Math.min(last2[0].week || 1, last2[1].week || 1)),
+      dates: last2.map(c=>c.date)
+    };
+  });
+  return locks;
+}
+function categoryOf(dayType){ return dayType === "match_post" ? "match" : "standard"; }
+
+function loadFor(mid, loadPct, week, dayType){
+  const m = MOVEMENTS[mid];
+  const lock = computeLocks()[mid];
+  let effWeek = clampWeek(week), locked = false;
+  if (lock && lock.category === categoryOf(dayType) && lock.week < effWeek){
+    effWeek = lock.week; locked = true;
+  }
+  const i = effWeek - 1;
+  const num = m.loads[loadPct][i];
+  const label = m.labels ? m.labels[loadPct][i] : (num ? `${num} ${m.unit}` : "Bodyweight");
+  return { num, label, locked, lockWeek: locked ? effWeek : null, unit:m.unit };
+}
+function rirTargetFor(dayType){
+  return dayType === "match_post" ? PROGRAM.rirPostMatch : PROGRAM.rirStandard;
+}
+function kneeFailCount(mid){
+  let n = 0;
+  Object.values(state.days).forEach(d=>{
+    const w = d.work && d.work[mid];
+    if (w) n += (w.sets||[]).filter(s=>s.kneeTrackingPass === false).length;
+  });
+  return n;
 }
 
 /* ===================== audio + vibration + wake lock ===================== */
@@ -381,8 +550,7 @@ document.addEventListener("visibilitychange", ()=>{
   if (document.visibilityState === "visible" && state && state.activeSession) grabWakeLock();
 });
 
-/* ===================== mobility step builder =====================
-   Builds a flat list of steps: exercise steps + auto transitions + section rests. */
+/* ===================== mobility flow (unchanged from v2) ===================== */
 function buildFlow(sections, sectionRestSec){
   const steps = [];
   sections.forEach((sec, si)=>{
@@ -398,16 +566,13 @@ function buildFlow(sections, sectionRestSec){
           if (side) label += " — " + side;
           steps.push({
             type:"ex", name:label, base:item.name, cue:item.cue, rx:item.rx,
-            dur:item.dur, manual:!!item.manual, reps:item.reps,
+            dur:item.dur, manual:!!item.manual, reps:item.reps, mtp:!!sec.mtp,
             section:sec.name, side, set:s, sets:item.sets
           });
         });
       }
     });
   });
-  // Weave in transition buffers. Rep-based (manual) steps wait for a tap,
-  // so they never need a lead-in; timed steps get 5 sec for a side switch /
-  // next set of the same exercise, 10 sec when moving to a new exercise.
   const out = [];
   for (let i=0; i<steps.length; i++){
     const cur = steps[i], prev = out.length ? out[out.length-1] : null;
@@ -423,54 +588,25 @@ function buildFlow(sections, sectionRestSec){
   return out;
 }
 function mobilitySteps(){ return buildFlow(PROGRAM.mobility.sections, PROGRAM.mobility.sectionRest); }
-function postMatchSteps(){ return buildFlow([{name:PROGRAM.postMatch.name, items:PROGRAM.postMatch.items}], 60); }
+function postMatchSteps(){ return buildFlow([{name:PROGRAM.postMatchMobility.name, items:PROGRAM.postMatchMobility.items}], 60); }
 
 /* ===================== session engine ===================== */
-let tickHandle = null;
-let lastWarnSec = null;
-let lastPersist = 0;
-
+let tickHandle = null, lastWarnSec = null, lastPersist = 0;
 function S(){ return state.activeSession; }
 
-function startMobility(kind, thenStrength){ // kind: 'mobility' | 'postmatch'
+function startMobility(kind){ // 'mobility' | 'postmatch'
   ensureAudio();
   state.activeSession = {
     id: uid(), kind, date: todayStr(), startedAt: Date.now(),
     steps: kind === "postmatch" ? postMatchSteps() : mobilitySteps(),
-    idx: 0, thenStrength: thenStrength || null, // 'tue' | 'fri' | null
-    timer: null, stage: "flow"
+    idx: 0, timer: null, stage:"flow", repEntries: []
   };
-  armStep();
-  grabWakeLock(); openSession(); startTick(); save();
+  armStep(); grabWakeLock(); openSession(); startTick(); save();
 }
-
-function startStrength(variant){ // 'tue' | 'fri'
-  ensureAudio();
-  const didMobilityToday = state.logs.some(l=>l.type==="mobility" && l.date===todayStr());
-  if (!didMobilityToday){
-    showModal(`<h2>Warm up first?</h2>
-      <p class="dim">The program runs the daily mobility block as the warm-up before lifting. You haven't logged it today.</p>
-      <div class="yn">
-        <button class="primary" onclick="closeModal(); startMobility('mobility','${variant}')">Warm-up,<br>then lift</button>
-        <button onclick="closeModal(); beginLift('${variant}')">Straight to lifting</button>
-      </div>`);
-    return;
-  }
-  beginLift(variant);
-}
-function beginLift(variant){
-  ensureAudio();
-  state.activeSession = {
-    id: uid(), kind: "strength", variant, date: todayStr(), startedAt: Date.now(),
-    stage: "lift", lift: { b:0, e:0, set:1, phase:"work", entries: [] }, timer: null
-  };
-  grabWakeLock(); openSession(); startTick(); save();
-}
-
 function armStep(){
   const s = S(); const st = s.steps[s.idx];
-  if (st.manual) s.timer = null; // rep-based: waits for the user to log the set
-  else s.timer = { endsAt: Date.now() + st.dur*1000, total: st.dur, paused: false, remaining: null };
+  if (st.manual) s.timer = null;
+  else s.timer = { endsAt: Date.now() + st.dur*1000, total: st.dur, paused:false, remaining:null };
   lastWarnSec = null;
 }
 function logMobilitySet(){
@@ -478,29 +614,18 @@ function logMobilitySet(){
   const el = document.getElementById("in-mreps");
   const reps = el ? (parseInt(el.value) || 0) : (st.reps || 0);
   (s.repEntries = s.repEntries || []).push({ name: st.base, side: st.side, set: st.set, reps });
-  ensureAudio(); beep(880, .1); buzz(40);
+  ensureAudio(); beep(880,.1); buzz(40);
   advanceFlow(false);
-}
-function armTimer(sec){
-  const s = S();
-  s.timer = { endsAt: Date.now() + sec*1000, total: sec, paused: false, remaining: null };
-  lastWarnSec = null;
 }
 function timerRemaining(){
   const s = S(); if (!s || !s.timer) return 0;
-  if (s.timer.paused) return s.timer.remaining;
-  return Math.max(0, (s.timer.endsAt - Date.now())/1000);
+  return s.timer.paused ? s.timer.remaining : Math.max(0, (s.timer.endsAt - Date.now())/1000);
 }
 function pauseToggle(){
   const s = S(); if (!s || !s.timer) return;
   ensureAudio();
-  if (s.timer.paused){
-    s.timer.endsAt = Date.now() + s.timer.remaining*1000;
-    s.timer.paused = false;
-  } else {
-    s.timer.remaining = timerRemaining();
-    s.timer.paused = true;
-  }
+  if (s.timer.paused){ s.timer.endsAt = Date.now() + s.timer.remaining*1000; s.timer.paused = false; }
+  else { s.timer.remaining = timerRemaining(); s.timer.paused = true; }
   save(); renderSession();
 }
 function plus15(){
@@ -508,138 +633,52 @@ function plus15(){
   if (s.timer.paused) s.timer.remaining += 15; else s.timer.endsAt += 15000;
   save(); renderSession();
 }
-function skipStep(){
-  const s = S();
-  if (s.stage === "flow") advanceFlow(true);
-  else if (s.lift && s.lift.phase === "rest"){ s.lift.phase = "work"; s.timer = null; save(); renderSession(); }
-  else if (s.lift && s.lift.phase === "hold"){ finishHold(0); }
-}
+function skipStep(){ advanceFlow(true); }
 function backStep(){
-  const s = S(); if (s.stage !== "flow") return;
+  const s = S();
   let i = s.idx - 1;
   while (i >= 0 && s.steps[i].type !== "ex") i--;
-  // if we're partway into a timed step, restart it; otherwise go to the previous exercise
   const cur = s.steps[s.idx];
   const elapsed = (cur && cur.type === "ex" && !cur.manual) ? cur.dur - timerRemaining() : 0;
-  if (elapsed > 4){ armStep(); } // restart current
+  if (elapsed > 4) armStep();
   else if (i >= 0){ s.idx = i; armStep(); }
-  else { armStep(); }
+  else armStep();
   save(); renderSession();
 }
 function advanceFlow(skipped){
   const s = S();
   if (s.idx >= s.steps.length - 1){ finishFlow(); return; }
   s.idx++;
-  // when user taps Skip on an exercise, jump past the following transition too
   if (skipped && s.steps[s.idx] && s.steps[s.idx].type === "trans" && s.idx < s.steps.length-1) s.idx++;
   armStep(); save(); renderSession();
 }
 function finishFlow(){
   const s = S();
-  const dur = Math.round((Date.now() - s.startedAt)/60000);
-  state.logs.push({ id: uid(), type: s.kind === "postmatch" ? "postmatch" : "mobility",
-    date: s.date, minutes: dur, repWork: s.repEntries || [] });
-  if (s.thenStrength){
-    const v = s.thenStrength;
-    state.activeSession = {
-      id: uid(), kind:"strength", variant: v, date: todayStr(), startedAt: Date.now(),
-      stage:"lift", lift:{ b:0, e:0, set:1, phase:"work", entries: [] }, timer:null
-    };
-    cueEnd(); save(); renderSession();
-  } else {
-    cueEnd();
-    state.activeSession = null;
-    dropWakeLock(); stopTick(); save();
-    closeSession(); render();
-    toast("Mobility block complete — logged ✓");
-  }
-}
-
-/* ----- strength lift phase ----- */
-function curExercise(){
-  const L = S().lift;
-  return PROGRAM.strength.blocks[L.b].exercises[L.e];
-}
-function logSet(){
-  const s = S(), L = s.lift, ex = curExercise();
-  const wEl = document.getElementById("in-weight"), rEl = document.getElementById("in-reps");
-  const weight = wEl ? (parseFloat(wEl.value) || 0) : 0;
-  const reps = rEl ? (parseInt(rEl.value) || 0) : 0;
-  L.entries.push({ ex: ex.id, name: ex.name, block: PROGRAM.strength.blocks[L.b].id,
-    set: L.set, weight, reps, unit: ex.unit });
-  afterSet();
-}
-function startHold(){
-  const s = S(), ex = curExercise();
-  ensureAudio();
-  s.lift.phase = "hold";
-  armTimer(loadFor(ex, s.variant, state.program.week).num);
-  save(); renderSession();
-}
-function finishHold(remaining){
-  const s = S(), L = s.lift, ex = curExercise();
-  const target = loadFor(ex, s.variant, state.program.week).num;
-  L.entries.push({ ex: ex.id, name: ex.name, block: PROGRAM.strength.blocks[L.b].id,
-    set: L.set, weight: 0, reps: 0, secs: Math.round(target - (remaining||0)), unit:"sec" });
-  afterSet();
-}
-function afterSet(){
-  const s = S(), L = s.lift;
-  const block = PROGRAM.strength.blocks[L.b];
-  const lastSetOfEx = L.set >= curExercise().sets;
-  const lastEx = L.e >= block.exercises.length - 1;
-  const lastBlock = L.b >= PROGRAM.strength.blocks.length - 1;
-  if (!lastSetOfEx){ L.set++; L.phase = "rest"; armTimer(PROGRAM.strength.setRest); }
-  else if (!lastEx){ L.e++; L.set = 1; L.phase = "rest"; armTimer(PROGRAM.strength.setRest); }
-  else if (!lastBlock){ L.b++; L.e = 0; L.set = 1; L.phase = "rest"; L.blockRest = true; armTimer(PROGRAM.strength.blockRest); }
-  else { L.phase = "form"; s.timer = null; }
-  save(); renderSession();
-}
-function undoSet(){
-  const s = S(), L = s.lift;
-  if (!L.entries.length) return;
-  const last = L.entries.pop();
-  const block = PROGRAM.strength.blocks.find(b=>b.id===last.block);
-  L.b = PROGRAM.strength.blocks.indexOf(block);
-  L.e = block.exercises.findIndex(e=>e.id===last.ex);
-  L.set = last.set; L.phase = "work"; L.blockRest = false; s.timer = null;
-  save(); renderSession();
-}
-function skipExercise(){
-  const s = S(), L = s.lift;
-  const block = PROGRAM.strength.blocks[L.b];
-  if (L.e < block.exercises.length - 1){ L.e++; L.set = 1; }
-  else if (L.b < PROGRAM.strength.blocks.length - 1){ L.b++; L.e = 0; L.set = 1; }
-  else { L.phase = "form"; s.timer = null; save(); renderSession(); return; }
-  L.phase = "work"; s.timer = null;
-  save(); renderSession();
-}
-function answerForm(clean){
-  const s = S();
-  state.logs.push({ id: uid(), type:"strength", date: s.date, variant: s.variant,
-    week: state.program.week, sets: s.lift.entries, formClean: clean });
-  state.pendingSymptom.push({ date: s.date, source: s.variant === "tue" ? "Tuesday strength" : "Friday strength" });
+  recordFlowCompletion(s, true);
+  cueEnd();
   state.activeSession = null;
   dropWakeLock(); stopTick(); save();
   closeSession(); render();
-  toast(clean ? "Session logged ✓ — symptom check-in tomorrow morning"
-              : "Logged. Form rule: hold current loads until the knee tracks clean.");
+  toast(s.kind === "postmatch" ? "Post-match mobility logged ✓" : "Mobility block complete — logged ✓");
+}
+function recordFlowCompletion(s, full){
+  const d = getDay(s.date, true);
+  if (s.kind === "postmatch"){ d.postMatchMobility = true; }
+  else {
+    d.mobilityComplete = true;
+    // MTP is Section 1b of the block; it only counts if those steps were reached
+    const mtpIdx = s.steps.findIndex(st => st.mtp);
+    const lastMtp = s.steps.reduce((acc,st,i)=> st.mtp ? i : acc, -1);
+    if (full || (lastMtp >= 0 && s.idx > lastMtp)) d.mtpComplete = true;
+    d.mobilityMinutes = Math.round((Date.now() - s.startedAt)/60000);
+    if (s.repEntries && s.repEntries.length) d.repWork = s.repEntries;
+  }
 }
 function endSessionEarly(){
-  const s = S();
-  const skipToLift = (s && s.stage === "flow" && s.thenStrength)
-    ? `<button class="primary big-btn" onclick="skipWarmupToLift()">Skip the rest of the warm-up — start lifting</button>` : "";
   showModal(`<h2>End session?</h2>
-    <p class="dim">Progress in this session will not be logged.</p>
-    ${skipToLift}
+    <p class="dim">Nothing from this block will be logged.</p>
     <div class="yn"><button class="warn" onclick="confirmEnd()">End it</button>
     <button onclick="closeModal()">Keep going</button></div>`);
-}
-function skipWarmupToLift(){
-  const s = S(); if (!s || !s.thenStrength) return;
-  const v = s.thenStrength;
-  closeModal();
-  beginLift(v);
 }
 function confirmEnd(){
   closeModal();
@@ -647,34 +686,22 @@ function confirmEnd(){
   dropWakeLock(); stopTick(); save();
   closeSession(); render();
 }
-
-/* ----- tick loop ----- */
-function startTick(){
-  stopTick();
-  tickHandle = setInterval(tick, 250);
-}
+function startTick(){ stopTick(); tickHandle = setInterval(tick, 250); }
 function stopTick(){ if (tickHandle){ clearInterval(tickHandle); tickHandle = null; } }
 function tick(){
   const s = S(); if (!s || !s.timer || s.timer.paused) return;
-  const rem = timerRemaining();
-  const whole = Math.ceil(rem);
+  const rem = timerRemaining(), whole = Math.ceil(rem);
   if (whole !== lastWarnSec && whole <= 3 && whole >= 1){ lastWarnSec = whole; cueWarn(); }
   updateTimeDisplay(rem);
   if (Date.now() - lastPersist > 4000){ lastPersist = Date.now(); save(); }
-  if (rem <= 0){
-    cueEnd();
-    if (s.stage === "flow") advanceFlow(false);
-    else if (s.lift.phase === "rest"){ s.lift.phase = "work"; s.lift.blockRest = false; s.timer = null; save(); renderSession(); }
-    else if (s.lift.phase === "hold"){ finishHold(0); }
-  }
+  if (rem <= 0){ cueEnd(); advanceFlow(false); }
 }
 function updateTimeDisplay(rem){
   const el = document.getElementById("bigtime");
   if (!el) return;
   el.textContent = fmtClock(rem);
   el.classList.toggle("warn3", rem <= 3.5 && rem > 0);
-  const bar = document.getElementById("stepbar");
-  const s = S();
+  const bar = document.getElementById("stepbar"), s = S();
   if (bar && s && s.timer && s.timer.total) bar.style.width = (100 - (rem/s.timer.total)*100) + "%";
 }
 function fmtClock(sec){
@@ -682,62 +709,38 @@ function fmtClock(sec){
   const m = Math.floor(sec/60), s2 = sec % 60;
   return m > 0 ? `${m}:${String(s2).padStart(2,"0")}` : String(s2);
 }
-
-/* ----- resume after refresh ----- */
 function resumeSession(){
   const s = S(); if (!s) return;
   if (s.timer && !s.timer.paused){
-    // catch up steps that elapsed while the page was closed (max 5 min), else pause
     let overdue = (Date.now() - s.timer.endsAt)/1000;
-    if (overdue > 300){
-      s.timer.paused = true;
-      s.timer.remaining = s.timer.total;
-    } else if (overdue > 0){
-      if (s.stage === "flow"){
-        let guard = 0;
-        while (overdue > 0 && s.idx < s.steps.length - 1 && guard++ < 200){
-          s.idx++;
-          const st = s.steps[s.idx];
-          if (st.manual){ s.timer = null; overdue = 0; break; } // rep-based step waits for the user
-          s.timer = { endsAt: s.timer.endsAt + st.dur*1000, total: st.dur, paused: false };
-          overdue = (Date.now() - s.timer.endsAt)/1000;
-        }
-        if (overdue > 0){ finishFlowSilently(); return; }
-      } else if (s.lift && s.lift.phase === "rest"){
-        s.lift.phase = "work"; s.lift.blockRest = false; s.timer = null;
-      } else if (s.lift && s.lift.phase === "hold"){
-        finishHold(0); openSession(); startTick(); return;
+    if (overdue > 300){ s.timer.paused = true; s.timer.remaining = s.timer.total; }
+    else if (overdue > 0){
+      let guard = 0;
+      while (overdue > 0 && s.idx < s.steps.length - 1 && guard++ < 200){
+        s.idx++;
+        const st = s.steps[s.idx];
+        if (st.manual){ s.timer = null; overdue = 0; break; }
+        s.timer = { endsAt: s.timer.endsAt + st.dur*1000, total: st.dur, paused:false };
+        overdue = (Date.now() - s.timer.endsAt)/1000;
+      }
+      if (overdue > 0){
+        recordFlowCompletion(s, true);
+        state.activeSession = null; save(); closeSession(); render(); return;
       }
     }
   }
   grabWakeLock(); openSession(); startTick(); save();
 }
-function finishFlowSilently(){
-  const s = S();
-  state.logs.push({ id: uid(), type: s.kind === "postmatch" ? "postmatch" : "mobility",
-    date: s.date, minutes: Math.round((Date.now()-s.startedAt)/60000), repWork: s.repEntries || [] });
-  if (s.thenStrength){
-    state.activeSession = { id: uid(), kind:"strength", variant: s.thenStrength, date: todayStr(),
-      startedAt: Date.now(), stage:"lift", lift:{ b:0,e:0,set:1,phase:"work",entries:[] }, timer:null };
-    openSession(); startTick(); save();
-  } else {
-    state.activeSession = null; save(); closeSession(); render();
-  }
-}
 
 /* ===================== session rendering ===================== */
 function openSession(){ document.getElementById("session").classList.add("open"); renderSession(); }
 function closeSession(){ document.getElementById("session").classList.remove("open"); }
-
 function renderSession(){
-  const host = document.getElementById("session");
-  const s = S();
+  const host = document.getElementById("session"), s = S();
   if (!s){ closeSession(); return; }
-  if (s.stage === "flow") host.innerHTML = flowHTML(s);
-  else host.innerHTML = liftHTML(s);
+  host.innerHTML = flowHTML(s);
   updateTimeDisplay(timerRemaining());
 }
-
 function flowHTML(s){
   const st = s.steps[s.idx];
   const exSteps = s.steps.filter(x=>x.type==="ex");
@@ -753,8 +756,7 @@ function flowHTML(s){
     title = "Section rest"; rx = "60 seconds"; cue = "Up next: " + (nxt ? nxt.name : "done"); cls = "resting";
   }
   const paused = s.timer && s.timer.paused;
-  const kindLabel = s.kind === "postmatch" ? "Post-match mobility" :
-    (s.thenStrength ? "Warm-up · Mobility block" : "Daily mobility block");
+  const kindLabel = s.kind === "postmatch" ? "Post-match mobility" : "Daily mobility block";
   const isManual = st.type === "ex" && st.manual;
   const middle = isManual
     ? `<div style="margin:20px 0;">
@@ -763,18 +765,16 @@ function flowHTML(s){
         <button class="primary big-btn" onclick="logMobilitySet()">Log set ${st.set}/${st.sets} ✓ — next</button>
       </div>`
     : `<div class="bigtime ${cls}" id="bigtime">--</div>
-      <div class="progressbar"><div id="stepbar"></div></div>`;
+       <div class="progressbar"><div id="stepbar"></div></div>`;
   const controls = isManual
     ? `<div class="controls" style="grid-template-columns:1fr 1fr;">
         <button onclick="backStep()">⏮ Back</button>
-        <button onclick="skipStep()">Skip ⏭</button>
-      </div>`
+        <button onclick="skipStep()">Skip ⏭</button></div>`
     : `<div class="controls">
         <button onclick="backStep()">⏮ Back</button>
         <button class="pausebtn" onclick="pauseToggle()">${paused ? "▶ Resume" : "⏸ Pause"}</button>
         <button onclick="plus15()">+15 s</button>
-        <button onclick="skipStep()">Skip ⏭</button>
-      </div>`;
+        <button onclick="skipStep()">Skip ⏭</button></div>`;
   return `<div class="sess-inner">
     <div class="sess-top">
       <span class="sess-section">${esc(st.section || kindLabel)}</span>
@@ -788,182 +788,134 @@ function flowHTML(s){
     <div class="sess-rx">${esc(rx)}</div>
     <div class="sess-cue">${esc(cue)}</div>
     ${middle}
-    ${nxt && st.type==="ex" ? `<div class="nextup"><div class="nu-label">Next up</div><b>${esc(nxt.name)}</b> — ${esc(nxt.rx)}</div>` : `<div class="nextup" style="visibility:${st.type==='ex'?'visible':'hidden'}"><div class="nu-label">Next up</div>Last exercise — almost done</div>`}
+    ${nxt && st.type==="ex"
+      ? `<div class="nextup"><div class="nu-label">Next up</div><b>${esc(nxt.name)}</b> — ${esc(nxt.rx)}</div>`
+      : `<div class="nextup" style="visibility:${st.type==='ex'?'visible':'hidden'}"><div class="nu-label">Next up</div>Last exercise — almost done</div>`}
     ${controls}
   </div>`;
 }
-/* full-routine overview while a session is running */
-function showStepList(){
-  const s = S(); if (!s) return;
-  if (s.stage === "flow"){
-    // highlight the exercise we're on (or about to start, if mid-transition)
-    let curEx = s.idx;
-    while (curEx < s.steps.length && s.steps[curEx].type !== "ex") curEx++;
-    let html = `<h2>Full routine</h2><p class="faint" style="margin:0;">Tap an exercise to jump to it.</p><div class="steplist">`;
-    let lastSection = "";
-    s.steps.forEach((st,i)=>{
-      if (st.type !== "ex") return;
-      if (st.section !== lastSection){ html += `<h3>${esc(st.section)}</h3>`; lastSection = st.section; }
-      const cls = i === curEx ? "cur" : (i < s.idx ? "done" : "");
-      html += `<div class="sl-row ${cls}" onclick="jumpToStep(${i})">${i < s.idx ? "✓ " : (i===curEx ? "▶ " : "")}${esc(st.name)} <span class="faint">· ${st.manual ? st.reps + " reps" : st.dur + "s"}</span></div>`;
-    });
-    html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
-    showModal(html);
-  } else {
-    const L = s.lift;
-    let html = `<h2>Session plan</h2><div class="steplist">`;
-    PROGRAM.strength.blocks.forEach((b,bi)=>{
-      html += `<h3>${esc(b.name)}</h3>`;
-      b.exercises.forEach((ex,ei)=>{
-        const done = L.entries.filter(e=>e.ex===ex.id).length;
-        const cur = bi===L.b && ei===L.e;
-        const ld = loadFor(ex, s.variant, state.program.week);
-        const cls = cur ? "cur" : (done >= ex.sets ? "done" : "");
-        html += `<div class="sl-row ${cls}">${done >= ex.sets ? "✓ " : (cur ? "▶ " : "")}${esc(ex.name)} — ${esc(ex.repsLabel)} · ${esc(ld.label)} <span class="faint">· ${done}/${ex.sets} sets logged</span></div>`;
-      });
-    });
-    html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
-    showModal(html);
-  }
-}
-function jumpToStep(i){
-  const s = S(); if (!s || s.stage !== "flow") return;
-  s.idx = i; armStep(); save(); closeModal(); renderSession();
-}
-
 function nextExercise(s){
   for (let i=s.idx+1; i<s.steps.length; i++) if (s.steps[i].type === "ex") return s.steps[i];
   return null;
 }
-
-function liftHTML(s){
-  const L = s.lift;
-  if (L.phase === "form") return formCheckHTML(s);
-  const block = PROGRAM.strength.blocks[L.b];
-  const ex = block.exercises[L.e];
-  const ld = loadFor(ex, s.variant, state.program.week);
-  const variantLabel = s.variant === "tue" ? "Tuesday · moderate (~85%)" : "Friday · primary (full loads)";
-  const head = `<div class="sess-top">
-      <span class="sess-section">${esc(block.name)}</span>
-      <span style="display:flex; gap:8px;">
-        <button class="ghost small" onclick="showStepList()">☰ All</button>
-        <button class="ghost small" onclick="endSessionEarly()">End</button>
-      </span>
-    </div>
-    <div class="faint">${esc(variantLabel)} · Week ${state.program.week}</div>`;
-
-  if (L.phase === "rest"){
-    const nEx = block.exercises[L.e];
-    const nLd = loadFor(nEx, s.variant, state.program.week);
-    return `<div class="sess-inner">${head}
-      <div class="sess-name">${L.blockRest ? "Block rest" : "Rest"}</div>
-      <div class="sess-cue">${L.blockRest ? "2 minutes between blocks." : "90 seconds between sets."}</div>
-      <div class="bigtime resting" id="bigtime">--</div>
-      <div class="progressbar"><div id="stepbar"></div></div>
-      <div class="nextup"><div class="nu-label">Next up</div>
-        <b>${esc(nEx.name)}</b> — set ${L.set} of ${nEx.sets} · ${esc(nEx.repsLabel)}<br>
-        <span class="dim">Load: ${esc(nLd.label)}</span></div>
-      <div class="controls" style="grid-template-columns:1fr 1fr;">
-        <button onclick="plus15()">+15 s</button>
-        <button class="pausebtn" onclick="skipStep()">Skip rest ⏭</button>
-      </div>
-    </div>`;
-  }
-  if (L.phase === "hold"){
-    return `<div class="sess-inner">${head}
-      <div class="sess-name">${esc(ex.name)}</div>
-      <div class="sess-rx">Set ${L.set} of ${ex.sets} · hold</div>
-      <div class="sess-cue">${esc(ex.cue)}</div>
-      <div class="bigtime" id="bigtime">--</div>
-      <div class="progressbar"><div id="stepbar"></div></div>
-      <div class="controls" style="grid-template-columns:1fr 1fr;">
-        <button onclick="plus15()">+15 s</button>
-        <button onclick="skipStep()">Done early ⏭</button>
-      </div>
-    </div>`;
-  }
-  // work phase
-  const inputs = ex.timed
-    ? `<button class="primary big-btn" onclick="startHold()">Start ${ld.num}-sec hold</button>`
-    : `<div class="setform">
-        <div class="row">
-          <div><label>Weight (${esc(ex.unit || "lbs")})</label>
-            <input type="number" id="in-weight" inputmode="decimal" step="5" min="0" value="${ld.num}"></div>
-          <div><label>Reps${ex.repsLabel.includes("/side") ? " (per side)" : ""}</label>
-            <input type="number" id="in-reps" inputmode="numeric" min="0" value="${ex.reps}"></div>
-        </div>
-        <button class="primary big-btn" onclick="logSet()">Log set ${L.set} ✓</button>
-      </div>`;
-  return `<div class="sess-inner">${head}
-    <div class="sess-name">${esc(ex.name)}</div>
-    <div class="sess-rx">Set ${L.set} of ${ex.sets} · ${esc(ex.repsLabel)} · <b>${esc(ld.label)}</b></div>
-    <div class="sess-cue"><b>Tempo:</b> ${esc(ex.tempo)}<br>${esc(ex.cue)}</div>
-    ${inputs}
-    <div class="nextup" style="margin-top:14px;"><div class="nu-label">After this</div>${esc(afterThisText(s))}</div>
-    <div class="controls" style="grid-template-columns:1fr 1fr; margin-top:10px;">
-      <button class="ghost" onclick="undoSet()" ${L.entries.length?"":"disabled"}>↩ Undo last set</button>
-      <button class="ghost" onclick="skipExercise()">Skip exercise ⏭</button>
-    </div>
-  </div>`;
+function showStepList(){
+  const s = S(); if (!s) return;
+  let curEx = s.idx;
+  while (curEx < s.steps.length && s.steps[curEx].type !== "ex") curEx++;
+  let html = `<h2>Full routine</h2><p class="faint" style="margin:0;">Tap an exercise to jump to it.</p><div class="steplist">`;
+  let lastSection = "";
+  s.steps.forEach((st,i)=>{
+    if (st.type !== "ex") return;
+    if (st.section !== lastSection){ html += `<h3>${esc(st.section)}</h3>`; lastSection = st.section; }
+    const cls = i === curEx ? "cur" : (i < s.idx ? "done" : "");
+    html += `<div class="sl-row ${cls}" onclick="jumpToStep(${i})">${i < s.idx ? "✓ " : (i===curEx ? "▶ " : "")}${esc(st.name)} <span class="faint">· ${st.manual ? st.reps + " reps" : st.dur + "s"}</span></div>`;
+  });
+  html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+  showModal(html);
 }
-function afterThisText(s){
-  const L = s.lift, block = PROGRAM.strength.blocks[L.b], ex = block.exercises[L.e];
-  if (L.set < ex.sets) return `90 sec rest, then set ${L.set+1} of ${ex.sets}.`;
-  if (L.e < block.exercises.length-1) return `90 sec rest, then ${block.exercises[L.e+1].name}.`;
-  if (L.b < PROGRAM.strength.blocks.length-1) return `2 min block rest, then ${PROGRAM.strength.blocks[L.b+1].name}.`;
-  return "Last set of the session — then a quick form check-in.";
-}
-function formCheckHTML(s){
-  return `<div class="sess-inner">
-    <div class="sess-top"><span class="sess-section">Session check-in</span></div>
-    <div class="sess-name" style="margin-top:30px;">Did your knee track over your second toe with no collapse?</div>
-    <div class="sess-cue">${esc(PROGRAM.rules.form)}</div>
-    <div class="yn" style="margin-top:26px;">
-      <button class="primary" onclick="answerForm(true)">Yes ✓</button>
-      <button class="warn" onclick="answerForm(false)">No</button>
-    </div>
-  </div>`;
+function jumpToStep(i){
+  const s = S(); if (!s) return;
+  s.idx = i; armStep(); save(); closeModal(); renderSession();
 }
 
-/* ===================== symptom check (next morning) ===================== */
-function dueSymptomChecks(){
-  const t = todayStr();
-  return (state.pendingSymptom||[]).filter(p=>p.date < t);
+/* ===================== strength: inline day logging ===================== */
+let setDraft = {};   // {movementId: {knee: true|false|null, reps, rir}}
+let restUntil = null, restFor = null;   // inter-set rest, scoped to one movement
+
+function draftFor(mid, dayType){
+  if (!setDraft[mid]) setDraft[mid] = { knee:null, reps:MOVEMENTS[mid].reps, rir:rirTargetFor(dayType) };
+  return setDraft[mid];
 }
-function maybeAskSymptoms(){
-  const due = dueSymptomChecks();
-  if (!due.length) return;
-  const p = due[0];
-  showModal(`<h2>Morning check-in</h2>
-    <p><b>Any increase in knee symptoms this morning?</b></p>
-    <p class="dim">(after your ${esc(p.source)} on ${esc(fmtDate(p.date))})</p>
-    <div class="yn">
-      <button class="primary" onclick="answerSymptom(false,'${p.date}')">No ✓</button>
-      <button class="warn" onclick="answerSymptom(true,'${p.date}')">Yes</button>
-    </div>`, true);
-}
-function answerSymptom(increased, forDate){
-  const p = (state.pendingSymptom||[]).find(x=>x.date===forDate);
-  state.pendingSymptom = state.pendingSymptom.filter(x=>x.date!==forDate);
-  state.logs.push({ id: uid(), type:"symptom", date: todayStr(), forDate,
-    source: p ? p.source : "", increased });
-  if (increased){
-    state.program.locked = true;
-    state.program.notice = `Load progression is locked: you reported increased knee symptoms the morning after ${p?p.source:"a session"}. Per the program's symptom rule, next week repeats Week ${state.program.week} loads instead of advancing.`;
-  }
-  save(); closeModal();
-  maybeAskSymptoms(); // handle multiple pending
+function todayType(){ return rotationFor(todayStr()).type; }
+function setKnee(mid, pass){
+  draftFor(mid, todayType()).knee = pass;
+  ensureAudio(); beep(pass ? 880 : 400, .1); buzz(40);
   render();
 }
+function setRir(mid, v){ draftFor(mid, todayType()).rir = v; render(); }
 
-/* ===================== quick logs (match / jog / wblt) ===================== */
+function logStrengthSet(mid){
+  const date = todayStr(), d = getDay(date, true);
+  const rot = rotationFor(date);
+  const spec = rot.movements.find(m=>m.id===mid);
+  const draft = draftFor(mid, d.type);
+  if (draft.knee === null){ toast("Log knee tracking first"); return; }
+  const repsEl = document.getElementById("reps-"+mid);
+  if (repsEl) draft.reps = parseInt(repsEl.value) || 0;
+
+  const w = d.work[mid] = d.work[mid] || { sets: [], failed: false };
+  const ld = loadFor(mid, d.loadPct, d.week, d.type);
+  w.sets.push({
+    setNumber: w.sets.length + 1,
+    load: ld.num,
+    reps: draft.reps,
+    rir: draft.rir,
+    kneeTrackingPass: draft.knee,
+    loggedAt: Date.now()
+  });
+  if (draft.knee === false) w.failed = true;          // knee gate: ends the exercise today
+  d.sets = flattenSets(d);                             // keep spec-compat mirror in sync
+  d.week = d.week || programWeekFor(date);
+
+  // post-match window check
+  if (d.type === "match_post" && d.matchEndTime){
+    const mins = Math.round((Date.now() - d.matchEndTime)/60000);
+    if (mins > PROGRAM.postMatchWindowMin){
+      w.sets[w.sets.length-1].outsideWindow = true;
+      w.sets[w.sets.length-1].minsAfterMatch = mins;
+    }
+  }
+  setDraft[mid] = { knee:null, reps:MOVEMENTS[mid].reps, rir:rirTargetFor(d.type) };
+  const complete = w.failed || w.sets.length >= spec.sets;
+  if (!complete){ restUntil = Date.now() + PROGRAM.setRest*1000; restFor = mid; startRestTick(); }
+  else { restUntil = null; restFor = null; }
+  cueEnd();
+  save(); render();
+  if (draft.knee === false) toast("Knee caved — " + MOVEMENTS[mid].name + " is done for today.");
+}
+function undoStrengthSet(mid){
+  const d = getDay(todayStr(), true), w = d.work[mid];
+  if (!w || !w.sets.length) return;
+  w.sets.pop();
+  w.failed = w.sets.some(s=>s.kneeTrackingPass === false);
+  d.sets = flattenSets(d);
+  restUntil = null; restFor = null;
+  save(); render();
+}
+function flattenSets(d){
+  const out = [];
+  (d.movements||[]).forEach(mid=>{
+    const w = d.work[mid];
+    if (w) w.sets.forEach(s=>out.push(Object.assign({ movement: mid }, s)));
+  });
+  return out;
+}
+let restHandle = null;
+function startRestTick(){
+  clearInterval(restHandle);
+  restHandle = setInterval(()=>{
+    if (!restUntil || Date.now() >= restUntil){
+      clearInterval(restHandle); restHandle = null;
+      if (restUntil){ restUntil = null; restFor = null; cueWarn(); render(); }
+      return;
+    }
+    const el = document.getElementById("restchip");
+    if (el) el.textContent = "Rest " + fmtClock((restUntil - Date.now())/1000);
+    else { clearInterval(restHandle); restHandle = null; }
+  }, 500);
+}
+
+/* ===================== match / jog / WBLT ===================== */
 function matchFormHTML(){
-  return `<h2>Log match</h2>
-    <label>Played?</label>
-    <select id="m-played"><option value="yes">Yes</option><option value="no">No</option></select>
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
+  return `<h2>Match complete</h2>
+    <p class="faint" style="margin:0 0 6px;">The post-match lift unlocks once this is saved. Sets logged more than ${PROGRAM.postMatchWindowMin} minutes after the end time are flagged.</p>
+    <label>Match ended at</label>
+    <input type="time" id="m-end" value="${hh}:${mm}">
     <label>Minutes played</label>
-    <input type="number" id="m-min" inputmode="numeric" min="0" value="90">
-    <label>Any knee symptoms during/after?</label>
+    <input type="number" id="m-min" inputmode="numeric" min="0" value="${dowOf(todayStr())===0?90:40}">
+    <label>Any knee symptoms during or after?</label>
     <select id="m-sym"><option value="no">No</option><option value="yes">Yes</option></select>
     <label>Note (optional)</label>
     <textarea id="m-note" placeholder="e.g. felt sharp on cuts, wore sleeve"></textarea>
@@ -971,13 +923,18 @@ function matchFormHTML(){
     <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
 }
 function saveMatch(){
-  state.logs.push({ id: uid(), type:"match", date: todayStr(),
-    played: document.getElementById("m-played").value === "yes",
-    minutes: parseInt(document.getElementById("m-min").value)||0,
-    symptoms: document.getElementById("m-sym").value === "yes",
-    note: document.getElementById("m-note").value.trim() });
-  state.pendingSymptom.push({ date: todayStr(), source: "match" });
-  save(); closeModal(); render(); toast("Match logged ✓ — symptom check-in tomorrow morning");
+  const d = getDay(todayStr(), true);
+  const t = document.getElementById("m-end").value || "";
+  const [hh,mm] = t.split(":").map(Number);
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh||now.getHours(), mm||now.getMinutes());
+  d.matchLogged = true;
+  d.matchEndTime = end.getTime();
+  d.matchMinutes = parseInt(document.getElementById("m-min").value)||0;
+  d.matchSymptoms = document.getElementById("m-sym").value === "yes";
+  d.matchNote = document.getElementById("m-note").value.trim();
+  save(); closeModal(); render();
+  toast("Match logged ✓ — post-match lift is unlocked");
 }
 function jogFormHTML(){
   return `<h2>Log Saturday jog</h2>
@@ -991,8 +948,8 @@ function jogFormHTML(){
 }
 function saveJog(){
   const min = parseInt(document.getElementById("j-min").value)||0;
-  state.logs.push({ id: uid(), type:"jog", date: todayStr(), minutes: min,
-    conversational: document.getElementById("j-conv").value === "yes" });
+  const d = getDay(todayStr(), true);
+  d.jog = { minutes: min, conversational: document.getElementById("j-conv").value === "yes" };
   save(); closeModal(); render();
   toast(min > 30 ? "Jog logged — note: the program caps the jog at 30 min." : "Jog logged ✓");
 }
@@ -1019,290 +976,395 @@ function saveWblt(){
     <button class="primary big-btn" onclick="closeModal()">Got it</button>`);
   else toast(`WBLT saved — asymmetry ${asym}" (within 0.5" threshold ✓)`);
 }
+function lastWblt(){ return [...state.logs].reverse().find(l=>l.type==="wblt") || null; }
+
+/* ===================== morning symptom check ===================== */
+function attributionFor(checkDate){
+  const prev = addDays(checkDate, -1);
+  const rot = rotationFor(prev);
+  const d = state.days[prev];
+  const worked = d ? (d.movements||[]).filter(mid => d.work[mid] && d.work[mid].sets.length) : [];
+  const matchDone = !!(d && (d.matchEndTime || d.matchLogged));
+  let attribution;
+  if (rot.type === "match_post" && worked.length) attribution = "match + lift";
+  else if (rot.type === "match_post" && matchDone) attribution = "match";
+  else if (worked.length) attribution = "lift";
+  else attribution = "recovery";
+  return { attribution, movements: worked, forDate: prev };
+}
+function morningCheckDue(){
+  const t = todayStr();
+  if (state.symptomChecks.some(c=>c.date === t)) return false;
+  // nothing to attribute against before the first logged day
+  return Object.keys(state.days).some(k => k < t) || !!state.migratedFromV2;
+}
+function askMorningCheck(){
+  const t = todayStr();
+  const info = attributionFor(t);
+  const opts = PROGRAM.symptomScale.map(s=>
+    `<button onclick="answerMorning(${s.score})"><b>${s.score} — ${esc(s.label)}</b><span>${esc(s.note)}</span></button>`).join("");
+  showModal(`<h2>Morning check</h2>
+    <p style="margin:0;"><b>Any increase in knee symptoms this morning?</b></p>
+    <p class="faint" style="margin:6px 0 0;">Attributed to ${esc(fmtDate(info.forDate))} — <b>${esc(info.attribution)}</b>${info.movements.length ? " (" + info.movements.map(m=>MOVEMENTS[m].short).join(", ") + ")" : ""}</p>
+    <div class="scorebtns">${opts}</div>
+    <button class="ghost big-btn" onclick="deferMorning()">Ask me later today</button>`, true);
+}
+let morningDeferred = false;
+function deferMorning(){ morningDeferred = true; closeModal(); render(); }
+function answerMorning(score){
+  const t = todayStr();
+  const info = attributionFor(t);
+  state.symptomChecks.push({
+    date: t, score,
+    attribution: info.attribution,
+    movements: info.movements,
+    forDate: info.forDate,
+    week: programWeekFor(t)
+  });
+  save(); closeModal();
+  const locks = computeLocks();
+  const newLock = info.movements.find(m=>locks[m]);
+  if (score > 0 && newLock){
+    const lk = locks[newLock];
+    showModal(`<h2>Load locked — ${esc(MOVEMENTS[newLock].name)}</h2>
+      <p>Two consecutive symptom checks attributed to this movement came back positive, so its <b>${lk.category === "match" ? "match-day (Wed/Sun)" : "standard-day (Tue/Fri/Sat)"}</b> load is held at Week ${lk.week} instead of advancing.</p>
+      <p class="dim">The lock clears itself as soon as a later check for this movement comes back at 0.</p>
+      <button class="primary big-btn" onclick="closeModal(); render();">Understood</button>`);
+  } else {
+    render();
+    toast(score === 0 ? "Morning check logged — no increase ✓" : "Morning check logged (score " + score + ")");
+  }
+}
 
 /* ===================== views ===================== */
-let view = "home";
+let view = "today";
 function nav(v){ view = v; render(); window.scrollTo(0,0); }
 document.getElementById("nav").addEventListener("click", e=>{
   const b = e.target.closest("button"); if (b) nav(b.dataset.v);
 });
-
 function render(){
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.v===view));
   const app = document.getElementById("app");
-  if (view === "home") app.innerHTML = homeHTML();
-  else if (view === "plan") app.innerHTML = planHTML();
-  else if (view === "progress") app.innerHTML = progressHTML();
+  if (view === "today") app.innerHTML = todayHTML();
+  else if (view === "week") app.innerHTML = weekHTML();
+  else if (view === "prog") app.innerHTML = progHTML();
   else app.innerHTML = dataHTML();
 }
 
-/* ----- plan view: browse any day of the week ----- */
-let planDay = null; // 0=Sun..6=Sat, null = today
-function pickPlanDay(d){ planDay = d; render(); window.scrollTo(0,0); }
-function planHTML(){
-  const today = new Date().getDay();
-  const sel = planDay == null ? today : planDay;
-  const day = PROGRAM.weeklyTemplate[sel];
-  const names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const chips = names.map((n,i)=>
-    `<button class="${i===sel?'sel':''}" onclick="pickPlanDay(${i})"><b>${n}</b><span style="font-size:.7rem;">${shortType(PROGRAM.weeklyTemplate[i].type)}</span>${i===today?'<span class="todaydot"></span>':''}</button>`).join("");
-  return `<h1>Week plan</h1>
-    <p class="faint" style="margin:0;">Program week ${state.program.week} of ${PROGRAM.weeks} — loads below are for this week. Tap a day to look ahead.</p>
-    <div class="daychips">${chips}</div>
-    <div class="card accent">
-      <h2>${names[sel]} · ${esc(day.label)}${sel===today ? ' <span class="chip green">today</span>' : ""}</h2>
-      <p class="dim" style="margin:4px 0 0;">${esc(day.note)}</p>
-    </div>
-    ${dayDetailHTML(day.type)}
-    ${mobilityPlanHTML()}`;
-}
-function shortType(t){
-  return {match:"match", recovery:"recover", strength_moderate:"strength", strength_primary:"strength", jog:"jog"}[t] || t;
-}
-function dayDetailHTML(type){
-  if (type === "strength_moderate" || type === "strength_primary"){
-    const variant = type === "strength_moderate" ? "tue" : "fri";
-    const w = state.program.week;
-    const blocks = PROGRAM.strength.blocks.map(b=>{
-      const rows = b.exercises.map(ex=>{
-        const ld = loadFor(ex, variant, w);
-        return `<tr><td><b>${esc(ex.name)}</b><br><span class="faint">${esc(ex.tempo)} · ${esc(ex.cue)}</span></td>
-          <td style="white-space:nowrap;">${esc(ex.repsLabel)}</td>
-          <td style="white-space:nowrap;"><b>${esc(ld.label)}</b></td></tr>`;
-      }).join("");
-      return `<h3 style="margin-top:12px;">${esc(b.name)}</h3>
-        <div class="tablewrap"><table><tr><th>Exercise</th><th>Sets</th><th>Load</th></tr>${rows}</table></div>`;
-    }).join("");
-    return `<div class="card">
-      <h2>Strength — ${variant==="tue" ? "moderate (~85%)" : "primary (full loads)"} · Week ${w}</h2>
-      <p class="faint" style="margin:4px 0 0;">Mobility block first as warm-up. Rest: 90 sec between sets, 2 min between blocks.</p>
-      ${blocks}</div>`;
-  }
-  if (type === "match"){
-    const rows = PROGRAM.postMatch.items.map(it=>
-      `<tr><td><b>${esc(it.name)}</b><br><span class="faint">${esc(it.cue)}</span></td><td style="white-space:nowrap;">${esc(it.rx)}</td></tr>`).join("");
-    return `<div class="card"><h2>Post-match mobility (~10 min)</h2>
-      <div class="tablewrap"><table><tr><th>Exercise</th><th>Rx</th></tr>${rows}</table></div></div>`;
-  }
-  if (type === "jog"){
-    return `<div class="card"><h2>Saturday jog rules</h2>
-      <ul class="tight">${PROGRAM.jogRules.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>`;
-  }
-  return `<div class="card"><h2>Recovery add-ons (optional, as time allows)</h2>
-    <ul class="tight">${PROGRAM.recoveryAddOns.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>`;
-}
-function mobilityPlanHTML(){
-  const secs = PROGRAM.mobility.sections.map(sec=>{
-    const rows = sec.items.map(it=>
-      `<tr><td><b>${esc(it.name)}</b><br><span class="faint">${esc(it.cue)}</span></td><td style="white-space:nowrap;">${esc(it.rx)}</td></tr>`).join("");
-    return `<h3 style="margin-top:12px;">${esc(sec.name)}</h3>
-      <div class="tablewrap"><table><tr><th>Exercise</th><th>Rx</th></tr>${rows}</table></div>`;
-  }).join("");
-  return `<div class="card"><h2>Daily mobility block (every day)</h2>
-    <p class="faint" style="margin:4px 0 0;">Flow-based: no rest within a section, 60 sec between sections. On match days do it earlier in the day as the pre-match warm-up.</p>
-    ${secs}</div>`;
-}
-
-function homeHTML(){
+/* ---------- 1. TODAY ---------- */
+function todayHTML(){
   const t = todayStr();
-  const dow = new Date().getDay();
-  const day = PROGRAM.weeklyTemplate[dow];
-  const p = state.program;
-  const mobDone = state.logs.some(l=>l.type==="mobility" && l.date===t);
+  const d = getDay(t, true);
+  const rot = rotationFor(t);
+  const week = d.week || programWeekFor(t);
   const banners = [];
 
-  if (p.notice) banners.push(`<div class="banner amber"><span>ℹ️ ${esc(p.notice)}</span>
-    <button onclick="dismissNotice()">Dismiss</button></div>`);
-  if (p.locked) banners.push(`<div class="banner red"><span>🔒 ${esc(p.notice || "Load progression locked for one week (symptom rule).")}</span></div>`);
+  if (state.program.notice)
+    banners.push(`<div class="banner amber"><span>ℹ️ ${esc(state.program.notice)}</span>
+      <button onclick="dismissNotice()">Dismiss</button></div>`);
 
   const exportRef = state.lastExport || state.firstSeen;
-  if (daysBetween(exportRef, t) >= 7 && state.logs.length)
-    banners.push(`<div class="banner amber"><span>💾 It's been ${state.lastExport ? daysBetween(state.lastExport,t)+" days since your last backup" : "over a week with no backup yet"}. Your data lives only in this browser — export a copy.</span>
+  if (daysBetween(exportRef, t) >= 7 && Object.keys(state.days).length)
+    banners.push(`<div class="banner amber"><span>💾 ${state.lastExport ? "It's been "+daysBetween(state.lastExport,t)+" days since your last backup" : "No backup yet"}. Your data lives only in this browser.</span>
       <button onclick="exportJSON()">Back up</button></div>`);
 
-  const lastW = lastWblt();
-  if (!lastW || daysBetween(lastW.date, t) >= 30)
-    banners.push(`<div class="banner amber"><span>📏 Monthly WBLT spot check is due${lastW ? " (last: "+fmtDate(lastW.date)+")" : ""}.</span>
+  const lw = lastWblt();
+  if (!lw || daysBetween(lw.date, t) >= 30)
+    banners.push(`<div class="banner amber"><span>📏 Monthly WBLT spot check is due${lw ? " (last: "+fmtShort(lw.date)+")" : ""}.</span>
       <button onclick="showModal(wbltFormHTML())">Do it</button></div>`);
 
-  const lastStr = [...state.logs].reverse().find(l=>l.type==="strength");
-  if (lastStr && lastStr.formClean === false && (day.type==="strength_moderate"||day.type==="strength_primary"))
-    banners.push(`<div class="banner red"><span>⚠️ Form rule: your knee caved last strength session. Hold the current load today until it tracks clean over the second toe.</span></div>`);
+  const resume = state.activeSession
+    ? `<div class="banner green"><span>▶ Mobility block in progress.</span><button onclick="resumeFromBanner()">Resume</button></div>` : "";
 
-  const resume = state.activeSession ?
-    `<div class="banner green"><span>▶ You have a session in progress.</span>
-      <button onclick="resumeFromBanner()">Resume</button></div>` : "";
+  if (morningCheckDue())
+    banners.push(`<div class="banner blue" style="background:#0d1f33; border:1px solid #1f3f6b; color:#a8cdf5;">
+      <span>🌅 Morning check not logged yet.</span>
+      <button onclick="askMorningCheck()">Log it</button></div>`);
 
   return `
-    <h1>Kinetic Chain Tracker</h1>
+    <h1>${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][rot.day]} · ${esc(rot.label)}</h1>
     <div style="margin-bottom:12px;">
-      <span class="chip green">Week ${p.week} of ${PROGRAM.weeks}${p.locked ? " · 🔒 locked" : ""}</span>
+      <span class="chip green">Week ${week} of ${PROGRAM.weeks}</span>
       <span class="chip">${fmtDate(t)}</span>
-      ${mobDone ? '<span class="chip green">Mobility ✓ today</span>' : ""}
+      <span class="chip">${esc(rot.est)}</span>
     </div>
     ${resume}${banners.join("")}
-    <div class="card accent">
-      <h3>Today · ${esc(day.label)}</h3>
-      <p class="dim" style="margin:4px 0 10px;">${esc(day.note)}</p>
-      ${todayButtons(day, mobDone)}
-    </div>
-    <div class="card">
-      <h3>Daily mobility block ${mobDone ? '<span class="done-check">✓ done today</span>' : ""}</h3>
-      <p class="faint" style="margin:4px 0 8px;">~15–18 min, runs every day. Fully guided — tap Start once and it chains every hold, side switch, and section rest automatically.</p>
-      ${mobDone ? '<button class="ghost big-btn" onclick="startMobility(\'mobility\')">Do it again</button>'
-                : '<button class="primary big-btn" onclick="startMobility(\'mobility\')">▶ Start mobility block</button>'}
-    </div>
-    <div class="card">
-      <h3>Other sessions</h3>
-      <div class="grid2" style="margin-top:8px;">
-        <button onclick="startStrength('tue')">Strength — moderate<br><span class="faint">Tue · ~85%</span></button>
-        <button onclick="startStrength('fri')">Strength — primary<br><span class="faint">Fri · full loads</span></button>
-        <button onclick="startMobility('postmatch')">Post-match mobility<br><span class="faint">~10 min guided</span></button>
-        <button onclick="showModal(matchFormHTML())">Log match</button>
-        <button onclick="showModal(jogFormHTML())">Log jog</button>
-        <button onclick="showModal(wbltFormHTML())">WBLT check</button>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Program week</h3>
-      <p class="faint" style="margin:4px 0 8px;">Advances automatically each calendar week (unless the symptom rule locks it). Override:</p>
-      <div class="row">${[1,2,3,4,5,6].map(w=>
-        `<button class="small ${w===p.week?'primary':''}" onclick="setWeekManually(${w})">${w}</button>`).join("")}
-      </div>
-    </div>`;
+    ${strengthCardHTML(d, rot, week)}
+    ${mobilityCardHTML(d)}
+    ${rot.jog ? jogCardHTML(d) : ""}
+    ${rot.type === "match_post" ? postMatchMobilityCardHTML(d) : ""}
+    ${rot.type === "recovery" ? `<div class="card"><h3>Optional add-ons</h3>
+       <ul class="tight faint">${PROGRAM.recoveryAddOns.map(r=>`<li>${esc(r)}</li>`).join("")}</ul></div>` : ""}
+  `;
 }
-function todayButtons(day, mobDone){
-  switch(day.type){
-    case "strength_moderate":
-      return `<button class="primary big-btn" onclick="startStrength('tue')">▶ Start strength (moderate)</button>${mobDone?"":'<p class="faint" style="margin-top:8px;">You\'ll be asked whether to run the mobility warm-up first.</p>'}`;
-    case "strength_primary":
-      return `<button class="primary big-btn" onclick="startStrength('fri')">▶ Start strength (primary)</button>${mobDone?"":'<p class="faint" style="margin-top:8px;">You\'ll be asked whether to run the mobility warm-up first.</p>'}`;
-    case "match":
-      return `<button class="primary big-btn" onclick="startMobility('postmatch')">▶ Post-match mobility</button>
-        <button class="big-btn" onclick="showModal(matchFormHTML())">Log the match</button>
-        <p class="faint" style="margin-top:8px;">Do the daily mobility block earlier in the day as your pre-match warm-up.</p>`;
-    case "jog":
-      return `<button class="primary big-btn" onclick="showModal(jogFormHTML())">Log the jog</button>`;
-    default:
-      return `<p class="faint">Recovery day — the mobility block below is your session. Foam roll and massage gun optional.</p>`;
+function strengthCardHTML(d, rot, week){
+  if (rot.type === "recovery")
+    return `<div class="card accent"><h2>Recovery day</h2>
+      <p class="dim" style="margin:4px 0 0;">No lift today. The mobility block below is the session — adherence on recovery days is the thing being tracked.</p></div>`;
+
+  // Post-match gate: never present the strength prompt before the match is marked complete
+  if (rot.type === "match_post" && !d.matchEndTime){
+    return `<div class="card accent">
+      <h2>Match first</h2>
+      <p class="dim" style="margin:4px 0 10px;">Today's lift is a post-match set. Mark the match complete to unlock it — the app times the ${PROGRAM.postMatchWindowMin}-minute post-match window from the end time you enter.</p>
+      <button class="primary big-btn" onclick="showModal(matchFormHTML())">Mark match complete</button>
+    </div>`;
   }
+
+  const rir = rirTargetFor(rot.type);
+  let windowWarn = "";
+  if (rot.type === "match_post" && d.matchEndTime){
+    const mins = Math.round((Date.now() - d.matchEndTime)/60000);
+    if (mins > PROGRAM.postMatchWindowMin)
+      windowWarn = `<div class="banner amber" style="margin:10px 0 0;"><span>⏱ ${mins} min since the match ended — outside the ${PROGRAM.postMatchWindowMin}-minute post-match window. Sets logged now are flagged in your export.</span></div>`;
+  }
+
+  const blocks = rot.movements.map(spec=>{
+    const m = MOVEMENTS[spec.id];
+    const ld = loadFor(spec.id, rot.loadPct, week, rot.type);
+    const w = d.work[spec.id] || { sets: [], failed: false };
+    const done = w.sets.length, total = spec.sets;
+    const complete = w.failed || done >= total;
+    const draft = draftFor(spec.id, rot.type);
+
+    const setRows = [];
+    for (let i=1; i<=total; i++){
+      const logged = w.sets[i-1];
+      if (logged){
+        setRows.push(`<div class="setblock done">
+          <div class="set-head"><span>${logged.kneeTrackingPass ? '<span class="done-check">✓</span>' : '<span style="color:var(--red)">✕</span>'} Set ${i}</span>
+          <span class="faint">${logged.load ? logged.load+" "+esc(m.unit) : "BW"} · ${logged.reps} reps · RIR ${logged.rir}${logged.outsideWindow ? " · ⏱ late" : ""}</span></div>
+        </div>`);
+      } else if (complete){
+        setRows.push(`<div class="setblock blocked"><div class="set-head"><span>Set ${i}</span>
+          <span class="faint">${w.failed ? "not performed" : "—"}</span></div></div>`);
+      } else if (i === done + 1){
+        setRows.push(activeSetHTML(spec.id, i, total, ld, rir, draft, m));
+      } else {
+        setRows.push(`<div class="setblock pending"><div class="set-head"><span>Set ${i}</span>
+          <span class="faint">${ld.num ? ld.num+" "+esc(m.unit) : "Bodyweight"} · ${m.reps} reps/side</span></div></div>`);
+      }
+    }
+    const restChip = (!complete && restFor === spec.id && restUntil && Date.now() < restUntil)
+      ? `<span class="chip blue" id="restchip">Rest ${fmtClock((restUntil-Date.now())/1000)}</span>` : "";
+
+    return `<div class="card ${complete?"":"accent"}">
+      <div class="set-head">
+        <h2 style="margin:0;">${esc(m.name)}</h2>
+        ${complete ? '<span class="chip green">done</span>' : `<span class="chip">${done}/${total} sets</span>`}
+      </div>
+      <div class="loadbig" style="margin-top:8px;">${esc(ld.label)}</div>
+      <div class="faint">${total} × ${m.reps}/side · ${esc(m.tempo)} · ${rot.loadPct}% · target RIR ${rir}
+        ${ld.locked ? ` · <span style="color:var(--amber)">🔒 held at Week ${ld.lockWeek}</span>` : ""}</div>
+      <div class="dim" style="font-size:.92rem; margin-top:6px;">${esc(m.cue)}</div>
+      ${restChip}
+      ${setRows.join("")}
+      ${w.failed ? `<div class="banner red" style="margin:10px 0 0;"><span>Exercise complete for today — the knee caved on set ${w.sets.findIndex(s=>!s.kneeTrackingPass)+1}. The failure is recorded against ${esc(ld.label)} and shows up at the next progression decision.</span></div>` : ""}
+      ${done ? `<button class="ghost small" style="margin-top:10px;" onclick="undoStrengthSet('${spec.id}')">↩ Undo last set</button>` : ""}
+    </div>`;
+  }).join("");
+
+  return windowWarn + blocks;
+}
+function activeSetHTML(mid, i, total, ld, rir, draft, m){
+  const rirBtns = [1,2,3,4].map(v=>
+    `<button class="${draft.rir===v?"sel":""} ${v===rir?"target":""}" onclick="setRir('${mid}',${v})">${v===4?"4+":v}</button>`).join("");
+  return `<div class="setblock">
+    <div class="set-head"><span class="set-title">Set ${i} of ${total}</span>
+      <span class="faint">${ld.num ? ld.num+" "+esc(m.unit) : "Bodyweight"} · target RIR ${rir}</span></div>
+    <div class="gate">
+      <button class="${draft.knee===true?"selpass":""}" onclick="setKnee('${mid}',true)">Knee tracked<br>over 2nd toe ✓</button>
+      <button class="${draft.knee===false?"selfail":""}" onclick="setKnee('${mid}',false)">Knee<br>caved ✕</button>
+    </div>
+    <div class="entrygrid">
+      <div><label>Reps${m.perSide?"/side":""}</label>
+        <input type="number" id="reps-${mid}" inputmode="numeric" min="0" value="${draft.reps}"></div>
+      <div><label>RIR — target ${rir}</label><div class="rirrow">${rirBtns}</div></div>
+    </div>
+    <button class="primary big-btn" onclick="logStrengthSet('${mid}')" ${draft.knee===null?"disabled":""}>
+      ${draft.knee===null ? "Log knee tracking first" : "Log set "+i+" ✓"}</button>
+  </div>`;
+}
+function mobilityCardHTML(d){
+  return `<div class="card">
+    <div class="set-head"><h2 style="margin:0;">Daily mobility block</h2>
+      ${d.mobilityComplete ? '<span class="chip green">done</span>' : ""}</div>
+    <p class="faint" style="margin:4px 0 8px;">~15–18 min, every day including recovery days. Tap Start once and it chains every hold, side switch and section rest.</p>
+    <button class="${d.mobilityComplete?"ghost":"primary"} big-btn" onclick="startMobility('mobility')">
+      ${d.mobilityComplete ? "Run it again" : "▶ Start mobility block"}</button>
+    <div class="checkrow">
+      <button onclick="toggleFlag('mobilityComplete')">
+        <span class="cbox ${d.mobilityComplete?"on":""}">${d.mobilityComplete?"✓":""}</span>
+        <span>Mobility block complete</span></button>
+    </div>
+    <div class="checkrow">
+      <button onclick="toggleFlag('mtpComplete')">
+        <span class="cbox ${d.mtpComplete?"on":""}">${d.mtpComplete?"✓":""}</span>
+        <span>Right MTP mobilization complete <span class="faint">(right foot only, daily)</span></span></button>
+    </div>
+  </div>`;
+}
+function toggleFlag(flag){
+  const d = getDay(todayStr(), true);
+  d[flag] = !d[flag];
+  save(); render();
+}
+function jogCardHTML(d){
+  return `<div class="card">
+    <div class="set-head"><h2 style="margin:0;">Easy jog</h2>
+      ${d.jog ? `<span class="chip green">${d.jog.minutes} min</span>` : ""}</div>
+    <p class="faint" style="margin:4px 0 8px;">25 min (hard cap 30), Zone 1–2, conversational, flat route.</p>
+    <button class="${d.jog?"ghost":""} big-btn" onclick="showModal(jogFormHTML())">${d.jog ? "Update jog log" : "Log the jog"}</button>
+  </div>`;
+}
+function postMatchMobilityCardHTML(d){
+  return `<div class="card">
+    <div class="set-head"><h2 style="margin:0;">Post-match mobility</h2>
+      ${d.postMatchMobility ? '<span class="chip green">done</span>' : ""}</div>
+    <p class="faint" style="margin:4px 0 8px;">~10 min guided flow.</p>
+    <button class="${d.postMatchMobility?"ghost":""} big-btn" onclick="startMobility('postmatch')">▶ Start post-match mobility</button>
+    ${d.matchEndTime ? `<p class="faint" style="margin-top:8px;">Match ended ${fmtTime(d.matchEndTime)}${d.matchMinutes?" · "+d.matchMinutes+" min played":""}.</p>` : ""}
+  </div>`;
 }
 function resumeFromBanner(){ ensureAudio(); resumeSession(); }
 function dismissNotice(){ state.program.notice = null; save(); render(); }
-function lastWblt(){ return [...state.logs].reverse().find(l=>l.type==="wblt") || null; }
 
-/* ----- progress view ----- */
-function mobilityStreak(){
-  const days = new Set(state.logs.filter(l=>l.type==="mobility").map(l=>l.date));
-  let d = todayStr(), streak = 0;
-  if (!days.has(d)) d = addDays(d,-1); // streak alive if done yesterday
-  while (days.has(d)){ streak++; d = addDays(d,-1); }
-  return streak;
-}
-function progressHTML(){
-  const streak = mobilityStreak();
-  const strengths = state.logs.filter(l=>l.type==="strength");
-  const symptoms = state.logs.filter(l=>l.type==="symptom");
-  const wblts = state.logs.filter(l=>l.type==="wblt");
-  const matches = state.logs.filter(l=>l.type==="match");
-  const jogs = state.logs.filter(l=>l.type==="jog");
-  const mobCount = state.logs.filter(l=>l.type==="mobility").length;
+/* ---------- 3. WEEK (adherence) ---------- */
+let weekOffset = 0;
+function shiftWeek(n){ weekOffset += n; render(); window.scrollTo(0,0); }
+function weekHTML(){
+  const mon = addDays(mondayStr(new Date()), weekOffset*7);
+  const t = todayStr();
+  const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let done = 0, possible = 0;
+  const rows = names.map((nm,i)=>{
+    const date = addDays(mon, i);
+    const rot = rotationFor(date);
+    const d = dayOrBlank(date);
+    const week = d.week || programWeekFor(date);
+    const isToday = date === t;
+    const future = date > t;
 
-  const charts = ["bss","slrdl","stepdown","pullover"].map(id=>{
-    const ex = PROGRAM.strength.blocks.flatMap(b=>b.exercises).find(e=>e.id===id);
-    const pts = strengths.map(sl=>{
-      const ss = sl.sets.filter(x=>x.ex===id && x.weight>0);
-      if (!ss.length) return null;
-      return { date: sl.date, w: Math.max(...ss.map(x=>x.weight)), v: sl.variant };
-    }).filter(Boolean);
-    if (pts.length < 2) return "";
-    return `<h3 style="margin-top:14px;">${esc(ex.name)} — top set weight</h3>${lineChart(pts)}`;
+    const bits = [];
+    if (rot.movements.length){
+      rot.movements.forEach(spec=>{
+        const m = MOVEMENTS[spec.id];
+        const w = d.work[spec.id] || { sets: [], failed:false };
+        const ld = loadFor(spec.id, rot.loadPct, week, rot.type);
+        const failed = w.failed;
+        bits.push(`${esc(m.short)} <span class="faint">${w.sets.length}/${spec.sets} · ${ld.num?ld.num+"lb":"BW"}</span>${failed?' <span style="color:var(--red)">✕knee</span>':""}`);
+        if (!future){ possible++; if (w.sets.length >= spec.sets || w.failed) done++; }
+      });
+    } else {
+      bits.push(`<span class="faint">Recovery — mobility only</span>`);
+    }
+    if (rot.match) bits.push(d.matchEndTime ? `<span class="faint">match ${fmtTime(d.matchEndTime)}</span>` : `<span class="faint">match not logged</span>`);
+    if (rot.jog && d.jog) bits.push(`<span class="faint">jog ${d.jog.minutes}m</span>`);
+
+    if (!future){ possible++; if (d.mobilityComplete) done++; }
+    const check = state.symptomChecks.find(c=>c.date===date);
+
+    return `<div class="weekrow ${isToday?"today":""}">
+      <div class="wd">${nm}<small>${fmtShort(date).replace(/^\w+\s/,"")}</small></div>
+      <div class="wbody">${bits.join(" · ")}
+        ${check ? `<div class="faint">AM check: ${check.score} (${esc(check.attribution)})</div>` : ""}</div>
+      <div class="wstat" title="mobility / MTP">
+        <span class="dot ${d.mobilityComplete?"on":(future?"":"miss")}"></span>
+        <span class="dot ${d.mtpComplete?"on":(future?"":"miss")}"></span>
+      </div>
+    </div>`;
   }).join("");
 
-  return `
-    <h1>Progress</h1>
-    <div class="card"><div class="grid2">
-      <div><div class="statbig">${streak}</div><div class="faint">day mobility streak</div></div>
-      <div><div class="statbig">${mobCount}</div><div class="faint">mobility blocks total</div></div>
-      <div><div class="statbig">${strengths.length}</div><div class="faint">strength sessions</div></div>
-      <div><div class="statbig">${matches.length}</div><div class="faint">matches logged</div></div>
-    </div></div>
-    <div class="card"><h2>Strength loads over time</h2>
-      ${charts || '<p class="faint">Charts appear after two or more logged strength sessions.</p>'}
+  const pct = possible ? Math.round(done/possible*100) : 0;
+  return `<h1>Week</h1>
+    <div class="row" style="margin-bottom:10px;">
+      <button class="ghost small" onclick="shiftWeek(-1)">← Prev</button>
+      <button class="ghost small" onclick="weekOffset=0; render();">${weekOffset===0?"This week":"Back to now"}</button>
+      <button class="ghost small" onclick="shiftWeek(1)" ${weekOffset>=0?"disabled":""}>Next →</button>
     </div>
-    <div class="card"><h2>Strength sessions</h2>${strengthTable(strengths)}</div>
-    <div class="card"><h2>Check-in history</h2>${checkinTable(strengths, symptoms)}</div>
-    <div class="card"><h2>WBLT history</h2>${wbltTable(wblts)}</div>
-    <div class="card"><h2>Matches & jogs</h2>${matchJogTable(matches, jogs)}</div>`;
-}
-function lineChart(pts){
-  const W=560, H=170, padL=38, padR=12, padT=14, padB=26;
-  const ws = pts.map(p=>p.w);
-  let lo = Math.min(...ws), hi = Math.max(...ws);
-  if (lo === hi){ lo -= 5; hi += 5; }
-  const x = i => padL + (pts.length===1 ? 0 : i*(W-padL-padR)/(pts.length-1));
-  const y = w => padT + (H-padT-padB) * (1 - (w-lo)/(hi-lo));
-  const line = pts.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p.w).toFixed(1)}`).join(" ");
-  const dots = pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.w).toFixed(1)}" r="4.5" fill="${p.v==='fri'?'#4cc38a':'#58a6ff'}"/>`).join("");
-  const labels = pts.map((p,i)=> (pts.length<=6 || i===0 || i===pts.length-1 || i%2===0) ?
-    `<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="10" fill="#6b7683" text-anchor="middle">${p.date.slice(5)}</text>` : "").join("");
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">
-    <text x="4" y="${y(hi)+4}" font-size="11" fill="#9aa7b4">${hi}</text>
-    <text x="4" y="${y(lo)+4}" font-size="11" fill="#9aa7b4">${lo}</text>
-    <line x1="${padL}" y1="${y(hi)}" x2="${W-padR}" y2="${y(hi)}" stroke="#2b3442" stroke-dasharray="3 4"/>
-    <line x1="${padL}" y1="${y(lo)}" x2="${W-padR}" y2="${y(lo)}" stroke="#2b3442" stroke-dasharray="3 4"/>
-    <path d="${line}" fill="none" stroke="#4cc38a" stroke-width="2.5" stroke-linecap="round"/>
-    ${dots}${labels}
-  </svg>
-  <p class="faint">● green = Friday (full) · ● blue = Tuesday (~85%)</p>`;
-}
-function strengthTable(strengths){
-  if (!strengths.length) return '<p class="faint">Nothing logged yet.</p>';
-  return `<div class="tablewrap"><table><tr><th>Date</th><th>Day</th><th>Wk</th><th>Sets logged</th></tr>` +
-    [...strengths].reverse().map(sl=>{
-      const summary = {};
-      sl.sets.forEach(x=>{
-        const k = x.name;
-        const val = x.secs != null ? `${x.secs}s` : `${x.weight}×${x.reps}`;
-        (summary[k] = summary[k] || []).push(val);
-      });
-      const body = Object.entries(summary).map(([k,v])=>`${esc(k)}: ${v.join(", ")}`).join("<br>");
-      return `<tr><td>${esc(fmtDate(sl.date))}</td><td>${sl.variant==="tue"?"Tue":"Fri"}</td><td class="num">${sl.week}</td><td>${body}</td></tr>`;
-    }).join("") + "</table></div>";
-}
-function checkinTable(strengths, symptoms){
-  const rows = [];
-  strengths.forEach(sl=>rows.push({date:sl.date, what:"Knee tracked clean (form rule)", ans: sl.formClean ? "Yes ✓" : "No ✕", bad: !sl.formClean}));
-  symptoms.forEach(sy=>rows.push({date:sy.date, what:`Morning symptoms after ${sy.source||"session"}`, ans: sy.increased ? "Increased ✕" : "No increase ✓", bad: sy.increased}));
-  if (!rows.length) return '<p class="faint">Check-ins appear here after strength sessions and matches.</p>';
-  rows.sort((a,b)=>b.date.localeCompare(a.date));
-  return `<div class="tablewrap"><table><tr><th>Date</th><th>Check-in</th><th>Answer</th></tr>` +
-    rows.map(r=>`<tr><td>${esc(fmtDate(r.date))}</td><td>${esc(r.what)}</td><td style="color:${r.bad?'var(--red)':'var(--accent)'}">${r.ans}</td></tr>`).join("") + "</table></div>";
-}
-function wbltTable(wblts){
-  if (!wblts.length) return '<p class="faint">No WBLT entries yet — the monthly prompt will remind you.</p>';
-  return `<div class="tablewrap"><table><tr><th>Date</th><th class="num">Left</th><th class="num">Right</th><th class="num">L behind R</th></tr>` +
-    [...wblts].reverse().map(w=>`<tr><td>${esc(fmtDate(w.date))}</td><td class="num">${w.left}"</td><td class="num">${w.right}"</td>
-      <td class="num" style="color:${w.asym>0.5?'var(--red)':'var(--accent)'}">${w.asym}"${w.asym>0.5?" ⚠️":""}</td></tr>`).join("") + "</table></div>";
-}
-function matchJogTable(matches, jogs){
-  const rows = [];
-  matches.forEach(m=>rows.push({date:m.date, txt:`Match — ${m.played?`played ${m.minutes} min`:"did not play"}${m.symptoms?" · symptoms ⚠️":""}${m.note?" · "+esc(m.note):""}`}));
-  jogs.forEach(j=>rows.push({date:j.date, txt:`Jog — ${j.minutes} min · conversational: ${j.conversational?"yes ✓":"no ✕"}`}));
-  if (!rows.length) return '<p class="faint">Nothing logged yet.</p>';
-  rows.sort((a,b)=>b.date.localeCompare(a.date));
-  return `<div class="tablewrap"><table>` + rows.map(r=>`<tr><td style="white-space:nowrap;">${esc(fmtDate(r.date))}</td><td>${r.txt}</td></tr>`).join("") + "</table></div>";
+    <div class="card">
+      <div class="set-head"><h2 style="margin:0;">Week of ${fmtShort(mon)}</h2>
+        <span class="chip ${pct>=80?"green":(pct>=50?"amber":"red")}">${pct}% adherence</span></div>
+      <p class="faint" style="margin:4px 0 6px;">Program week ${programWeekFor(mon)} · dots = mobility block / right MTP</p>
+      ${rows}
+    </div>
+    <div class="card">
+      <h3>Weekly exposure</h3>
+      <p class="faint" style="margin:2px 0;">Bulgarian split squat ×2 (Tue 100%, Sat 85%) · SL RDL ×2 (Wed 85%, Sun 100%) · Eccentric step-down ×2 (Tue 100%, Fri 100%)</p>
+    </div>`;
 }
 
-/* ----- data view ----- */
+/* ---------- 4. PROGRESSION ---------- */
+function progHTML(){
+  const week = state.program.week;
+  const locks = computeLocks();
+  const rows = Object.keys(MOVEMENTS).map(mid=>{
+    const m = MOVEMENTS[mid];
+    const cells = [];
+    for (let w=1; w<=PROGRAM.weeks; w++){
+      const v100 = m.loads[100][w-1], v85 = m.loads[85][w-1];
+      const cur = w === week;
+      cells.push(`<td class="num" style="${cur?"color:var(--accent);font-weight:700;":""}">${v100?v100:"BW"}<br><span class="faint">${v85?v85:"BW"}</span></td>`);
+    }
+    return `<tr><td><b>${esc(m.short)}</b><br><span class="faint">${esc(m.unit)}</span></td>${cells.join("")}</tr>`;
+  }).join("");
+
+  const lockCards = Object.keys(MOVEMENTS).map(mid=>{
+    const m = MOVEMENTS[mid], lk = locks[mid], fails = kneeFailCount(mid);
+    return `<div class="card">
+      <div class="set-head"><h2 style="margin:0;">${esc(m.name)}</h2>
+        ${lk ? `<span class="chip red">🔒 ${lk.category}-day locked</span>` : '<span class="chip green">progressing</span>'}</div>
+      <table>
+        <tr><th>Day type</th><th>This week's load</th></tr>
+        ${mid === "sl_rdl"
+          ? `<tr><td>Wed (85%)</td><td>${esc(loadFor(mid,85,week,"match_post").label)}${loadFor(mid,85,week,"match_post").locked?" 🔒":""}</td></tr>
+             <tr><td>Sun (100%)</td><td>${esc(loadFor(mid,100,week,"match_post").label)}${loadFor(mid,100,week,"match_post").locked?" 🔒":""}</td></tr>`
+          : mid === "bss"
+          ? `<tr><td>Tue (100%)</td><td>${esc(loadFor(mid,100,week,"strength").label)}${loadFor(mid,100,week,"strength").locked?" 🔒":""}</td></tr>
+             <tr><td>Sat (85%)</td><td>${esc(loadFor(mid,85,week,"strength").label)}${loadFor(mid,85,week,"strength").locked?" 🔒":""}</td></tr>`
+          : `<tr><td>Tue (100%, 2 sets)</td><td>${esc(loadFor(mid,100,week,"strength").label)}${loadFor(mid,100,week,"strength").locked?" 🔒":""}</td></tr>
+             <tr><td>Fri (100%, 3 sets)</td><td>${esc(loadFor(mid,100,week,"strength").label)}${loadFor(mid,100,week,"strength").locked?" 🔒":""}</td></tr>`}
+      </table>
+      <p class="faint" style="margin:6px 0 0;">Knee tracking failures recorded: <b style="color:${fails?"var(--red)":"var(--accent)"}">${fails}</b></p>
+      ${lk ? `<p class="faint" style="margin:4px 0 0;">Locked at Week ${lk.week} after positive morning checks on ${lk.dates.map(fmtShort).join(" and ")}. Clears when a later check for this movement scores 0.</p>` : ""}
+    </div>`;
+  }).join("");
+
+  const checks = [...state.symptomChecks].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  return `<h1>Progression</h1>
+    <div class="card">
+      <div class="set-head"><h2 style="margin:0;">6-week load table</h2>
+        <span class="chip green">Week ${week}</span></div>
+      <p class="faint" style="margin:2px 0 6px;">Top number = 100% days, grey = 85% days.</p>
+      <div class="tablewrap"><table class="loadtable">
+        <tr><th>Movement</th>${[1,2,3,4,5,6].map(w=>`<th class="num">W${w}</th>`).join("")}</tr>
+        ${rows}
+      </table></div>
+      <p class="faint">Override the current week:</p>
+      <div class="row">${[1,2,3,4,5,6].map(w=>
+        `<button class="small ${w===week?"primary":""}" onclick="setWeekManually(${w})">${w}</button>`).join("")}</div>
+    </div>
+    ${lockCards}
+    <div class="card">
+      <h2>Morning check history</h2>
+      ${checks.length ? `<div class="tablewrap"><table>
+        <tr><th>Date</th><th class="num">Score</th><th>Attributed to</th></tr>
+        ${checks.map(c=>`<tr><td>${esc(fmtShort(c.date))}</td>
+          <td class="num" style="color:${c.score>0?"var(--red)":"var(--accent)"}">${c.score}</td>
+          <td>${esc(c.attribution)}${(c.movements||[]).length?' <span class="faint">'+c.movements.map(m=>MOVEMENTS[m].short).join(", ")+'</span>':""}</td></tr>`).join("")}
+      </table></div>` : '<p class="faint">No checks logged yet.</p>'}
+    </div>`;
+}
+
+/* ---------- 5. DATA ---------- */
 function dataHTML(){
-  return `
-    <h1>Data & backup</h1>
-    <div class="banner amber"><span>⚠️ All your data lives in <b>this browser on this device</b> (localStorage). Clearing browsing data, or the browser evicting site data, deletes it. Export a backup regularly — the app reminds you after 7 days.</span></div>
+  const wblts = state.logs.filter(l=>l.type==="wblt");
+  return `<h1>Data & backup</h1>
+    <div class="banner amber"><span>⚠️ All your data lives in <b>this browser on this device</b>. Clearing browsing data deletes it. Export a backup regularly — you'll be reminded after 7 days.</span></div>
     <div class="card">
       <h2>Export</h2>
-      <p class="faint">Markdown is formatted for pasting into a Claude conversation for a program review. JSON is a full backup you can re-import.</p>
-      <button class="primary big-btn" onclick="exportMarkdown()">⬇ Export Markdown report</button>
+      <p class="faint">Markdown covers the last 4 weeks, grouped by week and day, formatted for a program review. JSON is a full backup you can re-import.</p>
+      <button class="primary big-btn" onclick="exportMarkdown()">⬇ Export Markdown (last 4 weeks)</button>
       <button class="big-btn" onclick="exportJSON()">⬇ Export JSON backup</button>
       <p class="faint" style="margin-top:8px;">Last export: ${state.lastExport ? esc(fmtDate(state.lastExport)) : "never"}</p>
     </div>
@@ -1310,6 +1372,15 @@ function dataHTML(){
       <h2>Import</h2>
       <p class="faint">Restore a JSON backup or move data from another browser.</p>
       <input type="file" id="importfile" accept=".json,application/json" onchange="importJSON(this)">
+    </div>
+    <div class="card">
+      <h2>WBLT history</h2>
+      ${wblts.length ? `<div class="tablewrap"><table>
+        <tr><th>Date</th><th class="num">L</th><th class="num">R</th><th class="num">L behind R</th></tr>
+        ${[...wblts].reverse().map(w=>`<tr><td>${esc(fmtShort(w.date))}</td><td class="num">${w.left}"</td><td class="num">${w.right}"</td>
+          <td class="num" style="color:${w.asym>0.5?"var(--red)":"var(--accent)"}">${w.asym}"${w.asym>0.5?" ⚠️":""}</td></tr>`).join("")}
+      </table></div>` : '<p class="faint">No entries yet.</p>'}
+      <button class="ghost big-btn" onclick="showModal(wbltFormHTML())">Add WBLT measurement</button>
     </div>
     <div class="card">
       <h2>Settings</h2>
@@ -1322,8 +1393,9 @@ function dataHTML(){
     </div>
     <div class="card">
       <h2>About</h2>
-      <p class="faint">${esc(PROGRAM.title)} · single offline file · zero network requests · no accounts.
-      Red flags requiring stopping and evaluation: ${esc(PROGRAM.redFlags.replace("Stop and get evaluated for: ",""))}</p>
+      <p class="faint">${esc(PROGRAM.title)} · spec v${PROGRAM.specVersion} (daily single-movement rotation) ·
+      single offline file · zero network requests · no accounts.<br><br>
+      ${esc(PROGRAM.redFlags)}</p>
     </div>`;
 }
 
@@ -1337,90 +1409,92 @@ function download(filename, text, mime){
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 800);
 }
 function markExported(){ state.lastExport = todayStr(); save(); render(); }
-
 function exportJSON(){
-  const data = { ...state, activeSession: null };
-  download(`kinetic-tracker-backup-${todayStr()}.json`, JSON.stringify(data, null, 2), "application/json");
+  download(`kinetic-tracker-backup-${todayStr()}.json`,
+    JSON.stringify(Object.assign({}, state, { activeSession: null }), null, 2), "application/json");
   markExported();
   toast("JSON backup downloaded ✓");
 }
 function exportMarkdown(){
-  const p = state.program;
-  const L = t => state.logs.filter(l=>l.type===t);
-  let md = `# Kinetic Chain Tracker — Export ${todayStr()}\n\n`;
-  md += `**Program:** ${PROGRAM.title}\n`;
-  md += `**Current program week:** ${p.week} of ${PROGRAM.weeks}${p.locked ? " (progression LOCKED by symptom rule — repeating this week's loads)" : ""}\n`;
-  md += `**Week started:** ${p.weekStart}\n\n`;
+  const t = todayStr();
+  const thisMon = mondayStr(new Date());
+  const locks = computeLocks();
+  let md = `# Kinetic Chain Tracker — Export ${t}\n\n`;
+  md += `**Program:** ${PROGRAM.title}, spec v${PROGRAM.specVersion} (daily single-movement rotation)\n`;
+  md += `**Current program week:** ${state.program.week} of ${PROGRAM.weeks}\n`;
+  const lockList = Object.keys(locks);
+  md += `**Active load locks:** ${lockList.length
+    ? lockList.map(m=>`${MOVEMENTS[m].name} — ${locks[m].category}-day sets held at Week ${locks[m].week}`).join("; ")
+    : "none"}\n\n`;
+  md += `**Knee tracking failures to date:** ` +
+    Object.keys(MOVEMENTS).map(m=>`${MOVEMENTS[m].short} ${kneeFailCount(m)}`).join(", ") + `\n\n`;
+  md += `---\n\n`;
 
-  md += `## Strength Sessions\n\n`;
-  const strengths = L("strength");
-  if (!strengths.length) md += `_None logged._\n\n`;
-  strengths.forEach(sl=>{
-    md += `### ${sl.date} — ${sl.variant==="tue"?"Tuesday (moderate ~85%)":"Friday (primary, full loads)"} — Week ${sl.week}\n\n`;
-    md += `| Exercise | Set | Weight | Reps/Time |\n|---|---|---|---|\n`;
-    sl.sets.forEach(x=>{
-      md += `| ${x.name} | ${x.set} | ${x.secs!=null ? "—" : (x.weight ? x.weight+" "+(x.unit||"lbs") : "BW")} | ${x.secs!=null ? x.secs+" sec" : x.reps} |\n`;
-    });
-    md += `\nForm check (knee tracked over second toe, no collapse): **${sl.formClean ? "YES" : "NO"}**\n\n`;
-  });
-
-  md += `## Check-ins (next-morning symptom rule)\n\n`;
-  const syms = L("symptom");
-  if (!syms.length) md += `_None yet._\n\n`;
-  else {
-    md += `| Date | After | Symptoms increased? |\n|---|---|---|\n`;
-    syms.forEach(sy=>{ md += `| ${sy.date} | ${sy.source||"session"} (${sy.forDate}) | ${sy.increased?"YES — progression locked":"No"} |\n`; });
+  for (let wk = 3; wk >= 0; wk--){
+    const mon = addDays(thisMon, -wk*7);
+    const label = wk === 0 ? " (current)" : "";
+    md += `## Week of ${mon}${label} — program week ${programWeekFor(mon)}\n\n`;
+    md += `| Date | Day | Movement | Load | Sets completed | Knee tracking | AM score |\n`;
+    md += `|---|---|---|---|---|---|---|\n`;
+    for (let i=0; i<7; i++){
+      const date = addDays(mon, i);
+      if (date > t) continue;
+      const rot = rotationFor(date);
+      const d = state.days[date];
+      const dn = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][rot.day];
+      const chk = state.symptomChecks.find(c=>c.date===date);
+      const score = chk ? `${chk.score} (${chk.attribution})` : "—";
+      if (rot.type === "recovery"){
+        // Recovery days export as a single adherence line
+        const mob = d && d.mobilityComplete ? "mobility ✓" : "mobility ✗";
+        const mtp = d && d.mtpComplete ? "MTP ✓" : "MTP ✗";
+        md += `| ${date} | ${dn} · Recovery | — (${mob}, ${mtp}) | — | — | — | ${score} |\n`;
+        continue;
+      }
+      const week = (d && d.week) || programWeekFor(date);
+      rot.movements.forEach((spec, mi)=>{
+        const m = MOVEMENTS[spec.id];
+        const w = (d && d.work[spec.id]) || { sets: [], failed:false };
+        const ld = loadFor(spec.id, rot.loadPct, week, rot.type);
+        const setsTxt = w.sets.length
+          ? w.sets.map(s=>`${s.reps}@${s.load||"BW"}/RIR${s.rir}`).join(" ")
+          : "none";
+        const knee = w.sets.length
+          ? (w.failed ? `FAIL on set ${w.sets.findIndex(s=>!s.kneeTrackingPass)+1}` : "all pass")
+          : "—";
+        const extras = [];
+        if (mi === 0 && rot.match) extras.push(d && d.matchEndTime ? `match ended ${fmtTime(d.matchEndTime)}` : "match not logged");
+        if (mi === 0 && rot.jog && d && d.jog) extras.push(`jog ${d.jog.minutes} min${d.jog.conversational?"":" (pace NOT conversational)"}`);
+        if (mi === 0 && d && !d.mobilityComplete) extras.push("mobility ✗");
+        if (mi === 0 && d && d.mobilityComplete) extras.push("mobility ✓");
+        if (w.sets.some(s=>s.outsideWindow)) extras.push(`⏱ logged outside ${PROGRAM.postMatchWindowMin}-min window`);
+        md += `| ${date} | ${dn} · ${rot.type === "match_post" ? "Match + post" : "Strength"} | ${m.name}${extras.length?` <br>_${extras.join(", ")}_`:""} | ${ld.label}${ld.locked?" 🔒":""} (${rot.loadPct}%) | ${w.sets.length}/${spec.sets} — ${setsTxt} | ${knee} | ${mi===0?score:"↑"} |\n`;
+      });
+    }
     md += `\n`;
   }
 
-  md += `## Daily Mobility Blocks\n\n`;
-  const mobs = L("mobility");
-  md += `Completed: ${mobs.length} total. Current streak: ${mobilityStreak()} days.\n\n`;
-  if (mobs.length){
-    md += `| Date | Duration (min) | Rep-based work logged |\n|---|---|---|\n`;
-    mobs.forEach(m=>{
-      const reps = (m.repWork||[]).map(r=>`${r.name.replace(/\s*\(right\)/,"")}${r.side?" "+r.side[0]:""} ${r.reps}`).join(", ");
-      md += `| ${m.date} | ${m.minutes||"—"} | ${reps||"—"} |\n`;
-    });
-    md += `\n`;
-  }
-  const pms = L("postmatch");
-  if (pms.length){
-    md += `Post-match mobility completed: ${pms.map(x=>x.date).join(", ")}\n\n`;
-  }
-
-  md += `## Matches\n\n`;
-  const matches = L("match");
-  if (!matches.length) md += `_None logged._\n\n`;
-  else {
-    md += `| Date | Played | Minutes | Symptoms | Note |\n|---|---|---|---|---|\n`;
-    matches.forEach(m=>{ md += `| ${m.date} | ${m.played?"Yes":"No"} | ${m.minutes} | ${m.symptoms?"YES":"No"} | ${(m.note||"").replace(/\|/g,"/")} |\n`; });
-    md += `\n`;
-  }
-
-  md += `## Saturday Jogs\n\n`;
-  const jogs = L("jog");
-  if (!jogs.length) md += `_None logged._\n\n`;
-  else {
-    md += `| Date | Minutes | Conversational pace held |\n|---|---|---|\n`;
-    jogs.forEach(j=>{ md += `| ${j.date} | ${j.minutes} | ${j.conversational?"Yes":"NO"} |\n`; });
-    md += `\n`;
-  }
-
-  md += `## WBLT Spot Checks (monthly)\n\n`;
-  const wblts = L("wblt");
-  if (!wblts.length) md += `_None logged._\n\n`;
-  else {
-    md += `| Date | Left (in) | Right (in) | L behind R (in) | Alert (>0.5") |\n|---|---|---|---|---|\n`;
+  const wblts = state.logs.filter(l=>l.type==="wblt");
+  if (wblts.length){
+    md += `## WBLT Spot Checks\n\n| Date | Left | Right | L behind R | Alert |\n|---|---|---|---|---|\n`;
     wblts.forEach(w=>{ md += `| ${w.date} | ${w.left} | ${w.right} | ${w.asym} | ${w.asym>0.5?"⚠️ YES":"—"} |\n`; });
     md += `\n`;
   }
+  const legacy = state.logs.filter(l=>l.type==="strength");
+  if (legacy.length){
+    md += `## Archived v2 sessions (pre-rotation model)\n\n`;
+    legacy.forEach(sl=>{
+      md += `- **${sl.date}** (${sl.variant==="tue"?"Tue moderate":"Fri primary"}, week ${sl.week}): ` +
+        sl.sets.map(x=>`${x.name} ${x.secs!=null?x.secs+"s":x.weight+"×"+x.reps}`).join("; ") +
+        ` — form check ${sl.formClean?"pass":"FAIL"}\n`;
+    });
+    md += `\n`;
+  }
   md += `---\n_Generated by the offline Kinetic Chain Tracker (single HTML file, localStorage only)._\n`;
-  download(`kinetic-tracker-report-${todayStr()}.md`, md, "text/markdown");
+  download(`kinetic-tracker-report-${t}.md`, md, "text/markdown");
   markExported();
   toast("Markdown report downloaded ✓");
 }
-
 function importJSON(input){
   const file = input.files && input.files[0];
   if (!file) return;
@@ -1428,12 +1502,14 @@ function importJSON(input){
   reader.onload = () => {
     let data;
     try { data = JSON.parse(reader.result); } catch(e){ toast("That file isn't valid JSON."); return; }
-    if (!data || !Array.isArray(data.logs) || !data.program){ toast("That doesn't look like a tracker backup."); return; }
+    if (!data || !data.program){ toast("That doesn't look like a tracker backup."); return; }
+    data = migrate(data);
     window._pendingImport = data;
+    const nDays = Object.keys(data.days||{}).length;
     showModal(`<h2>Import backup</h2>
-      <p>Backup contains <b>${data.logs.length}</b> log entries, program week <b>${data.program.week}</b>.</p>
+      <p>Backup contains <b>${nDays}</b> logged days and <b>${(data.symptomChecks||[]).length}</b> morning checks, program week <b>${data.program.week}</b>.</p>
       <p class="dim"><b>Replace</b> wipes current data and restores the backup.<br>
-      <b>Merge</b> keeps everything from both (duplicates skipped) and keeps whichever program week is further along.</p>
+      <b>Merge</b> keeps everything from both and prefers the more complete record for any day present in each.</p>
       <div class="yn"><button class="warn" onclick="applyImport('replace')">Replace</button>
       <button class="primary" onclick="applyImport('merge')">Merge</button></div>
       <button class="ghost big-btn" onclick="closeModal()">Cancel</button>`);
@@ -1444,17 +1520,29 @@ function importJSON(input){
 function applyImport(mode){
   const data = window._pendingImport; if (!data) return;
   if (mode === "replace"){
-    state = { ...defaultState(), ...data, activeSession: null };
+    state = Object.assign(defaultState(), data, { activeSession: null });
   } else {
-    const have = new Set(state.logs.map(l=>l.id));
-    data.logs.forEach(l=>{ if (!have.has(l.id)) state.logs.push(l); });
-    (data.pendingSymptom||[]).forEach(pz=>{
-      if (!state.pendingSymptom.some(x=>x.date===pz.date)) state.pendingSymptom.push(pz);
+    Object.entries(data.days || {}).forEach(([date, day])=>{
+      const mine = state.days[date];
+      if (!mine){ state.days[date] = day; return; }
+      // prefer whichever record holds more logged sets, then OR the flags
+      const mineSets = Object.values(mine.work||{}).reduce((a,w)=>a+(w.sets||[]).length,0);
+      const theirSets = Object.values(day.work||{}).reduce((a,w)=>a+(w.sets||[]).length,0);
+      if (theirSets > mineSets) state.days[date] = Object.assign({}, mine, day);
+      const m = state.days[date];
+      m.mobilityComplete = mine.mobilityComplete || day.mobilityComplete;
+      m.mtpComplete = mine.mtpComplete || day.mtpComplete;
+      m.matchEndTime = mine.matchEndTime || day.matchEndTime;
+      m.jog = mine.jog || day.jog;
     });
+    const haveChecks = new Set(state.symptomChecks.map(c=>c.date));
+    (data.symptomChecks||[]).forEach(c=>{ if (!haveChecks.has(c.date)) state.symptomChecks.push(c); });
+    const haveLogs = new Set(state.logs.map(l=>l.id));
+    (data.logs||[]).forEach(l=>{ if (!haveLogs.has(l.id)) state.logs.push(l); });
     if ((data.program.week||1) > state.program.week) state.program = data.program;
     if (data.lastExport && (!state.lastExport || data.lastExport > state.lastExport)) state.lastExport = data.lastExport;
   }
-  state.logs.sort((a,b)=>a.date.localeCompare(b.date));
+  state.symptomChecks.sort((a,b)=>a.date.localeCompare(b.date));
   window._pendingImport = null;
   save(); closeModal(); render();
   toast(mode === "replace" ? "Backup restored ✓" : "Backups merged ✓");
@@ -1482,13 +1570,12 @@ function toast(msg){
 /* ===================== boot ===================== */
 load();
 rolloverWeek();
+getDay(todayStr(), true);
+save();
 render();
 if (state.activeSession) resumeSession();
-else maybeAskSymptoms();
+else if (morningCheckDue()) askMorningCheck();
 window.addEventListener("beforeunload", save);
-// When hosted (e.g. GitHub Pages), install a service worker so the app
-// keeps working with no connection. Skipped silently when opened as a
-// plain local file, where it isn't needed or allowed.
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
   navigator.serviceWorker.register("sw.js").catch(()=>{});
 }

@@ -1,7 +1,7 @@
 /* Service worker for the Solo Touch Trainer.
    Scope is /touch/ only, so it never collides with the strength tracker's
    worker at the site root. Cache-first so the app works in airplane mode. */
-const CACHE = "touch-v1";
+const CACHE = "touch-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {

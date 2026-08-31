@@ -66,13 +66,20 @@ th,td{text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); ver
 th{color:var(--dim); font-weight:600; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em;}
 td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .tablewrap{overflow-x:auto;}
-.lenpick{display:flex; gap:8px; margin-top:10px;}
-.lenpick button{flex:1; min-height:74px; display:flex; flex-direction:column; gap:2px;
-  border:1px solid var(--line); font-weight:700;}
-.lenpick button b{font-size:1.35rem;}
-.lenpick button span{font-size:.72rem; color:var(--dim); font-weight:400; line-height:1.15;}
-.lenpick button.sel{background:var(--accent); color:#04201a; border-color:var(--accent);}
-.lenpick button.sel span{color:#0a3a2e;}
+.blockpick{display:flex; flex-direction:column; gap:8px; margin-top:4px;}
+.blockpick button{width:100%; display:flex; align-items:center; gap:12px; text-align:left;
+  border:1px solid var(--line); background:var(--panel2); padding:12px 14px; min-height:76px;}
+.blockpick button.sel{border-color:var(--accent); background:#12302a;}
+.blockpick .bp-box{width:30px; height:30px; flex-shrink:0; border-radius:9px;
+  border:2px solid var(--line); display:flex; align-items:center; justify-content:center;
+  font-size:1rem; font-weight:800; color:#04201a;}
+.blockpick button.sel .bp-box{background:var(--accent); border-color:var(--accent);}
+.blockpick .bp-body{flex:1; min-width:0;}
+.blockpick .bp-body b{display:block; font-size:1rem; line-height:1.2;}
+.blockpick .bp-blurb{display:block; color:var(--dim); font-size:.8rem; font-weight:400; line-height:1.25; margin-top:2px;}
+.blockpick .bp-min{flex-shrink:0; font-weight:800; font-size:1.15rem; color:var(--dim);}
+.blockpick button.sel .bp-min{color:var(--accent);}
+.blockpick .bp-min small{display:block; font-size:.6rem; font-weight:600; letter-spacing:.06em;}
 /* session player */
 #player{position:fixed; inset:0; background:var(--bg); z-index:100; overflow-y:auto; display:none;}
 #player.open{display:block;}
@@ -155,9 +162,11 @@ const PROGRAM = {
     { name:"Leg swings",           dur:20, cue:"Or walking lunge with a reach." },
     { name:"Single-leg line taps", dur:15, cue:"Light and quick, both feet." }
   ],
-  blocks: {
-    core: {
-      name:"5-Minute Core Block", label:"Core",
+  // Three independent ~5-minute blocks. Run any one, any two, or all three.
+  // Listed in ROI order — the core block is the one that earns its place first.
+  blocks: [
+    { id:"core", name:"Core — wall first touch", short:"Core", mins:5, roi:"Highest ROI",
+      blurb:"Sole rolls, wall cushion control, directional first touch, weak-foot receiving, half-turn.",
       note:"Highest ROI. Stand 2–3 m from the wall. Keep wall contact light and quiet.",
       steps: [
         { name:"Sole rolls / roll-and-push", dur:30, tag:"feel",
@@ -180,9 +189,9 @@ const PROGRAM = {
           detail:"Receive side-on and turn to play forward." }
       ]
     },
-    add10: {
-      name:"10-Minute Add-On", label:"Add-on",
-      note:"Runs after the core block.",
+    { id:"rhythm", name:"Rhythm — tempo & pressure", short:"Rhythm", mins:5, roi:"High",
+      blurb:"One-touch wall passing, first-touch-away both feet, foundations, pull-push.",
+      note:"Passing rhythm under tempo, plus close-control mastery.",
       steps: [
         { name:"One-touch wall passing", dur:45, seg:"Round 1", tag:"wall",
           cue:"Locked ankle, consistent pace.", detail:"2 × 45 sec, both feet." },
@@ -199,9 +208,9 @@ const PROGRAM = {
           cue:"Sole pulls back, inside pushes forward." }
       ]
     },
-    add15: {
-      name:"15-Minute Add-On", label:"Add-on",
-      note:"Mastery and juggling. Runs last.",
+    { id:"mastery", name:"Mastery — moves & juggling", short:"Mastery", mins:5, roi:"Moderate",
+      blurb:"V-pull, L-drag, three rounds of low controlled juggling, weak-foot juggling.",
+      note:"Coordination and aerial touch. Lowest transfer of the three — do it last.",
       steps: [
         { name:"V-pull", dur:45, tag:"mastery",
           cue:"Drag with the sole, push with the inside.", detail:"Both feet." },
@@ -219,16 +228,16 @@ const PROGRAM = {
           cue:"Keep it low and soft." }
       ]
     }
-  },
-  // 0 = Sunday
+  ],
+  // 0 = Sunday. `blocks` is the day's suggested selection — freely overridable.
   week: [
-    { day:0, type:"match", label:"Match — 11-a-side", len:0, emphasis:"Skip solo work.", load:"Minimal" },
-    { day:1, type:"train", label:"Full session", len:15, emphasis:"First touch + juggling", load:"Moderate" },
-    { day:2, type:"train", label:"Light technical", len:10, emphasis:"Technical only, pre-match", load:"Light", light:true },
-    { day:3, type:"match", label:"Match — 7-a-side", len:5, emphasis:"Skip, or 5-min feel-only pre-game", load:"Minimal", optional:true },
-    { day:4, type:"train", label:"Full session", len:15, emphasis:"Weak-foot emphasis", load:"Moderate" },
-    { day:5, type:"train", label:"Directional touch + scanning", len:10, emphasis:"Directional touch + scanning", load:"Moderate" },
-    { day:6, type:"train", label:"Feel-only", len:5, emphasis:"Feel only, pre-match", load:"Light", light:true }
+    { day:0, type:"match", label:"Match — 11-a-side", blocks:[], emphasis:"Skip solo work.", load:"Minimal" },
+    { day:1, type:"train", label:"Full session", blocks:["core","rhythm","mastery"], emphasis:"First touch + juggling", load:"Moderate" },
+    { day:2, type:"train", label:"Light technical", blocks:["core","rhythm"], emphasis:"Technical only, pre-match", load:"Light", light:true },
+    { day:3, type:"match", label:"Match — 7-a-side", blocks:["core"], emphasis:"Skip, or core block feel-only pre-game", load:"Minimal", optional:true },
+    { day:4, type:"train", label:"Full session", blocks:["core","rhythm","mastery"], emphasis:"Weak-foot emphasis", load:"Moderate" },
+    { day:5, type:"train", label:"Directional touch + scanning", blocks:["core","rhythm"], emphasis:"Directional touch + scanning", load:"Moderate" },
+    { day:6, type:"train", label:"Feel-only", blocks:["core"], emphasis:"Feel only, pre-match", load:"Light", light:true }
   ],
   phases: [
     { weeks:"1–2", from:1, to:2, focus:"Learn the positions. Blocked practice is fine, ball speed slow. Eyes down early, then start adding scans. Benchmark everything now." },
@@ -435,15 +444,27 @@ document.addEventListener("visibilitychange", ()=>{
 });
 
 /* ===================== session builder ===================== */
-function buildSteps(len, opts){
+function blockById(id){ return PROGRAM.blocks.find(b=>b.id===id); }
+/* Keep the canonical ROI order however the blocks were picked. */
+function orderBlocks(ids){
+  const want = new Set(ids||[]);
+  return PROGRAM.blocks.filter(b=>want.has(b.id)).map(b=>b.id);
+}
+function blocksLabel(ids){
+  const o = orderBlocks(ids);
+  return o.length ? o.map(id=>blockById(id).short).join(" + ") : "nothing selected";
+}
+function blocksMins(ids){ return orderBlocks(ids).length * 5; }
+
+function buildSteps(blockIds, opts){
   opts = opts || {};
   const withWarmup = opts.warmup !== undefined ? opts.warmup : state.settings.warmup;
   const raw = [];
   if (withWarmup) PROGRAM.warmup.forEach(w=>raw.push(Object.assign({block:"Warm-up", warm:true}, w)));
-  const blocks = [PROGRAM.blocks.core];
-  if (len >= 10) blocks.push(PROGRAM.blocks.add10);
-  if (len >= 15) blocks.push(PROGRAM.blocks.add15);
-  blocks.forEach(b=>b.steps.forEach(s=>raw.push(Object.assign({block:b.name}, s))));
+  orderBlocks(blockIds).forEach(id=>{
+    const b = blockById(id);
+    b.steps.forEach(s=>raw.push(Object.assign({block:b.name, blockId:b.id}, s)));
+  });
 
   // Insert a short repositioning transition when the drill actually changes.
   // Same-drill segments already carry their own prescribed rests.
@@ -484,12 +505,14 @@ function spokenFor(s, steps, i){
 let tickHandle = null, lastWholeSec = null, lastPersist = 0, midDone = {};
 function A(){ return state.active; }
 
-function startSession(len, opts){
+function startSession(blockIds, opts){
+  const blocks = orderBlocks(blockIds);
+  if (!blocks.length){ toast("Pick at least one block first"); return; }
   ensureAudio(); primeSpeech();
-  const steps = buildSteps(len, opts);
+  const steps = buildSteps(blocks, opts);
   const rot = PROGRAM.week[dowOf(todayStr())];
   state.active = {
-    id: uid(), date: todayStr(), len, startedAt: Date.now(),
+    id: uid(), date: todayStr(), blocks, len: blocksMins(blocks), startedAt: Date.now(),
     steps, idx:0, timer:null, elapsedBefore:0,
     emphasis: (opts && opts.emphasis) || rot.emphasis || ""
   };
@@ -555,7 +578,7 @@ function finishSession(complete){
   const drills = a.steps.filter(s=>!s.trans && !s.rest).length;
   const drillsDone = a.steps.slice(0, done).filter(s=>!s.trans && !s.rest).length;
   state.sessions.push({
-    id: a.id, date: a.date, len: a.len,
+    id: a.id, date: a.date, blocks: a.blocks, len: a.len,
     seconds: Math.round((Date.now()-a.startedAt)/1000),
     complete: !!complete, done: drillsDone, total: drills, emphasis: a.emphasis
   });
@@ -564,7 +587,7 @@ function finishSession(complete){
   if (complete){ cueGo(); say("Session complete. Well done.", true); }
   else stopSpeech();
   closePlayer(); render();
-  if (complete) toast(`Session logged — ${a.len} min ✓`);
+  if (complete) toast(`Session logged — ${blocksLabel(a.blocks)} ✓`);
 }
 function endEarly(){
   const a = A();
@@ -653,7 +676,7 @@ function renderPlayer(){
         <button class="ghost small" onclick="endEarly()">End</button>
       </span>
     </div>
-    <div class="faint">${a.len} min session · drill ${doneCount} of ${drills.length} · ${fmtClock(total-elapsedTotal())} left</div>
+    <div class="faint">${esc(blocksLabel(a.blocks))} · drill ${doneCount} of ${drills.length} · ${fmtClock(total-elapsedTotal())} left</div>
     <div class="pl-name">${esc(title)}${s.foot?`<span class="footchip">${esc(s.foot)}</span>`:""}</div>
     ${seg?`<div class="pl-seg">${esc(seg)}</div>`:""}
     <div class="pl-cue">${esc(cue)}</div>
@@ -769,6 +792,8 @@ function render(){
     : dataHTML();
 }
 function sessionsOn(date){ return state.sessions.filter(s=>s.date===date); }
+/* Sessions logged before blocks became independent only carry a length. */
+function sessionLabel(s){ return s.blocks && s.blocks.length ? blocksLabel(s.blocks) : `${s.len} min`; }
 function streak(){
   const days = new Set(state.sessions.map(s=>s.date));
   let d = todayStr(), n = 0;
@@ -776,16 +801,27 @@ function streak(){
   while (days.has(d)){ n++; d = addDays(d,-1); }
   return n;
 }
-let pickedLen = null;
-function pickLen(n){ pickedLen = n; render(); }
+let picked = null;   // null = follow today's suggested selection
+function currentPick(){
+  const rot = PROGRAM.week[dowOf(todayStr())];
+  return picked !== null ? picked : (rot.blocks || []).slice();
+}
+function toggleBlock(id){
+  const cur = currentPick();
+  picked = cur.includes(id) ? cur.filter(x=>x!==id) : orderBlocks(cur.concat(id));
+  render();
+}
+function resetPick(){ picked = null; render(); }
 
 function todayHTML(){
   const t = todayStr(), rot = PROGRAM.week[dowOf(t)];
   const wk = state.program.week, ph = phaseFor(wk);
   const doneToday = sessionsOn(t);
-  const len = pickedLen != null ? pickedLen : (rot.len || 5);
-  const steps = buildSteps(len);
+  const sel = currentPick();
+  const steps = buildSteps(sel);
   const secs = sessionSeconds(steps);
+  const suggested = (rot.blocks||[]).slice();
+  const differs = JSON.stringify(sel) !== JSON.stringify(suggested);
   const banners = [];
 
   if (state.program.notice)
@@ -812,18 +848,33 @@ function todayHTML(){
     <div class="card accent">
       <h2 style="margin-top:0;">${matchDay ? "Match day" : "Today's session"}</h2>
       <p class="dim" style="margin:2px 0 0;">${esc(rot.emphasis)}</p>
-      ${matchDay ? `<p class="faint" style="margin:8px 0 0;">Deload footwork on match days — the match is the real transfer test. A 5-minute feel-only block before the game is fine.</p>` : ""}
-      <div class="lenpick">
-        ${[5,10,15].map(n=>`<button class="${n===len?"sel":""}" onclick="pickLen(${n})">
-          <b>${n}</b><span>${n===5?"core block":n===10?"core + add-on":"full session"}</span></button>`).join("")}
+      ${matchDay ? `<p class="faint" style="margin:8px 0 0;">Deload footwork on match days — the match is the real transfer test. The core block alone before the game is fine.</p>` : ""}
+      <p class="faint" style="margin:12px 0 4px;">Pick any blocks — each is about 5 minutes and stands on its own.</p>
+      <div class="blockpick">
+        ${PROGRAM.blocks.map(b=>{
+          const on = sel.includes(b.id);
+          return `<button class="${on?"sel":""}" onclick="toggleBlock('${b.id}')">
+            <span class="bp-box">${on?"✓":""}</span>
+            <span class="bp-body">
+              <b>${esc(b.name)}</b>
+              <span class="bp-blurb">${esc(b.blurb)}</span>
+            </span>
+            <span class="bp-min">~${b.mins}<small>min</small></span>
+          </button>`;
+        }).join("")}
       </div>
+      ${differs ? `<p class="faint" style="margin:8px 0 0;">Today's plan suggests <b>${esc(suggested.length?blocksLabel(suggested):"a rest day")}</b>.
+        <button class="ghost small" style="min-height:34px; padding:4px 10px; margin-left:6px;" onclick="resetPick()">Use it</button></p>` : ""}
+      ${sel.length && !sel.includes("core") ? `<p class="faint" style="margin:8px 0 0; color:var(--amber);">
+        ⚠️ Core is the highest-ROI block — the wall work is what transfers to match control.</p>` : ""}
       <p class="faint" style="margin:10px 0 0;">
-        ${steps.filter(s=>!s.trans&&!s.rest&&!s.warm).length} drills ·
+        ${sel.length ? `${steps.filter(s=>!s.trans&&!s.rest&&!s.warm).length} drills ·
         ${fmtClock(steps.filter(s=>!s.trans&&!s.rest&&!s.warm).reduce((a,s)=>a+s.dur,0))} of drill work ·
-        ${fmtClock(secs)} door to door${state.settings.warmup?" with warm-up":""}${rot.len && len!==rot.len?` · today's plan says ${rot.len} min`:""}
+        ${fmtClock(secs)} door to door${state.settings.warmup?" with warm-up":""}` : "No blocks selected."}
       </p>
-      <button class="primary big-btn" onclick="startSession(${len})">▶ Start ${len}-minute session</button>
-      <button class="ghost big-btn small" onclick="previewSession(${len})">Preview the drills</button>
+      <button class="primary big-btn" onclick="startSession(currentPick())" ${sel.length?"":"disabled"}>
+        ▶ Start${sel.length?` — ${esc(blocksLabel(sel))}`:""}</button>
+      <button class="ghost big-btn small" onclick="previewSession(currentPick())" ${sel.length?"":"disabled"}>Preview the drills</button>
     </div>
     <div class="card">
       <div class="row" style="align-items:center;">
@@ -846,9 +897,9 @@ function todayHTML(){
       </ul>
     </div>`;
 }
-function previewSession(len){
-  const steps = buildSteps(len);
-  let html = `<h2>${len}-minute session</h2><p class="faint" style="margin:0;">${fmtClock(sessionSeconds(steps))} including transitions.</p><div class="steplist">`;
+function previewSession(blockIds){
+  const steps = buildSteps(blockIds);
+  let html = `<h2>${esc(blocksLabel(blockIds))}</h2><p class="faint" style="margin:0;">${fmtClock(sessionSeconds(steps))} including transitions.</p><div class="steplist">`;
   let lastBlock="";
   steps.forEach(s=>{
     if (s.trans) return;
@@ -871,8 +922,8 @@ function weekHTML(){
     const isToday = date===t;
     if (!future && rot.type==="train"){ planned++; if (ses.length) done++; }
     const detail = ses.length
-      ? ses.map(s=>`${s.len} min${s.complete?"":` (${s.done}/${s.total})`}`).join(", ")
-      : (rot.type==="match" ? rot.emphasis : `${rot.len} min — ${rot.emphasis}`);
+      ? ses.map(s=>`${esc(sessionLabel(s))}${s.complete?"":` (${s.done}/${s.total})`}`).join(", ")
+      : (rot.type==="match" ? rot.emphasis : `${blocksLabel(rot.blocks)} — ${rot.emphasis}`);
     return `<div class="weekrow ${isToday?"today":""}">
       <div class="wd">${nm}<small>${fmtShort(date).replace(/^\w+\s/,"")}</small></div>
       <div class="wb">${rot.type==="match"?`<b>${esc(rot.label)}</b><br>`:""}
@@ -899,8 +950,8 @@ function weekHTML(){
     <div class="card">
       <h2>Recent sessions</h2>
       ${recent.length ? `<div class="tablewrap"><table>
-        <tr><th>Date</th><th class="num">Len</th><th>Drills</th><th>Emphasis</th></tr>
-        ${recent.map(s=>`<tr><td>${esc(fmtShort(s.date))}</td><td class="num">${s.len}m</td>
+        <tr><th>Date</th><th>Blocks</th><th>Drills</th><th>Emphasis</th></tr>
+        ${recent.map(s=>`<tr><td>${esc(fmtShort(s.date))}</td><td>${esc(sessionLabel(s))}</td>
           <td>${s.complete?`<span style="color:var(--accent)">all ${s.total} ✓</span>`:`${s.done}/${s.total}`}</td>
           <td class="faint">${esc(s.emphasis||"")}</td></tr>`).join("")}
       </table></div>` : '<p class="faint">Nothing logged yet.</p>'}
@@ -1086,12 +1137,12 @@ function exportMarkdown(){
       const rot = PROGRAM.week[dowOf(date)];
       const dn = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][rot.day];
       const ses = list.filter(s=>s.date===date);
-      const planned = rot.type==="match" ? `${rot.label}` : `${rot.len} min`;
+      const planned = rot.type==="match" ? `${rot.label}` : blocksLabel(rot.blocks);
       if (!ses.length){
         md += `| ${date} | ${dn} | ${planned} | ${rot.type==="match"?"—":"**missed**"} | — | ${rot.emphasis} |\n`;
       } else {
         ses.forEach(s=>{
-          md += `| ${date} | ${dn} | ${planned} | ${s.len} min | ${s.complete?`all ${s.total} ✓`:`${s.done}/${s.total}`} | ${s.emphasis||rot.emphasis} |\n`;
+          md += `| ${date} | ${dn} | ${planned} | ${sessionLabel(s)} | ${s.complete?`all ${s.total} ✓`:`${s.done}/${s.total}`} | ${s.emphasis||rot.emphasis} |\n`;
         });
       }
     }

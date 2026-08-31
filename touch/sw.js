@@ -1,8 +1,8 @@
-/* Service worker for the Kinetic Chain Tracker.
-   Serves the app from cache first (so it works offline / in airplane mode)
-   and refreshes the cache in the background whenever there is a connection. */
-const CACHE = "kct-v7";
-const ASSETS = ["./", "./index.html", "./tracker.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
+/* Service worker for the Solo Touch Trainer.
+   Scope is /touch/ only, so it never collides with the strength tracker's
+   worker at the site root. Cache-first so the app works in airplane mode. */
+const CACHE = "touch-v1";
+const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -15,7 +15,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k.startsWith("touch-")).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

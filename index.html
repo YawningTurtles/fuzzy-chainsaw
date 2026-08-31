@@ -2,11 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=tracker.html">
-<title>Kinetic Chain Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<title>Training Apps</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;background:#0d1117;color:#e6edf3;font-size:17px;line-height:1.45;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+.wrap{max-width:560px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 16px 24px;}
+h1{font-size:1.4rem;margin:0 0 4px;}
+p.sub{color:#9aa7b4;margin:0 0 20px;font-size:.95rem;}
+a.app{display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;
+  background:#161b22;border:1px solid #2b3442;border-radius:14px;padding:18px;margin-bottom:12px;}
+a.app:active{filter:brightness(1.2);}
+a.app .ico{font-size:2.1rem;line-height:1;}
+a.app b{display:block;font-size:1.1rem;}
+a.app span{color:#9aa7b4;font-size:.88rem;}
+.tip{color:#6b7683;font-size:.85rem;margin-top:18px;border-top:1px solid #2b3442;padding-top:14px;}
+</style>
 </head>
-<body style="background:#0d1117;color:#e6edf3;font-family:sans-serif;">
-<p><a href="tracker.html" style="color:#4cc38a;">Open the Kinetic Chain Tracker</a></p>
-<script>location.replace("tracker.html");</script>
+<body>
+<div class="wrap">
+  <h1>Training apps</h1>
+  <p class="sub">Both work offline and store data only on this device. They are separate apps with separate data.</p>
+
+  <a class="app" href="tracker.html">
+    <span class="ico">🦵</span>
+    <span><b>Kinetic Chain Tracker</b>
+    <span>Strength, mobility and match tracking — daily single-movement rotation</span></span>
+  </a>
+
+  <a class="app" href="touch/">
+    <span class="ico">⚽</span>
+    <span><b>Solo Touch Trainer</b>
+    <span>Guided 5 / 10 / 15-minute touch and first-touch sessions with spoken cues</span></span>
+  </a>
+
+  <p class="tip">Open either one in Safari and use Share → Add to Home Screen to install it as its own app icon. Always launch from the icon so your data stays in one place.</p>
+</div>
 </body>
 </html>

@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Touch Trainer">
+<title>Solo Touch Trainer</title>
+<style>
+:root{
+  --bg:#0b1020; --panel:#141a2e; --panel2:#1b2340; --line:#2a3454;
+  --text:#e8edf7; --dim:#9aa6c4; --faint:#6b7797;
+  --accent:#4dd4ac; --accent-dim:#1d5c4c; --blue:#6aa9ff; --amber:#f0c05a; --red:#f4776b;
+  --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.45; min-height:100%;}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+h1,h2,h3{margin:.2em 0 .4em; line-height:1.2;}
+h1{font-size:1.35rem;} h2{font-size:1.12rem;} h3{font-size:1rem;color:var(--dim);}
+button{font:inherit; cursor:pointer; border:none; border-radius:var(--radius);
+  background:var(--panel2); color:var(--text); padding:14px 18px; min-height:56px;}
+button:active{transform:scale(.985); filter:brightness(1.15);}
+button.primary{background:var(--accent); color:#04201a; font-weight:700; font-size:1.1rem;}
+button.warn{background:var(--red); color:#200603; font-weight:700;}
+button.ghost{background:transparent; border:1px solid var(--line); color:var(--dim);}
+button.small{min-height:44px; padding:8px 14px; font-size:.95rem;}
+button:disabled{opacity:.4;}
+input,select,textarea{font:inherit; background:var(--panel2); color:var(--text);
+  border:1px solid var(--line); border-radius:10px; padding:12px; min-height:52px; width:100%;}
+input[type=number]{font-size:1.5rem; text-align:center; font-variant-numeric:tabular-nums;}
+label{display:block; font-size:.9rem; color:var(--dim); margin:10px 0 4px;}
+.wrap{max-width:640px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) 14px 8px;}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; margin-bottom:12px;}
+.card.accent{border-color:var(--accent-dim);}
+.banner{border-radius:var(--radius); padding:12px 14px; margin-bottom:12px; font-size:.95rem;
+  display:flex; gap:10px; align-items:flex-start;}
+.banner.amber{background:#2e2610; border:1px solid #5f4c1b; color:#efd8a0;}
+.banner.green{background:#0e2a22; border:1px solid var(--accent-dim); color:#a6e7d3;}
+.banner.blue{background:#101d33; border:1px solid #274975; color:#accdf7;}
+.banner button{min-height:40px; padding:6px 12px; font-size:.9rem; flex-shrink:0;}
+.row{display:flex; gap:10px;} .row>*{flex:1;}
+.chip{display:inline-block; background:var(--panel2); border:1px solid var(--line);
+  border-radius:999px; padding:3px 12px; font-size:.85rem; color:var(--dim);}
+.chip.green{color:var(--accent); border-color:var(--accent-dim);}
+.chip.amber{color:var(--amber); border-color:#5f4c1b;}
+.chip.blue{color:var(--blue); border-color:#274975;}
+.dim{color:var(--dim);} .faint{color:var(--faint); font-size:.85rem;}
+.big-btn{width:100%; margin-top:10px;}
+.nav{position:fixed; bottom:0; left:0; right:0; background:rgba(11,16,32,.96);
+  border-top:1px solid var(--line); display:flex; z-index:50;
+  padding-bottom:env(safe-area-inset-bottom); backdrop-filter:blur(8px);}
+.nav button{flex:1; background:none; border-radius:0; min-height:64px; color:var(--faint);
+  font-size:.72rem; display:flex; flex-direction:column; gap:2px; align-items:center; justify-content:center; padding:6px 2px;}
+.nav button .ico{font-size:1.3rem;}
+.nav button.active{color:var(--accent);}
+table{width:100%; border-collapse:collapse; font-size:.92rem; margin:8px 0;}
+th,td{text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
+th{color:var(--dim); font-weight:600; font-size:.8rem; text-transform:uppercase; letter-spacing:.04em;}
+td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
+.tablewrap{overflow-x:auto;}
+.lenpick{display:flex; gap:8px; margin-top:10px;}
+.lenpick button{flex:1; min-height:74px; display:flex; flex-direction:column; gap:2px;
+  border:1px solid var(--line); font-weight:700;}
+.lenpick button b{font-size:1.35rem;}
+.lenpick button span{font-size:.72rem; color:var(--dim); font-weight:400; line-height:1.15;}
+.lenpick button.sel{background:var(--accent); color:#04201a; border-color:var(--accent);}
+.lenpick button.sel span{color:#0a3a2e;}
+/* session player */
+#player{position:fixed; inset:0; background:var(--bg); z-index:100; overflow-y:auto; display:none;}
+#player.open{display:block;}
+.pl{max-width:640px; margin:0 auto; min-height:100vh;
+  padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  display:flex; flex-direction:column;}
+.pl-top{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+.pl-block{color:var(--accent); font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;}
+.pl-name{font-size:1.75rem; font-weight:800; line-height:1.12; margin:12px 0 4px;}
+.pl-seg{color:var(--blue); font-size:1.02rem; font-weight:600;}
+.pl-cue{color:var(--dim); font-size:1.02rem; margin-top:8px;}
+.bigtime{font-size:clamp(92px, 32vw, 210px); font-weight:800; text-align:center;
+  font-variant-numeric:tabular-nums; line-height:1; margin:12px 0 4px; letter-spacing:-.02em;}
+.bigtime.warn3{color:var(--amber);} .bigtime.resting{color:var(--blue);} .bigtime.trans{color:var(--amber);}
+.pbar{height:6px; border-radius:3px; background:var(--panel2); overflow:hidden; margin:4px 0 8px;}
+.pbar>div{height:100%; background:var(--accent); transition:width .25s linear;}
+.pbar.total>div{background:var(--blue);}
+.nextup{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; margin-top:auto; font-size:.98rem;}
+.nextup .nu-label{color:var(--faint); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em;}
+.controls{display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-top:12px;}
+.controls button{min-height:64px; font-size:.98rem; font-weight:600;}
+.controls .pausebtn{background:var(--accent); color:#04201a;}
+.footchip{display:inline-block; padding:2px 10px; border-radius:999px; font-size:.8rem; font-weight:700;
+  background:#3a2a10; color:var(--amber); border:1px solid #5f4c1b; margin-left:8px; vertical-align:middle;}
+.modal-back{position:fixed; inset:0; background:rgba(0,0,0,.68); z-index:200; display:flex;
+  align-items:center; justify-content:center; overflow-y:auto;
+  padding:calc(18px + env(safe-area-inset-top)) 18px 18px;}
+.modal{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:20px; max-width:440px; width:100%;}
+.yn{display:flex; gap:12px; margin-top:14px;}
+.yn button{flex:1; min-height:66px; font-size:1.1rem; font-weight:700;}
+.steplist{max-height:60vh; overflow-y:auto; margin:8px 0;}
+.sl-row{padding:9px 6px; border-bottom:1px solid var(--line); font-size:.94rem;}
+.sl-row.cur{color:var(--accent); font-weight:700;}
+.sl-row.done{color:var(--faint);}
+.steplist h3{margin:12px 0 4px; color:var(--blue);}
+.weekrow{display:flex; gap:10px; align-items:center; padding:11px 6px; border-bottom:1px solid var(--line);}
+.weekrow.today{background:#10241f; border-radius:10px; border-bottom-color:transparent;}
+.weekrow .wd{width:42px; flex-shrink:0; font-weight:700;}
+.weekrow .wd small{display:block; color:var(--faint); font-weight:400; font-size:.75rem;}
+.weekrow .wb{flex:1; min-width:0; font-size:.92rem;}
+.dot{width:10px; height:10px; border-radius:50%; display:inline-block; background:var(--line); flex-shrink:0;}
+.dot.on{background:var(--accent);} .dot.miss{background:#3a2320;}
+.statbig{font-size:2.1rem; font-weight:800; color:var(--accent); line-height:1;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+svg.spark{width:100%; height:auto; display:block;}
+ul.tight{margin:6px 0; padding-left:20px;} ul.tight li{margin:5px 0;}
+.roi td:first-child{font-weight:700; color:var(--accent); text-align:center; width:28px;}
+details{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin:8px 0; background:var(--panel2);}
+summary{cursor:pointer; font-weight:600; min-height:32px;}
+details[open] summary{margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<div id="player"></div>
+<div id="modalhost"></div>
+<nav class="nav" id="nav">
+  <button data-v="today"><span class="ico">⚽</span>Today</button>
+  <button data-v="week"><span class="ico">📅</span>Week</button>
+  <button data-v="bench"><span class="ico">📊</span>Bench</button>
+  <button data-v="guide"><span class="ico">📖</span>Guide</button>
+  <button data-v="data"><span class="ico">💾</span>Data</button>
+</nav>
+
+<script>
+"use strict";
+/* =====================================================================
+   Solo Touch Trainer — Daily Solo Indoor Touch-and-Control Program
+   5 / 10 / 15-minute stackable sets. Standalone, offline, localStorage.
+   ===================================================================== */
+
+const PROGRAM = {
+  title: "Daily Solo Indoor Touch-and-Control Program",
+  phaseWeeks: 8,
+  warmup: [
+    { name:"Ankle circles",        dur:20, cue:"Ten each way, slow and full." },
+    { name:"Slow calf raises",     dur:25, cue:"Twelve to fifteen. Lower slowly." },
+    { name:"Leg swings",           dur:20, cue:"Or walking lunge with a reach." },
+    { name:"Single-leg line taps", dur:15, cue:"Light and quick, both feet." }
+  ],
+  blocks: {
+    core: {
+      name:"5-Minute Core Block", label:"Core",
+      note:"Highest ROI. Stand 2–3 m from the wall. Keep wall contact light and quiet.",
+      steps: [
+        { name:"Sole rolls / roll-and-push", dur:30, tag:"feel",
+          cue:"Ball rolling left and right under the sole.",
+          detail:"30 sec continuous. Head up for the last 10 seconds.",
+          mid:[{ at:20, say:"Head up." }] },
+        { name:"Wall 2-touch cushion control", dur:90, tag:"wall",
+          cue:"Withdraw the foot on contact. First touch out of your feet.",
+          detail:"~1.5 sec per rep cycle, alternating feet. Roughly 35–45 reps.",
+          mid:[{ at:45, say:"Favour your weak foot from here." }] },
+        { name:"Wall directional first touch", dur:60, tag:"wall",
+          cue:"Push the ball half a yard into space. Scan before every reception.",
+          detail:"Touch into space to one side and pass, then the other. ~20 reps.",
+          mid:[{ at:30, say:"Switch. Touch into space the other way." }] },
+        { name:"Weak-foot wall receive and pass", dur:90, tag:"wall", foot:"Weak foot",
+          cue:"Weak foot only. Slow and clean — accuracy over pace.",
+          detail:"Roughly 30 reps, weak foot only." },
+        { name:"Half-turn receive, open body", dur:30, tag:"wall",
+          cue:"Receive on the far foot. Hips open before the ball arrives.",
+          detail:"Receive side-on and turn to play forward." }
+      ]
+    },
+    add10: {
+      name:"10-Minute Add-On", label:"Add-on",
+      note:"Runs after the core block.",
+      steps: [
+        { name:"One-touch wall passing", dur:45, seg:"Round 1", tag:"wall",
+          cue:"Locked ankle, consistent pace.", detail:"2 × 45 sec, both feet." },
+        { rest:true, dur:15, name:"Rest" },
+        { name:"One-touch wall passing", dur:45, seg:"Round 2", tag:"wall",
+          cue:"Locked ankle, consistent pace." },
+        { name:"First-touch-away then pass", dur:60, seg:"Strong foot", tag:"wall",
+          cue:"Touch away from an imagined defender.", detail:"60 sec each foot." },
+        { name:"First-touch-away then pass", dur:60, seg:"Weak foot", foot:"Weak foot", tag:"wall",
+          cue:"Now the weak foot. Same touch away from pressure." },
+        { name:"Foundations, inside-inside", dur:45, tag:"mastery",
+          cue:"Small, quick, balanced." },
+        { name:"Pull-push", dur:45, tag:"mastery",
+          cue:"Sole pulls back, inside pushes forward." }
+      ]
+    },
+    add15: {
+      name:"15-Minute Add-On", label:"Add-on",
+      note:"Mastery and juggling. Runs last.",
+      steps: [
+        { name:"V-pull", dur:45, tag:"mastery",
+          cue:"Drag with the sole, push with the inside.", detail:"Both feet." },
+        { name:"L-drag", dur:45, tag:"mastery",
+          cue:"Drag back, then across with the outside.", detail:"Both feet." },
+        { name:"Low controlled juggling", dur:40, seg:"Round 1", tag:"juggle",
+          cue:"Waist height max. Thigh reset allowed.", detail:"3 × 40 sec, 20 sec rest." },
+        { rest:true, dur:20, name:"Rest" },
+        { name:"Low controlled juggling", dur:40, seg:"Round 2", tag:"juggle",
+          cue:"Waist height max. Keep it low." },
+        { rest:true, dur:20, name:"Rest" },
+        { name:"Low controlled juggling", dur:40, seg:"Round 3", tag:"juggle",
+          cue:"Last round. Stay relaxed." },
+        { name:"Weak-foot juggling or wall volley", dur:60, foot:"Weak foot", tag:"juggle",
+          cue:"Keep it low and soft." }
+      ]
+    }
+  },
+  // 0 = Sunday
+  week: [
+    { day:0, type:"match", label:"Match — 11-a-side", len:0, emphasis:"Skip solo work.", load:"Minimal" },
+    { day:1, type:"train", label:"Full session", len:15, emphasis:"First touch + juggling", load:"Moderate" },
+    { day:2, type:"train", label:"Light technical", len:10, emphasis:"Technical only, pre-match", load:"Light", light:true },
+    { day:3, type:"match", label:"Match — 7-a-side", len:5, emphasis:"Skip, or 5-min feel-only pre-game", load:"Minimal", optional:true },
+    { day:4, type:"train", label:"Full session", len:15, emphasis:"Weak-foot emphasis", load:"Moderate" },
+    { day:5, type:"train", label:"Directional touch + scanning", len:10, emphasis:"Directional touch + scanning", load:"Moderate" },
+    { day:6, type:"train", label:"Feel-only", len:5, emphasis:"Feel only, pre-match", load:"Light", light:true }
+  ],
+  phases: [
+    { weeks:"1–2", from:1, to:2, focus:"Learn the positions. Blocked practice is fine, ball speed slow. Eyes down early, then start adding scans. Benchmark everything now." },
+    { weeks:"3–4", from:3, to:4, focus:"Increase wall pace. Scan before every reception. Mix the drill order. Weak foot at or above strong-foot volume." },
+    { weeks:"5–6", from:5, to:6, focus:"Add one-touch constraints and tighter space. Head up on mastery moves. Half-volley receiving off the wall." },
+    { weeks:"7–8", from:7, to:8, focus:"Tennis ball for 1–2 min. Reduce spacing for close control. Receive-and-turn under a self-imposed time cap." }
+  ],
+  benchmarks: [
+    { id:"wallStreak", name:"Wall-pass streak", unit:"reps", dur:60,
+      detail:"Most consecutive clean 2-touch reps in 60 seconds." },
+    { id:"weakFoot", name:"Weak-foot receptions", unit:"reps", dur:60,
+      detail:"Clean weak-foot receptions in 60 seconds." },
+    { id:"foundations30", name:"Foundations in 30 sec", unit:"touches", dur:30,
+      detail:"Inside-inside touches in 30 seconds." },
+    { id:"scan30", name:"Scan check", unit:"shoulder checks", dur:30,
+      detail:"Film 30 sec of wall work, then count shoulder checks. Aim for one before every reception." },
+    { id:"juggleFeet", name:"Juggling PB — feet only", unit:"touches", dur:0,
+      detail:"No timer. Log your best run." },
+    { id:"juggleWeak", name:"Juggling PB — weak foot", unit:"touches", dur:0,
+      detail:"No timer. Weak foot only." }
+  ],
+  roi: [
+    ["1","Wall cushion control, 2-touch (both feet)","Moving ball; most game-like","First touch, cushioning"],
+    ["2","Wall directional first touch","Trains control orientado + scan","Directional touch, scanning"],
+    ["3","Wall first-touch-away + half-turn receiving","Open-body habit, transfers to turning","Half-turn, receiving"],
+    ["4","Weak-foot wall passing/receiving","Fixes biggest match liability","Weak foot"],
+    ["5","One-touch wall passing (rhythm)","Speed + accuracy under tempo","Passing rhythm"],
+    ["6","Sole rolls / roll-and-push, sole taps","Feel + warm-up, some close control","Ball feel"],
+    ["7","Foundations, pull-push, V-pull, L-drag","Coordination, close control","Ball mastery"],
+    ["8","Juggling (low, controlled)","Aerial touch, ankle-lock feel","Cushioning, coordination"],
+    ["9","Toe taps / bells","Coordination primer only (low transfer)","Foot speed"]
+  ],
+  mechanics: [
+    ["Cushion control","Withdraw the receiving surface on contact to absorb pace — make a pillow, not a brick wall. Ankle locked, leg relaxed."],
+    ["Directional first touch","Don't stop the ball dead. Push it into space in the direction you'll next play, about half a yard."],
+    ["Half-turn / open body","Receive side-on, hips pointed where you want to go, on the back foot, so you're already facing forward."],
+    ["Across the body","Let the ball travel across you to the far foot."],
+    ["Surfaces","Inside, outside and sole. Both feet."],
+    ["Scan trigger","Glance over one shoulder before each reception. This is the free, high-value transfer element."]
+  ],
+  gear: [
+    ["Ball","Size-4 low-bounce futsal ball, slightly under-inflated. Stays on the ground, quieter, kinder to floors, forces cleaner touches. A tennis ball is an advanced progression — use sparingly from week 7."],
+    ["Footwear","Cushioned indoor trainers or futsal shoes — not barefoot. Hard floors plus barefoot repetitive footwork raise plantar fascia and Achilles overuse risk."],
+    ["Space","~1.5 × 1.5 m for stationary mastery work; 2–3 m of run-back from a solid wall and a clear 2 × 3 m lane for wall drills. A hallway works."]
+  ],
+  cautions: "Repetitive footwork on hard floors loads the plantar fascia, Achilles, calf, hip flexors and knees. Wear cushioned shoes, warm up, cap high-rep foot-speed to short bouts, and deload around matches. Watch for morning heel pain or Achilles stiffness as early warning signs — scale back and add calf and ankle mobility if they appear.",
+  levers: "Levers to raise difficulty: ball speed, angle, height (wall volleys), one-touch constraint, head-up constraint, smaller or less predictable ball, reduced space, time pressure.",
+  plateau: "If benchmarks plateau for 2+ weeks, increase variability and match-realism: random drill order, tennis ball, tighter space, time caps. If soreness recurs, drop to every-other-day footwork and keep wall receiving only."
+};
+
+/* ===================== helpers ===================== */
+function localISO(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+function todayStr(){ return localISO(new Date()); }
+function dowOf(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,m-1,d).getDay(); }
+function mondayStr(d){
+  const c = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  c.setDate(c.getDate() - ((c.getDay()+6)%7));
+  return localISO(c);
+}
+function addDays(iso, n){ const [y,m,d]=iso.split("-").map(Number); return localISO(new Date(y,m-1,d+n)); }
+function fmtDate(iso){ const [y,m,d]=iso.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}); }
+function fmtShort(iso){ const [y,m,d]=iso.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function daysBetween(a,b){
+  const [ay,am,ad]=a.split("-").map(Number), [by,bm,bd]=b.split("-").map(Number);
+  return Math.round((new Date(by,bm-1,bd)-new Date(ay,am-1,ad))/86400000);
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtClock(sec){
+  sec = Math.max(0, Math.ceil(sec));
+  const m = Math.floor(sec/60), s = sec%60;
+  return m>0 ? `${m}:${String(s).padStart(2,"0")}` : String(s);
+}
+function fmtMin(sec){ const m=Math.round(sec/60); return m+" min"; }
+
+/* ===================== state ===================== */
+const LS_KEY = "touchtrainer_v1";
+let state = null;
+function defaultState(){
+  return {
+    v:1, firstSeen: todayStr(),
+    program:{ week:1, weekStart: mondayStr(new Date()), notice:null },
+    sessions: [],           // {id, date, len, seconds, complete, done, total, emphasis}
+    benchmarks: {},         // {benchId: [{date, value}]}
+    lastExport: null,
+    active: null,
+    settings:{ voice:true, beeps:true, vibrate:true, rate:1, transition:8, warmup:true }
+  };
+}
+function load(){
+  try{ const raw = localStorage.getItem(LS_KEY); state = raw ? JSON.parse(raw) : defaultState(); }
+  catch(e){ state = defaultState(); }
+  if (!state || !state.program) state = defaultState();
+  if (!state.sessions) state.sessions = [];
+  if (!state.benchmarks) state.benchmarks = {};
+  const d = defaultState().settings;
+  state.settings = Object.assign({}, d, state.settings||{});
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ===================== program week ===================== */
+function rolloverWeek(){
+  const p = state.program, nowMon = mondayStr(new Date());
+  let guard = 0;
+  while (daysBetween(p.weekStart, nowMon) >= 7 && guard++ < 400){
+    p.weekStart = addDays(p.weekStart, 7);
+    if (p.week < PROGRAM.phaseWeeks) p.week++;
+    else p.notice = "You've completed the 8-week progression path. Re-benchmark and either restart or hold at the week 7–8 constraints.";
+  }
+}
+function phaseFor(week){
+  return PROGRAM.phases.find(p => week >= p.from && week <= p.to) || PROGRAM.phases[PROGRAM.phases.length-1];
+}
+function setWeekManually(w){
+  state.program.week = w;
+  state.program.weekStart = mondayStr(new Date());
+  state.program.notice = null;
+  save(); render();
+}
+function restartProgram(){
+  showModal(`<h2>Restart at Week 1?</h2>
+    <p>This week becomes <b>Week 1</b> of the 8-week progression path.</p>
+    <p class="dim">Every session you've logged and all benchmark results are kept.</p>
+    <div class="yn"><button class="primary" onclick="closeModal(); setWeekManually(1); toast('Restarted at Week 1 ✓')">Restart</button>
+    <button class="ghost" onclick="closeModal()">Cancel</button></div>`);
+}
+
+/* ===================== audio: beeps, speech, vibration ===================== */
+let audioCtx = null;
+function ensureAudio(){
+  try{
+    if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  }catch(e){}
+}
+function beep(freq, dur, when){
+  if (!state.settings.beeps || !audioCtx) return;
+  try{
+    const t = audioCtx.currentTime + (when||0);
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type="sine"; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.45,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t+dur+0.05);
+  }catch(e){}
+}
+function buzz(p){ if (state.settings.vibrate){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} } }
+function cueTick(){ beep(880,.09); buzz(50); }
+function cueGo(){ beep(700,.14); beep(1050,.26,.16); buzz([150,70,150]); }
+
+/* Speech: the point of the app — you should never need to look at the screen. */
+const SPOKEN = [];          // recent phrases, for debugging and tests
+let speechPrimed = false;
+function speechAvailable(){ return typeof window !== "undefined" && "speechSynthesis" in window; }
+function primeSpeech(){
+  if (speechPrimed || !speechAvailable()) return;
+  try{
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0; window.speechSynthesis.speak(u);
+    speechPrimed = true;
+  }catch(e){}
+}
+let cachedVoice = null;
+function pickVoice(){
+  if (cachedVoice) return cachedVoice;
+  try{
+    const vs = window.speechSynthesis.getVoices() || [];
+    cachedVoice = vs.find(v=>v.localService && /^en[-_]/i.test(v.lang))
+               || vs.find(v=>/^en[-_]/i.test(v.lang)) || vs[0] || null;
+  }catch(e){}
+  return cachedVoice;
+}
+if (speechAvailable() && window.speechSynthesis.addEventListener){
+  try{ window.speechSynthesis.addEventListener("voiceschanged", ()=>{ cachedVoice = null; pickVoice(); }); }catch(e){}
+}
+function say(text, interrupt){
+  if (!text) return;
+  SPOKEN.push(text); if (SPOKEN.length > 60) SPOKEN.shift();
+  if (!state.settings.voice || !speechAvailable()) return;
+  try{
+    if (interrupt) window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = state.settings.rate || 1;
+    const v = pickVoice(); if (v) u.voice = v;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stopSpeech(){ try{ speechAvailable() && window.speechSynthesis.cancel(); }catch(e){} }
+
+let wakeLock = null;
+async function grabWakeLock(){
+  try{ if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
+}
+function dropWakeLock(){ try{ if (wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+document.addEventListener("visibilitychange", ()=>{
+  if (document.visibilityState==="visible" && state && state.active) grabWakeLock();
+});
+
+/* ===================== session builder ===================== */
+function buildSteps(len, opts){
+  opts = opts || {};
+  const withWarmup = opts.warmup !== undefined ? opts.warmup : state.settings.warmup;
+  const raw = [];
+  if (withWarmup) PROGRAM.warmup.forEach(w=>raw.push(Object.assign({block:"Warm-up", warm:true}, w)));
+  const blocks = [PROGRAM.blocks.core];
+  if (len >= 10) blocks.push(PROGRAM.blocks.add10);
+  if (len >= 15) blocks.push(PROGRAM.blocks.add15);
+  blocks.forEach(b=>b.steps.forEach(s=>raw.push(Object.assign({block:b.name}, s))));
+
+  // Insert a short repositioning transition when the drill actually changes.
+  // Same-drill segments already carry their own prescribed rests.
+  const t = Math.max(0, state.settings.transition|0);
+  const out = [];
+  raw.forEach((s, i)=>{
+    const prev = out.length ? out[out.length-1] : null;
+    if (prev && t > 0 && !s.rest && !prev.rest && prev.name !== s.name){
+      out.push({ trans:true, name:"Change drill", dur:t, next:s, block:s.block });
+    }
+    out.push(s);
+  });
+  return out;
+}
+function sessionSeconds(steps){ return steps.reduce((a,s)=>a+s.dur, 0); }
+function nextDrill(steps, i){
+  for (let k=i+1; k<steps.length; k++) if (!steps[k].trans && !steps[k].rest) return steps[k];
+  return null;
+}
+function stepTitle(s){
+  if (s.trans) return "Change drill";
+  if (s.rest) return "Rest";
+  return s.name;
+}
+function spokenFor(s, steps, i){
+  if (s.trans){
+    const n = s.next;
+    return `Next: ${n.name}${n.seg ? ", "+n.seg : ""}. ${n.cue||""}`;
+  }
+  if (s.rest){
+    const n = nextDrill(steps, i);
+    return `Rest ${s.dur} seconds.` + (n ? ` Next: ${n.name}${n.seg ? ", "+n.seg : ""}.` : "");
+  }
+  return `${s.name}${s.seg ? ", "+s.seg : ""}. ${s.cue||""}`;
+}
+
+/* ===================== session engine ===================== */
+let tickHandle = null, lastWholeSec = null, lastPersist = 0, midDone = {};
+function A(){ return state.active; }
+
+function startSession(len, opts){
+  ensureAudio(); primeSpeech();
+  const steps = buildSteps(len, opts);
+  const rot = PROGRAM.week[dowOf(todayStr())];
+  state.active = {
+    id: uid(), date: todayStr(), len, startedAt: Date.now(),
+    steps, idx:0, timer:null, elapsedBefore:0,
+    emphasis: (opts && opts.emphasis) || rot.emphasis || ""
+  };
+  midDone = {};
+  armStep(true);
+  grabWakeLock(); openPlayer(); startTick(); save();
+}
+function armStep(announce){
+  const a = A(), s = a.steps[a.idx];
+  a.timer = { endsAt: Date.now() + s.dur*1000, total: s.dur, paused:false, remaining:null };
+  lastWholeSec = null; midDone = {};
+  if (announce !== false){
+    cueGo();
+    say(spokenFor(s, a.steps, a.idx), true);
+  }
+}
+function remaining(){
+  const a = A(); if (!a || !a.timer) return 0;
+  return a.timer.paused ? a.timer.remaining : Math.max(0,(a.timer.endsAt-Date.now())/1000);
+}
+function elapsedTotal(){
+  const a = A(); if (!a) return 0;
+  let done = 0;
+  for (let i=0;i<a.idx;i++) done += a.steps[i].dur;
+  return done + (a.steps[a.idx].dur - remaining());
+}
+function pauseToggle(){
+  const a = A(); if (!a || !a.timer) return;
+  ensureAudio();
+  if (a.timer.paused){ a.timer.endsAt = Date.now()+a.timer.remaining*1000; a.timer.paused=false; say("Resuming.", true); }
+  else { a.timer.remaining = remaining(); a.timer.paused = true; stopSpeech(); say("Paused.", true); }
+  save(); renderPlayer();
+}
+function plus15(){
+  const a = A(); if (!a || !a.timer) return;
+  if (a.timer.paused) a.timer.remaining += 15; else a.timer.endsAt += 15000;
+  save(); renderPlayer();
+}
+function skipStep(){ advance(true); }
+function backStep(){
+  const a = A();
+  const cur = a.steps[a.idx];
+  const gone = cur.dur - remaining();
+  if (gone > 4 && !cur.trans){ armStep(true); }
+  else {
+    let i = a.idx - 1;
+    while (i >= 0 && (a.steps[i].trans || a.steps[i].rest)) i--;
+    a.idx = Math.max(0, i);
+    armStep(true);
+  }
+  save(); renderPlayer();
+}
+function advance(skipped){
+  const a = A();
+  if (a.idx >= a.steps.length-1){ finishSession(true); return; }
+  a.idx++;
+  if (skipped && a.steps[a.idx] && a.steps[a.idx].trans && a.idx < a.steps.length-1) a.idx++;
+  armStep(true); save(); renderPlayer();
+}
+function finishSession(complete){
+  const a = A();
+  const done = a.idx + (complete?1:0);
+  const drills = a.steps.filter(s=>!s.trans && !s.rest).length;
+  const drillsDone = a.steps.slice(0, done).filter(s=>!s.trans && !s.rest).length;
+  state.sessions.push({
+    id: a.id, date: a.date, len: a.len,
+    seconds: Math.round((Date.now()-a.startedAt)/1000),
+    complete: !!complete, done: drillsDone, total: drills, emphasis: a.emphasis
+  });
+  state.active = null;
+  stopTick(); dropWakeLock(); save();
+  if (complete){ cueGo(); say("Session complete. Well done.", true); }
+  else stopSpeech();
+  closePlayer(); render();
+  if (complete) toast(`Session logged — ${a.len} min ✓`);
+}
+function endEarly(){
+  const a = A();
+  const drills = a.steps.filter(s=>!s.trans && !s.rest).length;
+  const drillsDone = a.steps.slice(0, a.idx).filter(s=>!s.trans && !s.rest).length;
+  showModal(`<h2>End session?</h2>
+    <p class="dim">You're ${drillsDone} of ${drills} drills in.</p>
+    <div class="yn">
+      <button class="primary" onclick="closeModal(); finishSession(false)">Save what I did</button>
+      <button class="warn" onclick="closeModal(); discardSession()">Discard</button></div>
+    <button class="ghost big-btn" onclick="closeModal()">Keep going</button>`);
+}
+function discardSession(){
+  state.active = null; stopTick(); dropWakeLock(); stopSpeech(); save();
+  closePlayer(); render();
+}
+function startTick(){ stopTick(); tickHandle = setInterval(tick, 200); }
+function stopTick(){ if (tickHandle){ clearInterval(tickHandle); tickHandle=null; } }
+function tick(){
+  const a = A(); if (!a || !a.timer || a.timer.paused) return;
+  const rem = remaining(), s = a.steps[a.idx];
+  const whole = Math.ceil(rem);
+  if (whole !== lastWholeSec){
+    lastWholeSec = whole;
+    if (whole <= 3 && whole >= 1) cueTick();
+    // mid-drill spoken cues, keyed on elapsed seconds
+    const elapsed = s.dur - rem;
+    (s.mid||[]).forEach((m,mi)=>{
+      if (!midDone[mi] && elapsed >= m.at){ midDone[mi] = true; say(m.say, false); buzz(40); }
+    });
+    // preview only when nothing else will announce the change
+    const nxt = a.steps[a.idx+1];
+    if (whole === 8 && s.dur >= 20 && nxt && !nxt.trans && !nxt.rest && !s.rest && !s.trans){
+      say(`Next: ${nxt.name}${nxt.seg ? ", "+nxt.seg : ""}.`, false);
+    }
+  }
+  updateClock(rem);
+  if (Date.now()-lastPersist > 4000){ lastPersist = Date.now(); save(); }
+  if (rem <= 0) advance(false);
+}
+function updateClock(rem){
+  const el = document.getElementById("bigtime"); if (!el) return;
+  el.textContent = fmtClock(rem);
+  el.classList.toggle("warn3", rem<=3.5 && rem>0);
+  const a = A();
+  const bar = document.getElementById("stepbar");
+  if (bar && a.timer.total) bar.style.width = (100-(rem/a.timer.total)*100)+"%";
+  const tot = document.getElementById("totalbar");
+  if (tot){
+    const all = sessionSeconds(a.steps);
+    tot.style.width = Math.min(100, elapsedTotal()/all*100)+"%";
+  }
+}
+function resumeActive(){
+  const a = A(); if (!a) return;
+  if (a.timer && !a.timer.paused){
+    // the app was closed mid-session: hold where we are rather than fast-forwarding
+    a.timer.paused = true;
+    a.timer.remaining = Math.max(3, Math.min(a.timer.total, (a.timer.endsAt-Date.now())/1000));
+    if (!isFinite(a.timer.remaining) || a.timer.remaining <= 0) a.timer.remaining = a.timer.total;
+  }
+  grabWakeLock(); openPlayer(); startTick(); save();
+}
+
+/* ===================== player rendering ===================== */
+function openPlayer(){ document.getElementById("player").classList.add("open"); renderPlayer(); }
+function closePlayer(){ document.getElementById("player").classList.remove("open"); }
+function renderPlayer(){
+  const host = document.getElementById("player"), a = A();
+  if (!a){ closePlayer(); return; }
+  const s = a.steps[a.idx];
+  const drills = a.steps.filter(x=>!x.trans && !x.rest);
+  const doneCount = a.steps.slice(0,a.idx).filter(x=>!x.trans && !x.rest).length + (!s.trans && !s.rest ? 1 : 0);
+  const nxt = nextDrill(a.steps, a.idx);
+  let title, seg = "", cue = "", cls = "";
+  if (s.trans){ title = "Next: " + s.next.name; seg = s.next.seg||""; cue = s.next.cue||""; cls="trans"; }
+  else if (s.rest){ title = "Rest"; seg = nxt ? "Then: "+nxt.name : ""; cue = "Breathe. It starts automatically."; cls="resting"; }
+  else { title = s.name; seg = s.seg||""; cue = s.cue||""; }
+  const paused = a.timer && a.timer.paused;
+  const total = sessionSeconds(a.steps);
+  host.innerHTML = `<div class="pl">
+    <div class="pl-top">
+      <span class="pl-block">${esc(s.block||"")}</span>
+      <span style="display:flex; gap:8px;">
+        <button class="ghost small" onclick="showList()">☰ All</button>
+        <button class="ghost small" onclick="endEarly()">End</button>
+      </span>
+    </div>
+    <div class="faint">${a.len} min session · drill ${doneCount} of ${drills.length} · ${fmtClock(total-elapsedTotal())} left</div>
+    <div class="pl-name">${esc(title)}${s.foot?`<span class="footchip">${esc(s.foot)}</span>`:""}</div>
+    ${seg?`<div class="pl-seg">${esc(seg)}</div>`:""}
+    <div class="pl-cue">${esc(cue)}</div>
+    <div class="bigtime ${cls}" id="bigtime">--</div>
+    <div class="pbar"><div id="stepbar"></div></div>
+    <div class="pbar total"><div id="totalbar"></div></div>
+    ${nxt && !s.trans && !s.rest
+      ? `<div class="nextup"><div class="nu-label">Next up</div><b>${esc(nxt.name)}</b>${nxt.seg?" — "+esc(nxt.seg):""} · ${nxt.dur}s${nxt.foot?" · "+esc(nxt.foot):""}</div>`
+      : `<div class="nextup"><div class="nu-label">Next up</div>${nxt?esc(nxt.name):"Last one — finish strong"}</div>`}
+    <div class="controls">
+      <button onclick="backStep()">⏮ Back</button>
+      <button class="pausebtn" onclick="pauseToggle()">${paused?"▶ Resume":"⏸ Pause"}</button>
+      <button onclick="plus15()">+15 s</button>
+      <button onclick="skipStep()">Skip ⏭</button>
+    </div>
+  </div>`;
+  updateClock(remaining());
+}
+function showList(){
+  const a = A(); if (!a) return;
+  let cur = a.idx; while (cur < a.steps.length && (a.steps[cur].trans)) cur++;
+  let html = `<h2>Session plan</h2><p class="faint" style="margin:0;">Tap a drill to jump to it.</p><div class="steplist">`;
+  let lastBlock = "";
+  a.steps.forEach((s,i)=>{
+    if (s.trans) return;
+    if (s.block !== lastBlock){ html += `<h3>${esc(s.block)}</h3>`; lastBlock = s.block; }
+    const cls = i===cur ? "cur" : (i < a.idx ? "done" : "");
+    const mark = i < a.idx ? "✓ " : (i===cur ? "▶ " : "");
+    html += `<div class="sl-row ${cls}" onclick="jumpTo(${i})">${mark}${esc(stepTitle(s))}${s.seg?` <span class="faint">${esc(s.seg)}</span>`:""} <span class="faint">· ${s.dur}s</span></div>`;
+  });
+  html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+function jumpTo(i){ const a=A(); if(!a) return; a.idx=i; armStep(true); save(); closeModal(); renderPlayer(); }
+
+/* ===================== benchmarks ===================== */
+let benchTimer = null, benchEndsAt = 0, benchId = null;
+function benchList(id){ return (state.benchmarks[id]||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)); }
+function benchBest(id){ const l = benchList(id); return l.length ? Math.max(...l.map(x=>x.value)) : null; }
+function benchLast(id){ const l = benchList(id); return l.length ? l[l.length-1] : null; }
+function openBench(id){
+  const b = PROGRAM.benchmarks.find(x=>x.id===id);
+  const best = benchBest(id);
+  showModal(`<h2>${esc(b.name)}</h2>
+    <p class="dim" style="margin:2px 0 0;">${esc(b.detail)}</p>
+    ${best!=null?`<p class="faint">Best so far: <b style="color:var(--accent)">${best} ${esc(b.unit)}</b></p>`:""}
+    ${b.dur ? `<div id="benchtimer" style="text-align:center; margin:14px 0;">
+        <div class="bigtime" style="font-size:72px;" id="benchclock">${b.dur}</div>
+        <button class="primary big-btn" onclick="runBench('${id}',${b.dur})">▶ Start ${b.dur}-second test</button>
+      </div>` : ""}
+    <label>Result (${esc(b.unit)})</label>
+    <input type="number" id="benchval" inputmode="numeric" min="0" placeholder="count">
+    <div class="yn"><button class="primary" onclick="saveBench('${id}')">Save ✓</button>
+    <button class="ghost" onclick="stopBench(); closeModal()">Cancel</button></div>`);
+}
+function runBench(id, dur){
+  ensureAudio(); primeSpeech();
+  stopBench();
+  benchId = id; benchEndsAt = Date.now()+dur*1000;
+  const b = PROGRAM.benchmarks.find(x=>x.id===id);
+  say(`${b.name}. Ready. Go.`, true);
+  cueGo();
+  benchTimer = setInterval(()=>{
+    const rem = Math.max(0,(benchEndsAt-Date.now())/1000);
+    const el = document.getElementById("benchclock");
+    if (!el){ stopBench(); return; }
+    el.textContent = fmtClock(rem);
+    const w = Math.ceil(rem);
+    if (w<=3 && w>=1 && el.dataset.last != w){ el.dataset.last = w; cueTick(); }
+    if (rem<=0){ stopBench(); cueGo(); say("Stop. Enter your count.", true);
+      const i = document.getElementById("benchval"); if (i) i.focus(); }
+  }, 200);
+}
+function stopBench(){ if (benchTimer){ clearInterval(benchTimer); benchTimer=null; } }
+function saveBench(id){
+  const el = document.getElementById("benchval");
+  const v = parseInt(el && el.value);
+  if (isNaN(v)){ toast("Enter a number first"); return; }
+  stopBench();
+  const prevBest = benchBest(id);
+  (state.benchmarks[id] = state.benchmarks[id]||[]).push({ date: todayStr(), value: v });
+  save(); closeModal(); render();
+  const b = PROGRAM.benchmarks.find(x=>x.id===id);
+  if (prevBest != null && v > prevBest) toast(`New best — ${v} ${b.unit} (was ${prevBest}) 🎉`);
+  else toast(`Saved: ${v} ${b.unit}`);
+}
+function sparkline(list){
+  if (list.length < 2) return "";
+  const W=520,H=90,pad=8;
+  const vals = list.map(x=>x.value);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  if (lo===hi){ lo-=1; hi+=1; }
+  const x = i => pad + i*(W-2*pad)/(list.length-1);
+  const y = v => pad + (H-2*pad)*(1-(v-lo)/(hi-lo));
+  const path = list.map((p,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(" ");
+  const dots = list.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.value).toFixed(1)}" r="3.5" fill="#4dd4ac"/>`).join("");
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}"><path d="${path}" fill="none" stroke="#4dd4ac" stroke-width="2.5" stroke-linecap="round"/>${dots}</svg>`;
+}
+
+/* ===================== views ===================== */
+let view = "today";
+function nav(v){ view=v; render(); window.scrollTo(0,0); }
+document.getElementById("nav").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if (b) nav(b.dataset.v);
+});
+function render(){
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.v===view));
+  const app = document.getElementById("app");
+  app.innerHTML = view==="today" ? todayHTML()
+    : view==="week" ? weekHTML()
+    : view==="bench" ? benchHTML()
+    : view==="guide" ? guideHTML()
+    : dataHTML();
+}
+function sessionsOn(date){ return state.sessions.filter(s=>s.date===date); }
+function streak(){
+  const days = new Set(state.sessions.map(s=>s.date));
+  let d = todayStr(), n = 0;
+  if (!days.has(d)) d = addDays(d,-1);
+  while (days.has(d)){ n++; d = addDays(d,-1); }
+  return n;
+}
+let pickedLen = null;
+function pickLen(n){ pickedLen = n; render(); }
+
+function todayHTML(){
+  const t = todayStr(), rot = PROGRAM.week[dowOf(t)];
+  const wk = state.program.week, ph = phaseFor(wk);
+  const doneToday = sessionsOn(t);
+  const len = pickedLen != null ? pickedLen : (rot.len || 5);
+  const steps = buildSteps(len);
+  const secs = sessionSeconds(steps);
+  const banners = [];
+
+  if (state.program.notice)
+    banners.push(`<div class="banner amber"><span>ℹ️ ${esc(state.program.notice)}</span>
+      <button onclick="state.program.notice=null; save(); render();">Dismiss</button></div>`);
+  const ref = state.lastExport || state.firstSeen;
+  if (daysBetween(ref,t) >= 14 && state.sessions.length)
+    banners.push(`<div class="banner amber"><span>💾 ${state.lastExport?"It's been "+daysBetween(state.lastExport,t)+" days since your last backup":"No backup yet"}. Data lives only in this browser.</span>
+      <button onclick="exportJSON()">Back up</button></div>`);
+  if (state.active)
+    banners.push(`<div class="banner green"><span>▶ Session in progress.</span><button onclick="resumeActive()">Resume</button></div>`);
+  if (!speechAvailable())
+    banners.push(`<div class="banner blue"><span>🔇 This browser has no speech support, so cues will be beeps only. Everything else works.</span></div>`);
+
+  const matchDay = rot.type === "match";
+  return `<h1>${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][rot.day]} · ${esc(rot.label)}</h1>
+    <div style="margin-bottom:12px;">
+      <span class="chip green">Week ${wk} of ${PROGRAM.phaseWeeks}</span>
+      <span class="chip">${fmtDate(t)}</span>
+      <span class="chip ${rot.load==="Light"||rot.load==="Minimal"?"amber":""}">${esc(rot.load)}</span>
+      ${doneToday.length?`<span class="chip green">done today ✓</span>`:""}
+    </div>
+    ${banners.join("")}
+    <div class="card accent">
+      <h2 style="margin-top:0;">${matchDay ? "Match day" : "Today's session"}</h2>
+      <p class="dim" style="margin:2px 0 0;">${esc(rot.emphasis)}</p>
+      ${matchDay ? `<p class="faint" style="margin:8px 0 0;">Deload footwork on match days — the match is the real transfer test. A 5-minute feel-only block before the game is fine.</p>` : ""}
+      <div class="lenpick">
+        ${[5,10,15].map(n=>`<button class="${n===len?"sel":""}" onclick="pickLen(${n})">
+          <b>${n}</b><span>${n===5?"core block":n===10?"core + add-on":"full session"}</span></button>`).join("")}
+      </div>
+      <p class="faint" style="margin:10px 0 0;">
+        ${steps.filter(s=>!s.trans&&!s.rest&&!s.warm).length} drills ·
+        ${fmtClock(steps.filter(s=>!s.trans&&!s.rest&&!s.warm).reduce((a,s)=>a+s.dur,0))} of drill work ·
+        ${fmtClock(secs)} door to door${state.settings.warmup?" with warm-up":""}${rot.len && len!==rot.len?` · today's plan says ${rot.len} min`:""}
+      </p>
+      <button class="primary big-btn" onclick="startSession(${len})">▶ Start ${len}-minute session</button>
+      <button class="ghost big-btn small" onclick="previewSession(${len})">Preview the drills</button>
+    </div>
+    <div class="card">
+      <div class="row" style="align-items:center;">
+        <div><div class="statbig">${streak()}</div><div class="faint">day streak</div></div>
+        <div><div class="statbig">${state.sessions.length}</div><div class="faint">sessions</div></div>
+        <div><div class="statbig">${Math.round(state.sessions.reduce((a,s)=>a+s.seconds,0)/60)}</div><div class="faint">minutes</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Week ${wk} focus <span class="faint">(weeks ${ph.weeks})</span></h3>
+      <p class="dim" style="margin:2px 0 0;">${esc(ph.focus)}</p>
+    </div>
+    <div class="card">
+      <h3>Today's reminders</h3>
+      <ul class="tight dim" style="font-size:.95rem;">
+        <li>Size-4 low-bounce futsal ball, slightly under-inflated.</li>
+        <li>Cushioned indoor trainers — not barefoot on hard floors.</li>
+        <li>Scan over your shoulder before every reception.</li>
+        <li>Bias about 2:1 toward your weak foot until the benchmark gap closes.</li>
+      </ul>
+    </div>`;
+}
+function previewSession(len){
+  const steps = buildSteps(len);
+  let html = `<h2>${len}-minute session</h2><p class="faint" style="margin:0;">${fmtClock(sessionSeconds(steps))} including transitions.</p><div class="steplist">`;
+  let lastBlock="";
+  steps.forEach(s=>{
+    if (s.trans) return;
+    if (s.block!==lastBlock){ html+=`<h3>${esc(s.block)}</h3>`; lastBlock=s.block; }
+    html += `<div class="sl-row">${esc(stepTitle(s))}${s.seg?` <span class="faint">${esc(s.seg)}</span>`:""}
+      <span class="faint">· ${s.dur}s</span>${s.foot?`<span class="footchip">${esc(s.foot)}</span>`:""}
+      ${s.cue?`<div class="faint">${esc(s.cue)}</div>`:""}</div>`;
+  });
+  html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+function weekHTML(){
+  const mon = mondayStr(new Date()), t = todayStr();
+  const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let done=0, planned=0;
+  const rows = names.map((nm,i)=>{
+    const date = addDays(mon,i), rot = PROGRAM.week[dowOf(date)];
+    const ses = sessionsOn(date), future = date > t;
+    const isToday = date===t;
+    if (!future && rot.type==="train"){ planned++; if (ses.length) done++; }
+    const detail = ses.length
+      ? ses.map(s=>`${s.len} min${s.complete?"":` (${s.done}/${s.total})`}`).join(", ")
+      : (rot.type==="match" ? rot.emphasis : `${rot.len} min — ${rot.emphasis}`);
+    return `<div class="weekrow ${isToday?"today":""}">
+      <div class="wd">${nm}<small>${fmtShort(date).replace(/^\w+\s/,"")}</small></div>
+      <div class="wb">${rot.type==="match"?`<b>${esc(rot.label)}</b><br>`:""}
+        <span class="${ses.length?"":"faint"}">${esc(detail)}</span></div>
+      <span class="dot ${ses.length?"on":(future||rot.type==="match"?"":"miss")}"></span>
+    </div>`;
+  }).join("");
+  const pct = planned ? Math.round(done/planned*100) : 0;
+
+  const recent = state.sessions.slice(-14).reverse();
+  return `<h1>Week</h1>
+    <div class="card">
+      <div class="row" style="align-items:center; margin-bottom:4px;">
+        <h2 style="margin:0;">Week of ${fmtShort(mon)}</h2>
+        <span style="flex:0 0 auto;"><span class="chip ${pct>=80?"green":pct>=50?"amber":""}">${pct}% of planned</span></span>
+      </div>
+      <p class="faint" style="margin:0 0 6px;">Program week ${state.program.week} · dot = session logged</p>
+      ${rows}
+    </div>
+    <div class="card">
+      <h3>Why the light days are light</h3>
+      <p class="faint" style="margin:2px 0 0;">Distributed practice beats massed: 5–15 focused minutes daily retains better than one long weekly session. Footwork volume is deloaded the day before and day of your Wednesday and Sunday matches so it doesn't stack on top of match and gym load.</p>
+    </div>
+    <div class="card">
+      <h2>Recent sessions</h2>
+      ${recent.length ? `<div class="tablewrap"><table>
+        <tr><th>Date</th><th class="num">Len</th><th>Drills</th><th>Emphasis</th></tr>
+        ${recent.map(s=>`<tr><td>${esc(fmtShort(s.date))}</td><td class="num">${s.len}m</td>
+          <td>${s.complete?`<span style="color:var(--accent)">all ${s.total} ✓</span>`:`${s.done}/${s.total}`}</td>
+          <td class="faint">${esc(s.emphasis||"")}</td></tr>`).join("")}
+      </table></div>` : '<p class="faint">Nothing logged yet.</p>'}
+    </div>`;
+}
+
+function benchHTML(){
+  const cards = PROGRAM.benchmarks.map(b=>{
+    const list = benchList(b.id), best = benchBest(b.id), last = benchLast(b.id);
+    let trend = "";
+    if (list.length >= 2){
+      const d = list[list.length-1].value - list[list.length-2].value;
+      trend = d===0 ? `<span class="chip">no change</span>`
+        : `<span class="chip ${d>0?"green":"amber"}">${d>0?"+":""}${d} vs last</span>`;
+    }
+    return `<div class="card">
+      <div class="row" style="align-items:baseline;">
+        <h2 style="margin:0;">${esc(b.name)}</h2>
+        <span style="flex:0 0 auto;">${best!=null?`<span class="chip green">best ${best}</span>`:""}</span>
+      </div>
+      <p class="faint" style="margin:2px 0 6px;">${esc(b.detail)}</p>
+      ${last?`<p class="dim" style="margin:0;">Last: <b>${last.value} ${esc(b.unit)}</b> on ${esc(fmtShort(last.date))} ${trend}</p>`:""}
+      ${sparkline(list)}
+      <button class="${last?"ghost":"primary"} big-btn" onclick="openBench('${b.id}')">${last?"Re-test":"Run test"}</button>
+    </div>`;
+  }).join("");
+  return `<h1>Benchmarks</h1>
+    <p class="faint" style="margin:0 0 10px;">Re-test every 1–2 weeks. Expect noticeable gains by weeks 2–4 with daily practice. If a benchmark plateaus for 2+ weeks, raise variability and match-realism.</p>
+    ${cards}`;
+}
+
+function guideHTML(){
+  return `<h1>Guide</h1>
+    <div class="card">
+      <h2>The one thing that matters</h2>
+      <p class="dim" style="margin:2px 0 0;">If you only have 5 minutes, spend it on wall-based first-touch reps, not toe taps. Receiving a moving, slightly unpredictable ball has the strongest transfer to match control. High-rep foot-speed patterns are a warm-up primer, not the main event.</p>
+    </div>
+    <div class="card">
+      <h2>Drill ROI ranking</h2>
+      <p class="faint" style="margin:2px 0 6px;">Do the top of this list first.</p>
+      <div class="tablewrap"><table class="roi">
+        <tr><th></th><th>Drill</th><th>Why</th><th>Trains</th></tr>
+        ${PROGRAM.roi.map(r=>`<tr><td>${r[0]}</td><td><b>${esc(r[1])}</b></td>
+          <td class="faint">${esc(r[2])}</td><td class="faint">${esc(r[3])}</td></tr>`).join("")}
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>First-touch mechanics</h2>
+      ${PROGRAM.mechanics.map(m=>`<details><summary>${esc(m[0])}</summary><p class="dim" style="margin:0;">${esc(m[1])}</p></details>`).join("")}
+    </div>
+    <div class="card">
+      <h2>Ball, footwear, space</h2>
+      ${PROGRAM.gear.map(g=>`<details><summary>${esc(g[0])}</summary><p class="dim" style="margin:0;">${esc(g[1])}</p></details>`).join("")}
+    </div>
+    <div class="card">
+      <h2>8-week progression path</h2>
+      ${PROGRAM.phases.map(p=>`<div style="padding:8px 0; border-bottom:1px solid var(--line);">
+        <b style="color:${p.from<=state.program.week&&state.program.week<=p.to?"var(--accent)":"var(--text)"}">Weeks ${p.weeks}</b>
+        ${p.from<=state.program.week&&state.program.week<=p.to?'<span class="chip green">you are here</span>':""}
+        <div class="faint">${esc(p.focus)}</div></div>`).join("")}
+      <p class="faint" style="margin-top:10px;">${esc(PROGRAM.levers)}</p>
+      <p class="faint">${esc(PROGRAM.plateau)}</p>
+    </div>
+    <div class="card">
+      <h2>Injury cautions</h2>
+      <p class="dim" style="margin:2px 0 0; font-size:.95rem;">${esc(PROGRAM.cautions)}</p>
+    </div>
+    <div class="card">
+      <h2>Honest caveats</h2>
+      <ul class="tight faint">
+        <li>Solo wall work is the best available <i>solo</i> proxy, but nothing fully replaces small-sided game reps for decision-making. Your Wednesday and Sunday matches remain the real transfer test.</li>
+        <li>Evidence on variability and random practice in soccer specifically is mixed — treat it as a well-supported principle, not a guarantee.</li>
+        <li>Most drill rep counts come from coaching sources, not peer-reviewed studies. Treat them as sensible convention, not proven optima.</li>
+        <li>The 2–4 week improvement timeline is a typical coaching estimate, individualised by consistency and starting level.</li>
+      </ul>
+    </div>`;
+}
+
+function dataHTML(){
+  const s = state.settings;
+  return `<h1>Data & settings</h1>
+    <div class="card">
+      <h2>Audio cues</h2>
+      <p class="faint" style="margin:2px 0 8px;">The point of the app: every drill is announced by name with its cue, so you can train without looking at the screen.</p>
+      ${toggle("voice","Spoken drill names and cues", s.voice)}
+      ${toggle("beeps","Countdown beeps", s.beeps)}
+      ${toggle("vibrate","Vibration (where supported)", s.vibrate)}
+      <label>Speech speed — ${s.rate.toFixed(2)}×</label>
+      <input type="range" min="0.7" max="1.4" step="0.05" value="${s.rate}"
+        style="min-height:44px; padding:0;"
+        oninput="state.settings.rate=parseFloat(this.value); save(); this.previousElementSibling.textContent='Speech speed — '+state.settings.rate.toFixed(2)+'×';">
+      <button class="ghost big-btn" onclick="ensureAudio(); primeSpeech(); say('Wall two touch cushion control. Withdraw the foot on contact.', true); cueGo();">🔊 Test the audio</button>
+    </div>
+    <div class="card">
+      <h2>Session shape</h2>
+      ${toggle("warmup","Include the 60–90 sec warm-up", s.warmup)}
+      <label>Gap between drills — ${s.transition} sec</label>
+      <div class="row">${[0,5,8,15].map(n=>
+        `<button class="small ${n===s.transition?"primary":""}" onclick="state.settings.transition=${n}; save(); render();">${n===0?"none":n+"s"}</button>`).join("")}</div>
+      <p class="faint" style="margin-top:6px;">Time to reposition and reset the ball between different drills. Prescribed rests inside a drill (juggling rounds, one-touch rounds) are unaffected.</p>
+    </div>
+    <div class="card">
+      <h2>Progression</h2>
+      <p class="faint" style="margin:2px 0 6px;">Week ${state.program.week} of ${PROGRAM.phaseWeeks}. Override:</p>
+      <div class="row">${[1,2,3,4,5,6,7,8].map(w=>
+        `<button class="small ${w===state.program.week?"primary":""}" style="padding:8px 4px;" onclick="setWeekManually(${w})">${w}</button>`).join("")}</div>
+      <button class="ghost big-btn" onclick="restartProgram()">↺ Restart at Week 1</button>
+    </div>
+    <div class="card">
+      <h2>Export</h2>
+      <p class="faint">Markdown is formatted for a coaching review. JSON is a full backup you can re-import.</p>
+      <button class="primary big-btn" onclick="exportMarkdown()">⬇ Export Markdown</button>
+      <button class="big-btn" onclick="exportJSON()">⬇ Export JSON backup</button>
+      <p class="faint" style="margin-top:8px;">Last export: ${state.lastExport?esc(fmtDate(state.lastExport)):"never"}</p>
+    </div>
+    <div class="card">
+      <h2>Import</h2>
+      <input type="file" id="importfile" accept=".json,application/json" onchange="importJSON(this)">
+    </div>
+    <div class="card">
+      <h2>About</h2>
+      <p class="faint">${esc(PROGRAM.title)} · standalone offline app · zero network requests · no accounts.
+      Data is stored only in this browser, separately from the strength tracker.</p>
+    </div>`;
+}
+function toggle(key, label, on){
+  return `<label style="display:flex; align-items:center; gap:10px; font-size:1rem; color:var(--text); margin:8px 0;">
+    <input type="checkbox" style="width:auto; min-height:auto;" ${on?"checked":""}
+      onchange="state.settings.${key}=this.checked; save();"> ${esc(label)}</label>`;
+}
+
+/* ===================== export / import ===================== */
+function download(name, text, mime){
+  const blob = new Blob([text], {type:mime||"text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 800);
+}
+function markExported(){ state.lastExport = todayStr(); save(); render(); }
+function exportJSON(){
+  download(`touch-trainer-backup-${todayStr()}.json`,
+    JSON.stringify(Object.assign({},state,{active:null}),null,2), "application/json");
+  markExported(); toast("JSON backup downloaded ✓");
+}
+function exportMarkdown(){
+  const t = todayStr();
+  let md = `# Solo Touch Trainer — Export ${t}\n\n`;
+  md += `**Program:** ${PROGRAM.title}\n`;
+  md += `**Progression week:** ${state.program.week} of ${PROGRAM.phaseWeeks} — ${phaseFor(state.program.week).focus}\n`;
+  md += `**Current streak:** ${streak()} days · **Sessions logged:** ${state.sessions.length} · `;
+  md += `**Total minutes:** ${Math.round(state.sessions.reduce((a,s)=>a+s.seconds,0)/60)}\n\n`;
+
+  md += `## Benchmarks\n\n| Benchmark | Best | Latest | Date | Tests |\n|---|---|---|---|---|\n`;
+  PROGRAM.benchmarks.forEach(b=>{
+    const l = benchList(b.id), best = benchBest(b.id), last = benchLast(b.id);
+    md += `| ${b.name} (${b.unit}) | ${best!=null?best:"—"} | ${last?last.value:"—"} | ${last?last.date:"—"} | ${l.length} |\n`;
+  });
+  md += `\n`;
+  PROGRAM.benchmarks.forEach(b=>{
+    const l = benchList(b.id);
+    if (l.length < 2) return;
+    md += `**${b.name}:** ` + l.map(x=>`${x.date} ${x.value}`).join(" → ") + `\n\n`;
+  });
+
+  md += `## Sessions by week\n\n`;
+  const weeks = {};
+  state.sessions.forEach(s=>{
+    const [y,m,d] = s.date.split("-").map(Number);
+    const k = mondayStr(new Date(y,m-1,d));
+    (weeks[k] = weeks[k]||[]).push(s);
+  });
+  const keys = Object.keys(weeks).sort().reverse().slice(0,8);
+  if (!keys.length) md += `_No sessions logged yet._\n\n`;
+  keys.forEach(k=>{
+    const list = weeks[k];
+    const mins = Math.round(list.reduce((a,s)=>a+s.seconds,0)/60);
+    md += `### Week of ${k} — ${list.length} sessions, ${mins} min\n\n`;
+    md += `| Date | Day | Planned | Done | Drills | Emphasis |\n|---|---|---|---|---|---|\n`;
+    for (let i=0;i<7;i++){
+      const date = addDays(k,i);
+      if (date > t) continue;
+      const rot = PROGRAM.week[dowOf(date)];
+      const dn = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][rot.day];
+      const ses = list.filter(s=>s.date===date);
+      const planned = rot.type==="match" ? `${rot.label}` : `${rot.len} min`;
+      if (!ses.length){
+        md += `| ${date} | ${dn} | ${planned} | ${rot.type==="match"?"—":"**missed**"} | — | ${rot.emphasis} |\n`;
+      } else {
+        ses.forEach(s=>{
+          md += `| ${date} | ${dn} | ${planned} | ${s.len} min | ${s.complete?`all ${s.total} ✓`:`${s.done}/${s.total}`} | ${s.emphasis||rot.emphasis} |\n`;
+        });
+      }
+    }
+    md += `\n`;
+  });
+  md += `---\n_Generated by the offline Solo Touch Trainer (single-page app, localStorage only)._\n`;
+  download(`touch-trainer-report-${t}.md`, md, "text/markdown");
+  markExported(); toast("Markdown report downloaded ✓");
+}
+function importJSON(input){
+  const f = input.files && input.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    let data;
+    try{ data = JSON.parse(r.result); }catch(e){ toast("That file isn't valid JSON."); return; }
+    if (!data || !data.program || !Array.isArray(data.sessions)){ toast("That doesn't look like a Touch Trainer backup."); return; }
+    window._imp = data;
+    showModal(`<h2>Import backup</h2>
+      <p>Contains <b>${data.sessions.length}</b> sessions and benchmarks up to week <b>${data.program.week}</b>.</p>
+      <p class="dim"><b>Replace</b> wipes current data. <b>Merge</b> keeps both, skipping duplicates.</p>
+      <div class="yn"><button class="warn" onclick="applyImport('replace')">Replace</button>
+      <button class="primary" onclick="applyImport('merge')">Merge</button></div>
+      <button class="ghost big-btn" onclick="closeModal()">Cancel</button>`);
+  };
+  r.readAsText(f); input.value = "";
+}
+function applyImport(mode){
+  const d = window._imp; if (!d) return;
+  if (mode === "replace"){
+    state = Object.assign(defaultState(), d, { active:null });
+  } else {
+    const have = new Set(state.sessions.map(s=>s.id));
+    d.sessions.forEach(s=>{ if(!have.has(s.id)) state.sessions.push(s); });
+    Object.entries(d.benchmarks||{}).forEach(([k,list])=>{
+      const mine = state.benchmarks[k] = state.benchmarks[k]||[];
+      const seen = new Set(mine.map(x=>x.date+":"+x.value));
+      list.forEach(x=>{ if(!seen.has(x.date+":"+x.value)) mine.push(x); });
+    });
+    if ((d.program.week||1) > state.program.week) state.program = d.program;
+    if (d.lastExport && (!state.lastExport || d.lastExport > state.lastExport)) state.lastExport = d.lastExport;
+  }
+  state.sessions.sort((a,b)=>a.date.localeCompare(b.date));
+  window._imp = null; save(); closeModal(); render();
+  toast(mode==="replace" ? "Backup restored ✓" : "Backups merged ✓");
+}
+
+/* ===================== modal + toast ===================== */
+function showModal(html, blocking){
+  document.getElementById("modalhost").innerHTML =
+    `<div class="modal-back" ${blocking?"":'onclick="if(event.target===this)closeModal()"'}><div class="modal">${html}</div></div>`;
+}
+function closeModal(){ stopBench(); document.getElementById("modalhost").innerHTML=""; }
+let toastTimer=null;
+function toast(msg){
+  let el = document.getElementById("toast");
+  if (!el){
+    el = document.createElement("div"); el.id="toast";
+    el.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:#243050;color:#e8edf7;padding:12px 18px;border-radius:12px;z-index:300;max-width:90%;box-shadow:0 6px 20px rgba(0,0,0,.55);font-size:.95rem;";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg; el.style.display="block";
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ el.style.display="none"; }, 3500);
+}
+
+/* ===================== boot ===================== */
+load();
+rolloverWeek();
+save();
+render();
+if (state.active) resumeActive();
+window.addEventListener("beforeunload", save);
+if ("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>

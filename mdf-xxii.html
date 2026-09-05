@@ -49,7 +49,11 @@
   }
   .poster a:hover,.poster a:focus{color:var(--blood);outline:none}
   .poster .dot{color:var(--blood);padding:0 .38em;font-size:.6em;vertical-align:.25em}
-  .poster p{margin:0;line-height:1.5}
+  .poster p{
+    margin:0;line-height:1.5;
+    display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;
+  }
+  .poster .w{max-width:100%}
 
   /* ---- controls ---- */
   .controls{
@@ -492,8 +496,8 @@ const B = [
 
 // --- render poster wall ---
 const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-document.getElementById('wall').innerHTML = '<p>' + B.map(b =>
-  `<a href="#${slug(b.n)}">${b.n}</a>`).join('<span class="dot">■</span>') + '</p>';
+document.getElementById('wall').innerHTML = '<p>' + B.map((b,i) =>
+  `<span class="w"><a href="#${slug(b.n)}">${b.n}</a>${i<B.length-1?'<span class="dot">■</span>':''}</span>`).join('') + '</p>';
 
 // --- render list ---
 const list = document.getElementById('list');

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDF XXII — band by band</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:dark;
+    --ink:#f4f2ee;
+    --dim:#8c8781;
+    --dimmer:#5d5955;
+    --blood:#c0263a;
+    --bloodlow:#5d1420;
+    --rule:#231f20;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:#000;color:var(--ink);
+    font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;line-height:1.5;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
+
+  /* ---- masthead ---- */
+  header{padding:44px 0 20px;border-bottom:1px solid var(--rule)}
+  h1{
+    font-size:clamp(34px,10vw,74px);font-weight:800;letter-spacing:-.03em;
+    line-height:.92;margin:0;text-transform:uppercase;
+  }
+  .dates{
+    font-family:"Instrument Serif",Georgia,serif;font-style:italic;
+    font-size:clamp(17px,4.4vw,24px);color:var(--dim);margin:12px 0 0;
+  }
+  .standfirst{max-width:60ch;color:var(--dim);margin:18px 0 0;font-size:15px}
+
+  /* ---- poster wall ---- */
+  .poster{
+    padding:26px 0 30px;text-align:center;border-bottom:1px solid var(--rule);
+  }
+  .poster a{
+    color:var(--ink);text-decoration:none;font-weight:800;
+    text-transform:uppercase;letter-spacing:-.01em;
+    font-size:clamp(13px,3.6vw,19px);
+  }
+  .poster a:hover,.poster a:focus{color:var(--blood);outline:none}
+  .poster .dot{color:var(--blood);padding:0 .38em;font-size:.6em;vertical-align:.25em}
+  .poster p{margin:0;line-height:1.5}
+
+  /* ---- controls ---- */
+  .controls{
+    position:sticky;top:0;z-index:5;background:#000;
+    padding:14px 0 12px;border-bottom:1px solid var(--rule);
+  }
+  .searchrow{display:flex;gap:8px;align-items:center}
+  input[type=search]{
+    flex:1;background:#0a0809;border:1px solid var(--rule);color:var(--ink);
+    padding:11px 12px;font:inherit;font-size:16px;border-radius:2px;
+  }
+  input[type=search]:focus{outline:2px solid var(--blood);outline-offset:-1px}
+  .count{color:var(--dimmer);font-size:13px;white-space:nowrap}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{
+    background:none;border:1px solid var(--rule);color:var(--dim);
+    font:inherit;font-size:13px;padding:6px 11px;border-radius:2px;cursor:pointer;
+  }
+  .chip[aria-pressed=true]{border-color:var(--blood);color:var(--ink);background:var(--bloodlow)}
+  .chip:focus-visible{outline:2px solid var(--blood);outline-offset:2px}
+
+  /* ---- entries ---- */
+  .band{
+    padding:26px 0;border-bottom:1px solid var(--rule);
+    display:grid;grid-template-columns:56px 1fr;gap:0 18px;scroll-margin-top:130px;
+  }
+  .score{
+    font-size:30px;font-weight:800;line-height:1;letter-spacing:-.04em;
+    color:var(--ink);
+  }
+  .score small{display:block;font-size:10px;font-weight:400;letter-spacing:.02em;color:var(--dimmer);margin-top:5px;line-height:1.3}
+  .s-hi{color:var(--blood)}
+  .s-unk{color:var(--dimmer);font-size:26px}
+  .band h2{
+    margin:0;font-size:clamp(19px,5vw,25px);font-weight:800;
+    text-transform:uppercase;letter-spacing:-.02em;line-height:1.05;
+  }
+  .setnote{
+    font-family:"Instrument Serif",Georgia,serif;font-style:italic;
+    text-transform:none;letter-spacing:0;color:var(--blood);
+    font-weight:400;font-size:.72em;display:block;margin-top:3px;
+  }
+  .facts{color:var(--dim);font-size:13.5px;margin:7px 0 0}
+  .facts b{color:var(--ink);font-weight:600}
+  .band p.why{margin:11px 0 0;max-width:64ch;font-size:15px}
+  .meta{margin:10px 0 0;max-width:64ch;font-size:14px;color:var(--dim)}
+  .meta span{color:var(--ink)}
+  .flag{
+    display:inline-block;margin-top:10px;font-size:12px;color:var(--blood);
+    border:1px solid var(--bloodlow);padding:3px 8px;border-radius:2px;
+  }
+  .empty{padding:60px 0;color:var(--dim)}
+
+  /* ---- scale key ---- */
+  .key{padding:34px 0;border-bottom:1px solid var(--rule)}
+  .key h3{font-size:14px;font-weight:600;margin:0 0 10px;letter-spacing:.01em}
+  .key p{margin:0 0 10px;color:var(--dim);font-size:14px;max-width:66ch}
+  footer{padding:34px 0;color:var(--dimmer);font-size:13px;max-width:66ch}
+
+  @media (min-width:720px){
+    .band{grid-template-columns:80px 1fr;gap:0 26px}
+    .score{font-size:40px}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    html{scroll-behavior:smooth}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Maryland<br>Deathfest XXII</h1>
+  <p class="dates">May 27–30, 2027 · Baltimore · 82 bands announced</p>
+  <p class="standfirst">My pass at the whole lineup, band by band, with a guess at how each one lands on the Paige scale. Tap a name in the wall below to jump to it, or filter the list. The eighteen names I couldn't place on the first pass are now filled in and marked.</p>
+</header>
+
+<section class="poster" id="wall" aria-label="Full lineup"></section>
+
+<div class="controls">
+  <div class="searchrow">
+    <input type="search" id="q" placeholder="Search band, country, genre…" aria-label="Search bands">
+    <span class="count" id="count"></span>
+  </div>
+  <div class="chips" role="group" aria-label="Filters">
+    <button class="chip" data-filter="all" aria-pressed="true">All</button>
+    <button class="chip" data-filter="paige8">Paige 8+</button>
+    <button class="chip" data-filter="paige6">Paige 6+</button>
+    <button class="chip" data-filter="rare">Rare US visits</button>
+    <button class="chip" data-filter="sets">Special sets</button>
+    <button class="chip" data-filter="unknown">The obscure 18</button>
+  </div>
+</div>
+
+<main id="list"></main>
+
+<section class="key">
+  <h3>How I scored the Paige scale</h3>
+  <p>1 to 10, guessing from Dimmu Borgir, In Flames, Dark Tranquillity, Amon Amarth, Children of Bodom, HammerFall, Arch Enemy, Blind Guardian, plus Wolfheart, Orbit Culture, One of Nine, Night of the Vampire and Witch Club Satan — and against metalcore, whiny vocals, and heavy-with-no-ideas.</p>
+  <p><b>9–10</b> melody, atmosphere and theatre; the reason to buy the ticket. <b>7–8</b> strong odds, might become a regular. <b>5–6</b> worth standing through once, historically interesting. <b>3–4</b> respect it, won't play it at home. <b>1–2</b> a wall of noise with no tune in it.</p>
+</section>
+
+<footer>
+  <p>The eighteen names I originally came up empty on are now researched and marked with a red tag. Three of my first guesses were flat wrong: Crud is sludge and death-doom rather than grind, Lay Waste is deathgrind rather than brutal death, and Hong Kong Fuck You is a Tijuana powerviolence band with three bassists and no guitarist. Blood Vial and Bogside Sniper Squadron are still thinly sourced and worth re-checking nearer the date. Angels Rock Bar and pre-fest bands are still to be announced, so this will grow.</p>
+</footer>
+
+</div>
+
+<script>
+const B = [
+{n:"Enslaved",c:"Norway",y:1991,g:"Progressive black / Viking metal",s:9,set:"Vikingligr Veldi in full",
+ x:"Grutle Kjellson and Ivar Bjørnson started this as teenagers; early drummer Trym left for Emperor.",
+ u:"Tours the US every couple of years, but almost never plays this material.",
+ w:"The 1994 debut is cold, long-form Viking black metal — no clean vocals, no prog polish, just frost and repetition. It's a completely different band from the one that plays festivals now, which is the whole point of the set."},
+{n:"Candlemass",c:"Sweden",y:1984,g:"Epic doom metal",s:8,
+ x:"Leif Edling's band; Epicus Doomicus Metallicus literally named the genre. Messiah Marcolin sings it in a monk's robe.",
+ u:"Rarely. US appearances come maybe once a decade.",
+ w:"Enormous slow riffs under an operatic voice — closer to Blind Guardian's sense of drama than to anything else on this bill. If Paige only sees one legacy band, this is the one with actual tunes."},
+{n:"Overkill",c:"United States",y:1980,g:"Thrash metal",s:7,set:"Old school set, first five albums",
+ x:"Bobby 'Blitz' Ellsworth and D.D. Verni have been there since 1980 — no reunions, no hiatus, 20-plus albums.",
+ u:"Constantly. Easiest band here to catch again.",
+ w:"East coast thrash with a singer who actually sings, and this set skips everything after 1991. Feel Elektrik and Deadly Sins territory."},
+{n:"Autopsy",c:"United States",y:1987,g:"Death / doom metal",s:5,set:"40th anniversary",
+ x:"Chris Reifert drummed on Death's Scream Bloody Gore at 17, then quit to do this.",
+ u:"Very selective — festival sets only, no real touring.",
+ w:"Filthy, lurching, half-speed death metal that basically invented the death-doom template. More groove than most of the grind here, but no melody to hang onto."},
+{n:"Insect Warfare",c:"United States",y:2004,g:"Grindcore",s:3,set:"World Extermination 20th anniversary",
+ x:"Houston band that made one album and split in 2009. Reunions only.",
+ u:"Almost never. This is the draw for the grind crowd.",
+ w:"Twenty minutes of the most worshipped American grind record of the 2000s. Historically a big deal, musically a blur."},
+{n:"Repulsion",c:"United States",y:1984,g:"Grindcore / death metal",s:4,
+ x:"Scott Carlson and Matt Olivo; Carlson later played in Death and Cathedral.",
+ u:"Rare festival appearances only.",
+ w:"Horrified (1986) is one of the two or three records grindcore came from. Everything fast and gross on this bill traces back here."},
+{n:"Voivod",c:"Canada",y:1982,g:"Progressive thrash metal",s:7,set:"Old school deep cuts",
+ x:"Away's artwork and Piggy's dissonant chords; Jason Newsted played bass with them after Metallica.",
+ u:"Tours North America regularly.",
+ w:"Sci-fi thrash that sounds like nobody else — jagged, jazzy, strange. The deep cuts set means Killing Technology and Dimension Hatröss era."},
+{n:"The Kovenant",c:"Norway",y:1993,g:"Symphonic black metal",s:10,set:"Nexus Polaris in full",
+ x:"The big one: Nagash played bass in Dimmu Borgir; guitarist Astennu was in Dimmu too; Hellhammer of Mayhem drummed the album; Sarah Jezebel Deva (Cradle of Filth, Therion) sang on it.",
+ u:"Effectively never. They stopped playing this material decades ago.",
+ w:"Nexus Polaris (1998) is the missing link between Dimmu's Enthrone Darkness Triumphant and full space-opera symphonic black metal. If Paige scores one band a 10 before hearing a note, it's this."},
+{n:"Lucifer",c:"Germany / Sweden",y:2014,g:"Occult heavy rock / doom",s:7,
+ x:"Johanna Sadonis (ex-The Oath) with Nicke Andersson of Entombed and the Hellacopters on drums.",
+ u:"Comes over occasionally, usually club tours.",
+ w:"Seventies-styled riff rock with a strong clean-sung hook on every song. The most relaxing forty minutes of the weekend, and genuinely well written."},
+{n:"Demolition Hammer",c:"United States",y:1986,g:"Thrash / death metal",s:5,
+ x:"New York band; Epidemic of Violence is a cult record for the riff-obsessed.",
+ u:"Rare. Reunited relatively recently after a long absence.",
+ w:"Brutally precise late-era thrash — all wrist and no chorus. Great to stand in front of, hard to hum."},
+{n:"YOB",c:"United States",y:1996,g:"Progressive doom metal",s:6,
+ x:"Mike Scheidt's band out of Eugene, Oregon.",
+ u:"Tours the US regularly.",
+ w:"Slow, enormous and surprisingly melodic — Scheidt's clean wail carries whole songs. If Paige has patience for twelve-minute tracks there's real melody here."},
+{n:"Sabbat",c:"Japan",y:1983,g:"Black / thrash metal",s:7,
+ x:"Gezol's band, running continuously since 1983 with a huge cult discography.",
+ u:"Extremely rare. A trip to the US is an event.",
+ w:"Venom and Bathory filtered through Japanese eccentricity — theatrical, catchy, played in capes. Fun in a way most of this bill isn't."},
+{n:"Akercocke",c:"United Kingdom",y:1996,g:"Progressive death / black metal",s:7,set:"Choronzon in full",
+ x:"Jason Mendonça's band; the offshoot Voices came out of it.",
+ u:"Almost never leave Britain. This is close to a once-ever chance.",
+ w:"Satanic prog in Savile Row suits — clean vocals, jazz breaks and blastbeats in the same song. Choronzon (2003) is where the ambition and the aggression balance best."},
+{n:"Naglfar",c:"Sweden",y:1992,g:"Melodic black metal",s:9,
+ x:"From the same mid-90s Swedish scene as Dissection and Dark Funeral; Kristoffer Olivius has fronted it for most of its life.",
+ u:"Very rare. They barely leave Europe.",
+ w:"Ice-cold tremolo melody with real songwriting underneath. If In Flames and Dimmu Borgir are the poles of Paige's taste, Naglfar sits exactly between them."},
+{n:"Anaal Nathrakh",c:"United Kingdom",y:1999,g:"Blackened industrial grind",s:4,
+ x:"Mick Kenney and Dave Hunt, who also sang in Benediction.",
+ u:"Rare US appearances.",
+ w:"Chaos with sudden soaring clean choruses bolted on — the melodic moments are genuinely good, but you have to wade through a lot of noise to reach them."},
+{n:"Left to Die",c:"United States",y:2016,g:"Death metal",s:5,set:"Death's Scream Bloody Gore, 40th anniversary",
+ x:"Rick Rozz and Terry Butler, both actual ex-Death members, playing the album they helped make possible.",
+ u:"Plays occasional anniversary shows.",
+ w:"A tribute set by people with the right to play it. Historically satisfying rather than musically surprising."},
+{n:"Exumer",c:"Germany",y:1985,g:"Thrash metal",s:6,
+ x:"Possessed by Fire is a Teutonic thrash staple; early member Ray Mensh crossed paths with the Kreator circle.",
+ u:"Rare US shows.",
+ w:"Second-tier German thrash in the best sense — Sodom energy with better riffs than its reputation suggests."},
+{n:"Onslaught",c:"United Kingdom",y:1982,g:"Thrash metal",s:6,
+ x:"Started as a hardcore punk band; The Force is the classic. Sy Keeler on vocals.",
+ u:"Very rare on this side of the Atlantic.",
+ w:"British thrash with big shouted choruses. Sits somewhere near early Sepultura and Onslaught's own punk roots."},
+{n:"Vreid",c:"Norway",y:2004,g:"Black 'n' roll",s:8,
+ x:"Formed by the surviving members of Windir after Valfar died in 2004.",
+ u:"Very rare in the US.",
+ w:"Rocking, melodic Norwegian black metal with folk melodies buried in it — a straight line from Windir's Sognametal. Big, singable riffs."},
+{n:"Saturnus",c:"Denmark",y:1991,g:"Melodic death / doom",s:8,
+ x:"Denmark's answer to early Anathema and Paradise Lost.",
+ u:"Essentially never come to the US.",
+ w:"Mournful, melodic, guitar-lead-driven doom. This is the Wolfheart-adjacent slot on the bill and probably the biggest sleeper for Paige."},
+{n:"Black Breath",c:"United States",y:2005,g:"Death 'n' roll / d-beat",s:5,
+ x:"Seattle band from the Southern Lord stable, back after a long break.",
+ u:"Active again and touring.",
+ w:"Entombed's buzzsaw guitar plus hardcore drive. Short songs, real hooks, no pretension."},
+{n:"Mortem",c:"Norway",y:1987,g:"Death / black metal",s:6,
+ x:"The deep-lore pick: this became Arcturus. Steinar Sverd Johnsen and Hellhammer of Mayhem both came through it.",
+ u:"Never, as far as I can tell.",
+ w:"The Slow Death EP (1989) is early Norwegian death metal before the scene turned black. Worth it for the genealogy alone."},
+{n:"Exhumed",c:"United States",y:1990,g:"Goregrind / death metal",s:4,set:"Gore Metal in full",
+ x:"Matt Harvey's long-running Bay Area band; a revolving door of West Coast death metal players.",
+ u:"Tours constantly — you can always catch them again.",
+ w:"Carcass worship done with real craft and a sense of humour. Gore Metal is the rawest thing they made."},
+{n:"Sadistic Intent",c:"United States",y:1987,g:"Death metal",s:4,
+ x:"The Cortez brothers from LA; they've backed Possessed's Jeff Becerra live.",
+ u:"Rare — a few festival sets a year, no real tours.",
+ w:"Thirty-eight years in and still no debut album. Pure old-school evil, and a genuine curiosity for the death metal faithful."},
+{n:"Panopticon",c:"United States",y:2007,g:"Atmospheric black metal / bluegrass",s:8,
+ x:"Austin Lunn plays nearly everything himself, and folds banjo and fiddle into black metal without it being a gimmick.",
+ u:"Barely plays live at all, which makes this notable.",
+ w:"Long, melodic, genuinely moving — Kentucky and Roads to the North are the entry points. Closest thing on the bill to atmospheric melodic black metal with a heart."},
+{n:"Benighted",c:"France",y:1998,g:"Brutal death / grind",s:3,
+ x:"Julien Truchan's band; a fixture of the European brutal death circuit.",
+ u:"Comes over occasionally.",
+ w:"Technically ferocious and very tight. Almost entirely rhythm, almost no melody."},
+{n:"Thulcandra",c:"Germany",y:2003,g:"Melodic black metal",s:9,
+ x:"Fronted by Steffen Kummerer, who also leads Obscura — two of his bands on the same bill.",
+ u:"Rare US appearances.",
+ w:"Unapologetic Dissection worship: Storm of the Light's Bane melodies with modern production. If Paige likes Naglfar she'll like this, and vice versa."},
+{n:"Azarath",c:"Poland",y:1998,g:"Blackened death metal",s:6,
+ x:"Inferno, Behemoth's drummer, plays in this — it's his other band.",
+ u:"Rare.",
+ w:"Fast, Polish, precise, and darker than Behemoth's arena version of the same idea."},
+{n:"Disharmonic Orchestra",c:"Austria",y:1987,g:"Avant-garde death / grind",s:4,
+ x:"Early Nuclear Blast signing; part of the strange first wave of European grind.",
+ u:"Effectively never come to the US.",
+ w:"Grindcore that keeps wandering off into jazz chords and odd time. Weird in an interesting way rather than a punishing one."},
+{n:"Gorerotted",c:"United Kingdom",y:1997,g:"Goregrind",s:3,
+ x:"Members went on to form The Rotted after the split.",
+ u:"Rare — they reunited relatively recently.",
+ w:"Gross-out British goregrind with a comedic streak and better riffs than the song titles suggest."},
+{n:"Martyr",c:"Canada",y:1994,g:"Technical death metal",s:6,
+ x:"Daniel Mongrain plays guitar here and is now also in Voivod, who are on this same bill.",
+ u:"Rare — sporadic reunion shows.",
+ w:"Quebec tech death from before tech death became a sport: fluid, jazzy, actually composed. Fans of the musicianship side of Children of Bodom will find something here."},
+{n:"Secret Chiefs 3",c:"United States",y:1995,g:"Avant-garde / surf / Middle Eastern",s:6,set:"Holy Vehm",
+ x:"Trey Spruance of Mr. Bungle, who also wrote much of Faith No More's King for a Day.",
+ u:"Tours occasionally.",
+ w:"The wild card of the weekend — surf guitar, Persian scales, film-score bombast. The Holy Vehm material is the darkest, heaviest corner of his catalogue."},
+{n:"Funebrarum",c:"United States",y:2000,g:"Old school death metal",s:3,
+ x:"Daryl Kahan, also of Disma and ex-Winter.",
+ u:"Plays East Coast shows and fests, not much beyond.",
+ w:"New Jersey band doing early-90s Swedish death metal with total conviction. Warm, murky, riff-first."},
+{n:"Lamp of Murmuur",c:"United States",y:2019,g:"Raw black metal / goth",s:7,
+ x:"Started as a solo LA project, now a live band; one of the most talked-about names in the current raw black underground.",
+ u:"Plays rarely, and the shows sell out.",
+ w:"Raw black metal that keeps drifting into eighties goth and post-punk. If Night of the Vampire is a hit at home, this is the same neighbourhood with more menace."},
+{n:"Guineapig",c:"Italy",y:1996,g:"Goregrind",s:2,
+ x:"Named after the Japanese splatter film series.",
+ u:"Never. A genuine Italian underground rarity.",
+ w:"Pitch-shifted vocals, horror samples, no melody by design. Strictly for the grind constituency."},
+{n:"Ceremonium",c:"United States",y:1992,g:"Death / doom metal",s:4,
+ x:"A New York band from the first wave of American death-doom, reunited after decades away.",
+ u:"Very rare.",
+ w:"Slow and funereal with some genuinely mournful melodies. Into the Autumn Shade is the one to try."},
+{n:"Hong Kong Fuck You",c:"Mexico",y:2019,g:"Powerviolence / fastcore",s:1,q:true,
+ x:"Drummer-vocalist Christian Hëll fronts a band with three bassists and no guitarist at all.",
+ u:"Plays constantly in the Southern California and Baja DIY circuit.",
+ w:"Tijuana, not Hong Kong, and powerviolence rather than metal — my earlier guess was wrong on both counts. Hëll has described the songs as faster than Hummingbird of Death and shorter than 'You Suffer'. Blink and it's over."},
+{n:"Brodequin",c:"United States",y:1998,g:"Brutal death metal",s:2,
+ x:"Knoxville band built around medieval torture themes; returned in 2024 after two decades of near-silence.",
+ u:"Rare, but active again.",
+ w:"Blastbeat-driven brutality with a real sense of atmosphere for the genre. Still an endurance test."},
+{n:"Obscura",c:"Germany",y:2002,g:"Melodic technical death metal",s:7,
+ x:"Steffen Kummerer's main band; alumni include Christian Münzner, Hannes Grossmann and Linus Klausenitzer, who scattered into Alkaloid, Necrophagist and Blotted Science.",
+ u:"Tours North America fairly regularly.",
+ w:"Technical death metal that never forgets the melody — fretless bass, harmonised leads, actual choruses. The most Bodom-adjacent musicianship on the bill."},
+{n:"Mizmor",c:"United States",y:2012,g:"Blackened doom",s:5,
+ x:"A.L.N.'s solo project out of Portland, built around losing his faith.",
+ u:"Plays sparingly.",
+ w:"Very slow, very heavy, very personal. Rewarding if you give it thirty uninterrupted minutes; punishing if you don't."},
+{n:"Cerebral Effusion",c:"Spain",y:1999,g:"Brutal death metal",s:2,
+ x:"Long-running Spanish band on the international slam circuit.",
+ u:"Almost never.",
+ w:"Slam and gutturals, played well. Nothing here for a melody listener."},
+{n:"Temple of Void",c:"United States",y:2013,g:"Death / doom metal",s:6,
+ x:"Detroit band that's become one of the more reliable names in modern death-doom.",
+ u:"Tours the US periodically.",
+ w:"Heavy and slow but written around real hooks, with occasional clean vocals. A good gateway between the doom and death halves of this festival."},
+{n:"Satan's Revenge on Mankind",c:"Germany",y:2004,g:"Goregrind",s:2,q:true,
+ x:"Helreath, Tomhet and The Almighty Mr. Goreblast — the East Frisian goregrind underground.",
+ u:"European act; they announced the MDF booking themselves as a rare US trip.",
+ w:"Twenty-four-track records of pitch-shifted goregrind. Not the blackened speed metal I guessed — it's the filthiest end of the German grind scene, and its defenders call it the best goregrind currently going."},
+{n:"Devangelic",c:"Italy",y:2012,g:"Brutal death metal",s:2,
+ x:"Rome-based, a fixture of the European brutal death scene.",
+ u:"Occasional US festival appearances.",
+ w:"Down-tuned, blasphemy-themed, relentless. Technically impressive, tonally one-note."},
+{n:"Cruciamentum",c:"United Kingdom / United States",y:2009,g:"Death metal",s:4,
+ x:"D.L. leads it; the sound owes a lot to Incantation and early Immolation.",
+ u:"Rare — a few US shows a decade.",
+ w:"Murky, cavernous, dread-heavy death metal that's better composed than most of its peers. Charnel Passages is the record."},
+{n:"Rot",c:"Brazil",y:1989,g:"Grindcore",s:2,
+ x:"One of the founding Brazilian grind bands, contemporaries of the early Sepultura scene.",
+ u:"Almost never.",
+ w:"Thirty-five years of short, filthy, politically angry grind. Historically important in South America, sonically brutal."},
+{n:"One of Nine",c:"United States",y:2022,g:"Melodic / Tolkien black metal",s:10,
+ x:"On Profound Lore; the 2025 album Dawn of the Iron Shadow has a guest turn from Hulder.",
+ u:"Barely plays live at all — this is a rare chance.",
+ w:"Already on Paige's list, and for good reason: melodic black metal built entirely around Tolkien, with Summoning-style keys and a theatrical streak reviewers keep comparing to Dimmu Borgir."},
+{n:"Goratory",c:"United States",y:1997,g:"Brutal death / goregrind",s:2,
+ x:"Massachusetts band, cult status on the strength of Rice on Suede.",
+ u:"Rarely active.",
+ w:"Absurdly technical, absurdly juvenile. A weird, beloved corner of American death metal."},
+{n:"Visceral Disgorge",c:"United States",y:2006,g:"Slam / brutal death metal",s:2,
+ x:"A hometown band — Baltimore's own, and a fixture of MDF's local contingent.",
+ u:"Local. You can see them in this city any year.",
+ w:"Ingesting Putridity is a slam benchmark. Worth knowing they're from here; not worth a set slot over anything else on your list."},
+{n:"Stabbing",c:"United States",y:2021,g:"Brutal death metal / slam",s:2,q:true,
+ x:"Frontwoman Bridget Lynch filled in for Suffocation's Ricky Myers on several 2023 shows; drummer Rene Martinez also plays in Flesh Hoarder and Martyred.",
+ u:"Actively touring — they've opened for 200 Stab Wounds.",
+ w:"Texas brutal death that has climbed fast: debut on Comatose Music, then Eon of Obscenity on Century Media in January 2026. Female-fronted gutturals, no melody whatsoever."},
+{n:"Imperial Crystalline Entombment",c:"United States",y:1997,g:"Black metal",s:5,
+ x:"Maryland's own — the 'blizzard beats' band, and something of a local legend for Apocalyptic End in White.",
+ u:"Extremely rare; they hardly ever play.",
+ w:"Hyper-fast, ice-themed black metal played with silly precision. Fun to see once, and it's a hometown reunion of sorts."},
+{n:"P.L.F.",c:"United States",y:2003,g:"Grindcore",s:2,
+ x:"Houston grind lifers, closely tied to the Insect Warfare circle also on this bill.",
+ u:"Plays US fests fairly often.",
+ w:"Fast, short, straightforward grind with no interest in melody whatsoever."},
+{n:"Killing Addiction",c:"United States",y:1990,g:"Death metal",s:3,
+ x:"Florida band from the same era and scene as Deicide and Obituary, if never the same profile.",
+ u:"Occasional fest appearances.",
+ w:"Omega Factor is a genuinely good lost-classic-era Florida death metal EP. A nice obscurity for people who've worn out the famous records."},
+{n:"Immortal Suffering",c:"United States",y:1992,g:"Brutal death metal",s:3,q:true,
+ x:"Ray Lebron joined in 1993 and went on to front Internal Bleeding for years; Dave Zatuchney of Dehumanized joined on guitar in 1994.",
+ u:"Long-dormant cult act — live sets are rare, which makes this a proper reunion booking.",
+ w:"Queens, 1992. Early demos are atypical New York death metal with doomier passages than the Suffocation school. Now on Sevared, with Extreme Torture out in 2023."},
+{n:"Keys to the Astral Gates and Mystic Doors",c:"United States",y:2023,g:"Raw black metal / dungeon synth",s:6,q:true,
+ x:"Pit Dweller and Ludwig the Bloodsucker — pseudonymous, Bandcamp-only, out of Madison, Wisconsin.",
+ u:"Only just started playing live; there's a first-performance tape limited to 50 copies.",
+ w:"My instinct was right that this leans dungeon-synth. Lo-fi black metal with synth passages, drawing on Burzum and demo-era Katatonia. Atmospheric rather than melodic — a maybe for Paige rather than a lock."},
+{n:"Fleshless",c:"Czech Republic",y:1993,g:"Goregrind / death metal",s:2,
+ x:"Long-running Czech band from the same scene that produced Ingrowing, also on this bill.",
+ u:"Almost never.",
+ w:"Carcass-derived goregrind, thirty years deep. Consistent, unrelenting, tuneless by design."},
+{n:"Fake Dust",c:"United States",y:2022,g:"Grindcore / powerviolence",s:2,q:true,
+ x:"Four-piece from Portland, Oregon, in the Discordance Axis and Insect Warfare lineage — the latter also on this bill.",
+ u:"Tours DIY; there's a dedicated tour promo release.",
+ w:"Iron Lung put out their debut LP this year and called it a fully baked maelstrom that only true masters of the craft manage. West Coast grind, played fast and played well."},
+{n:"Replicant",c:"United States",y:2015,g:"Dissonant death metal",s:3,
+ x:"New Jersey band on Transcending Obscurity; Infinite Mortality got strong reviews.",
+ u:"Tours the East Coast and US fests.",
+ w:"Gorguts-descended dissonance — angular, unsettling, deliberately anti-melodic. Interesting rather than enjoyable if you want tunes."},
+{n:"Ancient Death",c:"United States",y:null,g:"Death metal",s:5,
+ x:"Their 2025 album landed on a lot of year-end lists, and they hardly ever play shows.",
+ u:"Very rarely — that's part of why they're billed high.",
+ w:"One of the buzz bands of the announcement. Weird, progressive-leaning death metal rather than straight brutality."},
+{n:"Bogside Sniper Squadron",c:"United States / Ireland",y:2022,g:"Blackened death metal",s:5,q:true,
+ x:"Deliberately anonymous, reportedly including a member of Philadelphia's Devil Master. Recorded between Pennsylvania and Derry.",
+ u:"Largely a studio project until recently — this may be one of very few live outings.",
+ w:"Irish-diaspora death metal with republican themes and a melodic, thrashy streak that reviewers compare to Running Wild-flavoured melodeath. Self-titled LP out on Headsplit in April. More tune here than the poster placement suggests."},
+{n:"Night of the Vampire",c:"United States",y:2022,g:"Blackened darkwave / deathrock",s:10,
+ x:"A one-person project run by 'Astral Shadow'; the debut album came out in February 2026.",
+ u:"Barely plays live, so a festival slot is unusual.",
+ w:"Already on Paige's list. Black metal crossed with eighties synths, goth rock and deliberate camp — reviewers file it next to Tribulation and Old Nick."},
+{n:"Coscradh",c:"Ireland",y:2013,g:"Death / black metal",s:4,
+ x:"Part of the current Irish underground wave alongside Malthusian.",
+ u:"Very rare US visits.",
+ w:"Chaotic, cavernous and genuinely oppressive, with Irish-language titles. Atmosphere over melody."},
+{n:"Ingrowing",c:"Czech Republic",y:1994,g:"Grindcore",s:2,
+ x:"Czech grind veterans, contemporaries of Fleshless.",
+ u:"Almost never.",
+ w:"Blast-heavy Eastern European grind with an electronic streak in places. Short and violent."},
+{n:"Desolus",c:"United States",y:2019,g:"Black / thrash metal",s:5,q:true,
+ x:"A DC power trio; demos were tracked by Sebastian Phillips of Exhumed and Noisem, and mastered by Scott Hull.",
+ u:"Active around the DMV — you can catch them locally.",
+ w:"Confirmed as a hometown-adjacent booking. Satanic sci-fi blackthrash on Hells Headbangers, in the Sodom, Kreator and Absu tradition. Riffy enough to hold attention."},
+{n:"Fire Magic",c:"United States",y:null,g:"Melodic / triumphant black metal",s:8,
+ x:"Virginia band on Stygian Black Hand; second album Memories of Fire came out in March 2026.",
+ u:"Rare — a small band that doesn't tour much.",
+ w:"Heroic, battle-themed black metal with classic heavy metal riffing and occasional clean singing. Decibel streamed the album and compared it to early Helheim. A strong dark-horse pick for Paige."},
+{n:"Crawl",c:"Sweden",y:2014,g:"Swedish death metal / death-crust",s:3,q:true,
+ x:"Kalmar and Stockholm; on Transcending Obscurity. Not the Asarum band of the same name, and nothing to do with the old Entombed EP.",
+ u:"European band; a US festival slot is unusual for them.",
+ w:"Everything Is Noise put it best — they sound exactly like what 'Swedish death metal band' promised in the nineties. Buzzsaw guitar, crust edge, black metal shading. Altar of Disgust is the current record."},
+{n:"Human Effluence",c:"United States",y:null,g:"Brutal death / grind",s:1,
+ x:"American brutal death-grind, small-label territory.",
+ u:"Regional.",
+ w:"About as far from melody as this bill gets."},
+{n:"Barren Path",c:"United States",y:2024,g:"Deathgrind",s:3,q:true,
+ x:"The big one on this list: Takafumi Matsubara and Bryan Fajardo of Gridlink, plus Mauro Cordoba and Rory Kobzina from Gridlink's last album, with Mitchell Luna of Maruta singing. Effectively Gridlink without Jon Chang.",
+ u:"Brand new — MDF is an early marquee appearance.",
+ w:"Metal Injection summed it up as Gridlink but extra death metal. The debut, Grieving, is twelve songs in about thirteen minutes on Willowtip. Genuinely significant if you follow grind at all."},
+{n:"Grave Infestation",c:"Canada",y:null,g:"Death metal",s:3,
+ x:"Vancouver band in the Invictus Productions orbit.",
+ u:"Rare US shows.",
+ w:"Deliberately primitive, Autopsy-worshipping death metal. Rotten in a fun way, but no tunes."},
+{n:"Ruby the Hatchet",c:"United States",y:2011,g:"Occult psychedelic rock",s:6,
+ x:"New Jersey band fronted by Jillian Taylor; Tee Pee Records.",
+ u:"Tours the US regularly.",
+ w:"Seventies-flavoured psych rock with organ and strong clean vocals — the other palate cleanser alongside Lucifer. Barely metal, and that's the appeal on day three."},
+{n:"Thætas",c:"United States",y:null,g:"Dissonant death metal",s:2,
+ x:"Brooklyn band in the I, Voidhanger / Portal-adjacent corner.",
+ u:"Rare.",
+ w:"Deliberately disorienting, atonal and short. Cerebral, not catchy."},
+{n:"Mortal Wound",c:"United States",y:2018,g:"Old school death metal",s:3,q:true,
+ x:"Los Angeles four-piece; releases via Me Saco Un Ojo, Maggot Stomp and now Dark Descent.",
+ u:"Active LA live band.",
+ w:"Deliberately primitive caveman death metal in the early Deicide and Cannibal Corpse mould, with war-themed lyrics. The Anus of the World is the 2024 album, name and all."},
+{n:"Fermented Mess",c:"United States",y:2023,g:"Grindcore / goregrind",s:1,q:true,
+ x:"Long Island trio; drummer connections into Raid and Fear Made Flesh.",
+ u:"DIY shows around New York.",
+ w:"The name did read goregrind, and it is. Decibel's grind column called them a testament to true grindcore in a sea of filthy pretenders. Internal Rot riffing with Sulfuric Cautery vocals."},
+{n:"Pig's Blood",c:"United States",y:null,g:"Death metal",s:2,
+ x:"Portland, Oregon; part of the Nuclear War Now! roster.",
+ u:"Rare.",
+ w:"Bestial, war-metal-adjacent death metal. Very heavy, very featureless if you want melody."},
+{n:"Ripping Remains",c:"United States",y:2025,g:"Death / grind",s:3,q:true,
+ x:"Risen from Dripping Decay and named after that band's last EP. Drummer Jason Borton has toured or recorded with Jungle Rot, Skeletal Remains and Ripped to Shreds; bassist Michael Freiburger founded Satanik Royalty Records.",
+ u:"Brand new — festival and regional shows so far.",
+ w:"Portland death-grind, breakneck and old school, with Cannibal Corpse-styled vocals. The Necrodestiny EP came out last October."},
+{n:"Lay Waste",c:"United States",y:2024,g:"Deathgrind / grindviolence",s:2,q:true,
+ x:"Harrisonburg, Virginia; played their first show in February 2025. Not the defunct Illinois goregrind band of the same name.",
+ u:"New and building — mostly East Coast so far.",
+ w:"Explicitly anti-capitalist and anti-fascist grind. Decibel called it super-pissed tough-guy Nailscore with razor-tight drumming. Deathgrind rather than the brutal death I'd assumed."},
+{n:"Raider",c:"Canada",y:null,g:"Blackened thrash / death",s:4,
+ x:"Western Canadian band, Alberta scene.",
+ u:"Rare US appearances.",
+ w:"Fast, riffy, thrash-leaning and more energetic than most of the death metal here. Worth catching if you're already in the room."},
+{n:"Crud",c:"United States",y:2015,g:"Sludge / death-doom",s:4,q:true,
+ x:"Started in Miami as a two-piece of Julie Mejia on bass and Mariel Zayas-Bazan on drums, later adding guitar and vocals; now spread across Seattle, Savannah and Gainesville.",
+ u:"Touring again, with Baltimore-area dates this year.",
+ w:"Not grind at all — this is slow, miserable sludge and death-doom. Decibel reckons they can hang with the darkest sludge practitioners going. New album Human Decency landed in September."},
+{n:"Lathe",c:"United States",y:2018,g:"Instrumental drone / doom",s:5,q:true,
+ x:"A Baltimore instrumental trio on Grimoire Records — the most local booking on the bill.",
+ u:"Hometown band. You can see them any time.",
+ w:"Sunn O)))-weight drone crossed with pedal steel and spaghetti-western melody, described by its own scene as heavy prairie rock. Completely out of step with everything around it on the poster, which is the appeal."},
+{n:"Blood Vial",c:"United States",y:null,g:"Brutal death metal",s:2,q:true,
+ x:"Baltimore, on Iron Fortress Records — another hometown slot. Not the Virginia Beach dungeon-synth project of the same name.",
+ u:"New and regional.",
+ w:"Pathology and body-horror themed brutal death. Still the thinnest-documented name on the whole bill, so worth re-checking closer to the fest."},
+{n:"Blood Star",c:"United States",y:2017,g:"Traditional heavy metal",s:8,
+ x:"Salt Lake City, on Shadow Kingdom; guitarist Jamison Palmer also plays in Visigoth. Madeline Michelle sings.",
+ u:"Rare outside the western US.",
+ w:"Straight-up eighties-styled heavy metal with a huge clean voice out front — closer to HammerFall and Blind Guardian than anything else on the poster. The odd one out here, and probably a top-five Paige pick."},
+{n:"Unholy Altar",c:"United States",y:2021,g:"Raw black metal",s:6,q:true,
+ x:"Philadelphia five-piece — Desecrator, Miserer, Evoked Damnator, Cadaver and Lucifer's Rage. Started out playing Bathory and Mayhem covers.",
+ u:"Active in the US underground and coming off a run of high-profile shows.",
+ w:"Raw black metal that has grown more atmospheric and melodic across Veil of Death! Shroud of Nite and this year's A Sullen Dark Sky EP. One reviewer called it some of the rawest, bloodiest black metal of recent years. A real contender for Paige."}
+];
+
+// --- render poster wall ---
+const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+document.getElementById('wall').innerHTML = '<p>' + B.map(b =>
+  `<a href="#${slug(b.n)}">${b.n}</a>`).join('<span class="dot">■</span>') + '</p>';
+
+// --- render list ---
+const list = document.getElementById('list');
+function scoreCell(b){
+  if(b.s===null) return `<div class="score s-unk">?<small>not scored</small></div>`;
+  const cls = b.s>=8 ? 'score s-hi' : 'score';
+  return `<div class="${cls}">${b.s}<small>Paige scale</small></div>`;
+}
+function card(b){
+  const facts = [b.c, b.y?`formed ${b.y}`:null, b.g].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  return `<article class="band" id="${slug(b.n)}" data-s="${b.s===null?-1:b.s}" data-q="${b.q?1:0}" data-set="${b.set?1:0}" data-u="${(b.u||'').toLowerCase()}" data-text="${(b.n+' '+b.c+' '+b.g+' '+(b.x||'')+' '+(b.w||'')).toLowerCase().replace(/"/g,'')}">
+    ${scoreCell(b)}
+    <div>
+      <h2>${b.n}${b.set?`<span class="setnote">${b.set}</span>`:''}</h2>
+      <p class="facts">${facts}</p>
+      <p class="why">${b.w}</p>
+      <p class="meta"><span>Pedigree.</span> ${b.x}</p>
+      <p class="meta"><span>Gets to the US.</span> ${b.u}</p>
+      ${b.q?'<span class="flag">Round-two deep dive</span>':''}
+    </div>
+  </article>`;
+}
+list.innerHTML = B.map(card).join('');
+
+// --- filtering ---
+const cards = [...list.querySelectorAll('.band')];
+const countEl = document.getElementById('count');
+const qEl = document.getElementById('q');
+let mode = 'all';
+
+function apply(){
+  const term = qEl.value.trim().toLowerCase();
+  let shown = 0;
+  cards.forEach(c => {
+    const s = +c.dataset.s;
+    let ok = true;
+    if(mode==='paige8') ok = s>=8;
+    else if(mode==='paige6') ok = s>=6;
+    else if(mode==='rare') ok = /rare|never|barely|hardly|extremely|almost never|sparingly|selective/.test(c.dataset.u);
+    else if(mode==='sets') ok = c.dataset.set==='1';
+    else if(mode==='unknown') ok = c.dataset.q==='1';
+    if(ok && term) ok = c.dataset.text.includes(term);
+    c.style.display = ok ? '' : 'none';
+    if(ok) shown++;
+  });
+  countEl.textContent = shown + ' of ' + cards.length;
+  list.querySelector('.empty')?.remove();
+  if(!shown) list.insertAdjacentHTML('beforeend','<p class="empty">Nothing matches that. Clear the search or pick another filter.</p>');
+}
+document.querySelectorAll('.chip').forEach(ch => ch.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(o => o.setAttribute('aria-pressed','false'));
+  ch.setAttribute('aria-pressed','true');
+  mode = ch.dataset.filter;
+  apply();
+}));
+qEl.addEventListener('input', apply);
+apply();
+</script>
+</body>
+</html>

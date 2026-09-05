@@ -1,0 +1,328 @@
+/* Maryland Deathfest XXII companion. Black app, one accent, no light mode.
+   Fonts are self-hosted so the app renders identically with no signal. */
+
+@font-face{
+  font-family:'Archivo';
+  src:url('./fonts/archivo-var-latin.woff2') format('woff2');
+  font-weight:100 900;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Instrument Serif';
+  src:url('./fonts/instrument-serif-italic-latin.woff2') format('woff2');
+  font-weight:400;
+  font-style:italic;
+  font-display:swap;
+}
+
+:root{
+  --ink:#f4f2ee;
+  --dim:#8c8781;
+  --dimmer:#5d5955;
+  --blood:#c0263a;
+  --bloodlow:#5d1420;
+  --rule:#231f20;
+  --sunk:#0a0809;
+  --sans:Archivo,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --serif:'Instrument Serif',Georgia,serif;
+  --gutter:18px;
+  --tap:44px;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+
+body{
+  margin:0;
+  background:#000;
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.5;
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+}
+
+/* Every top-level band shares one gutter and one measure. */
+.masthead,.controls,#list,.panel,footer{
+  max-width:1080px;
+  margin:0 auto;
+  padding-left:var(--gutter);
+  padding-right:var(--gutter);
+}
+
+/* ---- masthead ---- */
+.masthead{
+  padding-top:calc(30px + env(safe-area-inset-top));
+  padding-bottom:18px;
+  border-bottom:1px solid var(--rule);
+}
+h1{
+  margin:0;
+  font-size:clamp(30px,8.5vw,58px);
+  font-weight:800;
+  letter-spacing:-.03em;
+  line-height:.94;
+  text-transform:uppercase;
+  text-wrap:balance;
+}
+.dates{
+  margin:10px 0 0;
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:clamp(16px,4.2vw,22px);
+  color:var(--dim);
+}
+.tally{margin:8px 0 0;color:var(--dimmer);font-size:13px;font-variant-numeric:tabular-nums}
+
+/* ---- sticky controls ---- */
+.controls{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:#000;
+  border-bottom:1px solid var(--rule);
+  padding-top:calc(11px + env(safe-area-inset-top));
+  padding-bottom:10px;
+}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input[type=search],select,textarea{
+  background:var(--sunk);
+  border:1px solid var(--rule);
+  color:var(--ink);
+  font:inherit;
+  border-radius:2px;
+}
+input[type=search]{
+  flex:2 1 150px;
+  min-width:0;
+  font-size:16px; /* 16px stops iOS zooming the page on focus */
+  padding:11px 12px;
+  min-height:var(--tap);
+}
+/* Shares the row with the search field rather than wrapping below it —
+   that wrap cost 47px of sticky bar on every phone width. */
+select{flex:1 1 112px;min-width:0;max-width:210px;font-size:13px;padding:0 6px;min-height:var(--tap)}
+input[type=search]:focus{outline:2px solid var(--blood);outline-offset:-1px}
+select:focus-visible,.chip:focus-visible,.btn:focus-visible,.rate button:focus-visible,
+.rowhead:focus-visible,.seen:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--blood);
+  outline-offset:2px;
+}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center}
+.chip{
+  background:none;
+  border:1px solid var(--rule);
+  color:var(--dim);
+  font:inherit;
+  font-size:13px;
+  padding:7px 11px;
+  min-height:36px;
+  border-radius:2px;
+  cursor:pointer;
+}
+.chip[aria-pressed=true]{border-color:var(--blood);color:var(--ink);background:var(--bloodlow)}
+.count{
+  margin-left:auto;
+  color:var(--dimmer);
+  font-size:13px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---- list ---- */
+#list{padding-top:0;padding-bottom:0}
+.ghead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:14px;
+  margin:0;
+  padding:30px 0 9px;
+  border-bottom:1px solid var(--rule);
+  font-size:13px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  color:var(--blood);
+}
+.ghead small{
+  color:var(--dimmer);
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:.03em;
+  text-transform:none;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+.band{border-bottom:1px solid var(--rule)}
+
+/* The whole collapsed row is the tap target. */
+.rowhead{
+  width:100%;
+  display:grid;
+  grid-template-columns:52px 1fr auto;
+  gap:0 15px;
+  align-items:start;
+  background:none;
+  border:0;
+  color:inherit;
+  font:inherit;
+  text-align:left;
+  padding:17px 0;
+  min-height:var(--tap);
+  cursor:pointer;
+}
+.score{font-size:31px;font-weight:800;line-height:1;letter-spacing:-.04em}
+.score small{
+  display:block;
+  font-size:9.5px;
+  font-weight:400;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--dimmer);
+  margin-top:5px;
+  line-height:1.3;
+}
+.s-hi{color:var(--blood)}
+.bandname{
+  margin:0;
+  font-size:clamp(17px,4.6vw,22px);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:-.02em;
+  line-height:1.08;
+}
+.setnote{
+  display:block;
+  margin-top:3px;
+  font-family:var(--serif);
+  font-style:italic;
+  font-weight:400;
+  font-size:.74em;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--blood);
+}
+.facts{margin:6px 0 0;color:var(--dim);font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{
+  font-size:10.5px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--dim);
+  border:1px solid var(--rule);
+  padding:3px 7px;
+  border-radius:2px;
+}
+.tag.down{color:var(--blood);border-color:var(--bloodlow)}
+.tag.up{color:#9ecf9a;border-color:#2c3f2b}
+.tag.seentag{color:var(--ink);border-color:var(--dimmer)}
+
+/* Paige's rating, shown on the collapsed row once set. */
+.her{text-align:right;min-width:56px}
+.her b{display:block;font-size:25px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.her small{
+  display:block;
+  font-size:9.5px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--dimmer);
+  margin-top:4px;
+}
+.her .gap{color:var(--blood);font-size:11px;margin-top:3px;display:block}
+.chev{color:var(--dimmer);font-size:13px;align-self:center}
+
+/* ---- expanded detail ---- */
+.detail{display:none;padding:0 0 22px}
+.band.open .detail{display:block}
+.detail p{margin:0 0 11px;max-width:66ch;font-size:15px}
+.detail .label{color:var(--blood);font-weight:600}
+.detail .meta{color:var(--dim);font-size:14px}
+.detail .meta .label{color:var(--ink);font-weight:600}
+.revision{
+  border-left:2px solid var(--bloodlow);
+  padding-left:11px;
+  color:var(--dim);
+  font-size:14px;
+}
+.revision .label{color:var(--blood);font-weight:600}
+
+fieldset{border:0;margin:16px 0 0;padding:0}
+legend{
+  padding:0;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--dimmer);
+  margin-bottom:8px;
+}
+.rate{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:420px}
+.rate button{
+  background:var(--sunk);
+  border:1px solid var(--rule);
+  color:var(--ink);
+  font:inherit;
+  font-size:16px;
+  font-weight:600;
+  min-height:var(--tap);
+  border-radius:2px;
+  cursor:pointer;
+  font-variant-numeric:tabular-nums;
+}
+.rate button[aria-pressed=true]{background:var(--blood);border-color:var(--blood);color:#fff}
+.detailrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.seen,.btn{
+  background:none;
+  border:1px solid var(--rule);
+  color:var(--dim);
+  font:inherit;
+  font-size:14px;
+  padding:0 14px;
+  min-height:var(--tap);
+  border-radius:2px;
+  cursor:pointer;
+}
+.seen[aria-pressed=true]{border-color:var(--blood);background:var(--bloodlow);color:var(--ink)}
+.clear{color:var(--dimmer)}
+textarea{
+  width:100%;
+  max-width:66ch;
+  margin-top:12px;
+  padding:11px 12px;
+  font-size:16px;
+  min-height:76px;
+  resize:vertical;
+}
+
+/* ---- panels ---- */
+.panel,footer{border-top:1px solid var(--rule);padding-top:26px;padding-bottom:26px}
+.panel h2,footer h2{font-size:13px;font-weight:600;letter-spacing:.02em;margin:0 0 9px}
+.panel p,footer p{margin:0 0 11px;color:var(--dim);font-size:14px;max-width:66ch}
+.toolrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.status{color:var(--blood);font-size:13px;min-height:1.2em;margin:10px 0 0}
+.fine{color:var(--dimmer);font-size:13px}
+footer{padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+.empty{padding:56px 0;color:var(--dim)}
+.loaderr{padding:40px 0;color:var(--ink)}
+.loaderr code{
+  display:block;
+  margin-top:10px;
+  padding:11px 12px;
+  background:var(--sunk);
+  border:1px solid var(--rule);
+  color:var(--dim);
+  font-size:13px;
+  overflow-x:auto;
+}
+
+@media (min-width:720px){
+  .rowhead{grid-template-columns:74px 1fr auto;gap:0 22px;padding:21px 0}
+  .score{font-size:40px}
+  :root{--gutter:26px}
+}
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth}
+}

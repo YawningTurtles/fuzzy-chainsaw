@@ -60,13 +60,18 @@
     position:sticky;top:0;z-index:5;background:#000;
     padding:14px 0 12px;border-bottom:1px solid var(--rule);
   }
-  .searchrow{display:flex;gap:8px;align-items:center}
+  .searchrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   input[type=search]{
-    flex:1;background:#0a0809;border:1px solid var(--rule);color:var(--ink);
+    flex:1 1 190px;min-width:0;background:#0a0809;border:1px solid var(--rule);color:var(--ink);
     padding:11px 12px;font:inherit;font-size:16px;border-radius:2px;
   }
   input[type=search]:focus{outline:2px solid var(--blood);outline-offset:-1px}
-  .count{color:var(--dimmer);font-size:13px;white-space:nowrap}
+  .count{color:var(--dimmer);font-size:13px;white-space:nowrap;margin-left:auto;align-self:center}
+  #sort{
+    flex:0 1 auto;min-width:0;background:#0a0809;border:1px solid var(--rule);color:var(--ink);
+    font:inherit;font-size:13px;padding:9px 8px;border-radius:2px;
+  }
+  #sort:focus-visible{outline:2px solid var(--blood);outline-offset:2px}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
   .chip{
     background:none;border:1px solid var(--rule);color:var(--dim);
@@ -78,7 +83,7 @@
   /* ---- entries ---- */
   .band{
     padding:26px 0;border-bottom:1px solid var(--rule);
-    display:grid;grid-template-columns:56px 1fr;gap:0 18px;scroll-margin-top:130px;
+    display:grid;grid-template-columns:56px 1fr;gap:0 18px;scroll-margin-top:var(--stick,130px);
   }
   .score{
     font-size:30px;font-weight:800;line-height:1;letter-spacing:-.04em;
@@ -107,6 +112,19 @@
   }
   .empty{padding:60px 0;color:var(--dim)}
 
+  /* ---- group headings ---- */
+  .ghead{
+    display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+    margin:0;padding:34px 0 9px;border-bottom:1px solid var(--rule);
+    font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;
+    color:var(--blood);
+  }
+  .ghead:first-child{padding-top:20px}
+  .ghead small{
+    color:var(--dimmer);font-size:11px;font-weight:400;letter-spacing:.03em;
+    text-transform:none;white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+
   /* ---- scale key ---- */
   .key{padding:34px 0;border-bottom:1px solid var(--rule)}
   .key h3{font-size:14px;font-weight:600;margin:0 0 10px;letter-spacing:.01em}
@@ -128,7 +146,7 @@
 <header>
   <h1>Maryland<br>Deathfest XXII</h1>
   <p class="dates">May 27–30, 2027 · Baltimore · 82 bands announced</p>
-  <p class="standfirst">My pass at the whole lineup, band by band, with a guess at how each one lands on the Paige scale. Tap a name in the wall below to jump to it, or filter the list. The eighteen names I couldn't place on the first pass are now filled in and marked.</p>
+  <p class="standfirst">My pass at the whole lineup, band by band, with a guess at how each one lands on the Paige scale. Tap a name in the wall below to jump to it, or sort and filter the list. The eighteen names I couldn't place on the first pass are now filled in and marked.</p>
 </header>
 
 <section class="poster" id="wall" aria-label="Full lineup"></section>
@@ -136,7 +154,13 @@
 <div class="controls">
   <div class="searchrow">
     <input type="search" id="q" placeholder="Search band, country, genre…" aria-label="Search bands">
-    <span class="count" id="count"></span>
+    <select id="sort" aria-label="Sort the list">
+      <option value="poster">Sort: poster order</option>
+      <option value="score">Sort: Paige score</option>
+      <option value="name">Sort: band A&ndash;Z</option>
+      <option value="country">Sort: country A&ndash;Z</option>
+      <option value="formed">Sort: year formed</option>
+    </select>
   </div>
   <div class="chips" role="group" aria-label="Filters">
     <button class="chip" data-filter="all" aria-pressed="true">All</button>
@@ -145,6 +169,7 @@
     <button class="chip" data-filter="rare">Rare US visits</button>
     <button class="chip" data-filter="sets">Special sets</button>
     <button class="chip" data-filter="unknown">The obscure 18</button>
+    <span class="count" id="count"></span>
   </div>
 </div>
 
@@ -521,32 +546,90 @@ function card(b){
   </article>`;
 }
 list.innerHTML = B.map(card).join('');
+const cardEl = new Map(B.map(b => [b, document.getElementById(slug(b.n))]));
 
-// --- filtering ---
-const cards = [...list.querySelectorAll('.band')];
+// --- derived fields ---
+// The array order is the poster order, which is the billing order. Tier cut
+// points below are a judgement call, not something the poster states.
+B.forEach((b,i) => {
+  b.i = i + 1;
+  b.c0 = b.c.split(' / ')[0];                 // primary country for grouping
+  b.sortName = b.n.replace(/^The\s+/i,'');    // ignore a leading "The" when alphabetising
+});
+
+// --- sort orders, each with the grouping it implies ---
+const TIERS = [[8,'Top of the bill'],[30,'Upper card'],[56,'Mid card'],[82,'Lower card']];
+const tierOf = i => (TIERS.find(t => i <= t[0]) || TIERS[TIERS.length-1])[1];
+const BANDS = [[9,'Paige 9–10'],[7,'Paige 7–8'],[5,'Paige 5–6'],[3,'Paige 3–4'],[1,'Paige 1–2']];
+const scoreBand = s => s === null ? 'Not scored' : (BANDS.find(x => s >= x[0]) || BANDS[BANDS.length-1])[1];
+const byName = (a,b) => a.sortName.localeCompare(b.sortName);
+
+const SORTS = {
+  poster:  {cmp:(a,b) => a.i - b.i,                                group:b => tierOf(b.i)},
+  score:   {cmp:(a,b) => (b.s - a.s) || byName(a,b),               group:b => scoreBand(b.s)},
+  name:    {cmp:byName,                                            group:b => b.sortName[0].toUpperCase()},
+  country: {cmp:(a,b) => a.c0.localeCompare(b.c0) || byName(a,b),  group:b => b.c0},
+  formed:  {cmp:(a,b) => ((a.y===null) - (b.y===null)) || (a.y - b.y) || byName(a,b),
+            group:b => b.y ? `${Math.floor(b.y/10)*10}s` : 'Year unknown'}
+};
+
+// --- state ---
 const countEl = document.getElementById('count');
 const qEl = document.getElementById('q');
-let mode = 'all';
+const sortEl = document.getElementById('sort');
+let order = 'poster', mode = 'all', groups = [];
+
+function render(){
+  const S = SORTS[order];
+  const frag = document.createDocumentFragment();
+  groups = [];
+  let current;
+  [...B].sort(S.cmp).forEach(b => {
+    const name = S.group(b);
+    if(name !== current){
+      current = name;
+      const h = document.createElement('h2');
+      h.className = 'ghead';
+      h.innerHTML = '<span></span><small></small>';
+      h.firstChild.textContent = name;
+      frag.appendChild(h);
+      groups.push({head:h, cards:[]});
+    }
+    const el = cardEl.get(b);
+    frag.appendChild(el);
+    groups[groups.length - 1].cards.push(el);
+  });
+  list.textContent = '';
+  list.appendChild(frag);
+  apply();
+}
 
 function apply(){
   const term = qEl.value.trim().toLowerCase();
   let shown = 0;
-  cards.forEach(c => {
-    const s = +c.dataset.s;
-    let ok = true;
-    if(mode==='paige8') ok = s>=8;
-    else if(mode==='paige6') ok = s>=6;
-    else if(mode==='rare') ok = /rare|never|barely|hardly|extremely|almost never|sparingly|selective/.test(c.dataset.u);
-    else if(mode==='sets') ok = c.dataset.set==='1';
-    else if(mode==='unknown') ok = c.dataset.q==='1';
-    if(ok && term) ok = c.dataset.text.includes(term);
-    c.style.display = ok ? '' : 'none';
-    if(ok) shown++;
+  groups.forEach(g => {
+    let n = 0;
+    g.cards.forEach(c => {
+      const s = +c.dataset.s;
+      let ok = true;
+      if(mode==='paige8') ok = s>=8;
+      else if(mode==='paige6') ok = s>=6;
+      else if(mode==='rare') ok = /rare|never|barely|hardly|extremely|almost never|sparingly|selective/.test(c.dataset.u);
+      else if(mode==='sets') ok = c.dataset.set==='1';
+      else if(mode==='unknown') ok = c.dataset.q==='1';
+      if(ok && term) ok = c.dataset.text.includes(term);
+      c.style.display = ok ? '' : 'none';
+      if(ok) n++;
+    });
+    g.head.style.display = n ? '' : 'none';
+    g.head.lastChild.textContent = n === 1 ? '1 band' : n + ' bands';
+    shown += n;
   });
-  countEl.textContent = shown + ' of ' + cards.length;
+  countEl.textContent = shown + ' of ' + B.length;
   list.querySelector('.empty')?.remove();
   if(!shown) list.insertAdjacentHTML('beforeend','<p class="empty">Nothing matches that. Clear the search or pick another filter.</p>');
 }
+
 document.querySelectorAll('.chip').forEach(ch => ch.addEventListener('click', () => {
   document.querySelectorAll('.chip').forEach(o => o.setAttribute('aria-pressed','false'));
   ch.setAttribute('aria-pressed','true');
@@ -554,7 +637,15 @@ document.querySelectorAll('.chip').forEach(ch => ch.addEventListener('click', ()
   apply();
 }));
 qEl.addEventListener('input', apply);
-apply();
+sortEl.addEventListener('change', () => { order = sortEl.value; render(); });
+
+// keep jump-to-band anchors clear of the sticky controls, whatever height they are
+const controls = document.querySelector('.controls');
+const setOffset = () => document.documentElement.style.setProperty('--stick', (controls.offsetHeight + 16) + 'px');
+addEventListener('resize', setOffset);
+setOffset();
+
+render();
 </script>
 </body>
 </html>

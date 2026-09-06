@@ -8,7 +8,7 @@
 
    BUMP THIS VERSION whenever any shell file changes, or installed phones keep
    serving the old app for weeks. */
-const CACHE = "mdf-v1";
+const CACHE = "mdf-v2";
 
 const SHELL = [
   "./",

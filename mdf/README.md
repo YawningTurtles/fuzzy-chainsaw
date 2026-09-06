@@ -9,7 +9,11 @@ Touch Trainer in `/touch/` without colliding with either. Its service worker is 
 
 ## What it does
 
-- All 82 announced bands, each with my predicted **Paige score** (1–10) and the reasoning.
+- All 82 announced bands, each with a **Paige score** (1–10) and the reasoning behind it.
+- **Paige's own verdict** from her notes — want to see (with her stars), maybe, or pass —
+  and her own words where she wrote any. Where her verdict and my predicted score disagreed
+  by two or more, the score moved to match her; the card says so.
+- The **Drew & Ryan rec** list, filterable on its own.
 - **Paige's own score** per band, so the point of the thing is the side-by-side.
 - **Biggest disagreements** sort — where my prediction and her rating diverge most.
 - Search, filters (8+, 6+, special sets, moved in v2, not yet rated) and sorts
@@ -37,8 +41,13 @@ over `file://`, so `bands.json` never loads. The app detects this and says so. U
 
 1. Edit `bands.json`. Keep the key names exactly as they are — `app.js` reads them directly.
    Every band needs `name`, `country`, `formed`, `genre`, `paige`, `paigePrev`, `delta`,
-   `paigeNote`, `why`, `pedigree`, `usFrequency`, `specialSet` and `deepDive`.
-   `formed`, `paigeNote` and `specialSet` may be `null`.
+   `paigeNote`, `why`, `pedigree`, `usFrequency`, `specialSet` and `deepDive`, plus the v3
+   fields from Paige's notes: `verdict` (`"want"`, `"maybe"`, `"pass"` or `null`), `stars`
+   (0–3, want list only), `rec` (on Drew and Ryan's shortlist), `recBy` (attribution where
+   the notes give one), `paigeQuote` (her own words), and `v3Prev`/`v3Note` recording a
+   score the notes moved.
+   `formed`, `paigeNote`, `specialSet`, `verdict`, `recBy`, `paigeQuote`, `v3Prev` and
+   `v3Note` may be `null`.
    Band `name` is the key user state is stored under, so renaming a band orphans its ratings.
 2. **Bump `CACHE` in `sw.js`** — `mdf-v1` → `mdf-v2`, and so on.
 3. Commit and push.

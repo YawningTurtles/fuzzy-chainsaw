@@ -218,6 +218,12 @@ select:focus-visible,.chip:focus-visible,.btn:focus-visible,.rate button:focus-v
   border-radius:2px;
 }
 .tag.down{color:var(--blood);border-color:var(--bloodlow)}
+/* Paige's own verdict is the strongest signal on the card, so it is the one filled tag. */
+.tag.v-want{color:#fff;background:var(--blood);border-color:var(--blood);font-weight:600}
+.tag.v-maybe{color:var(--ink);border-color:var(--dim)}
+.tag.v-pass{color:var(--dimmer);border-color:var(--rule)}
+.tag.rec{color:var(--ink);border-color:var(--dim)}
+.tag.v3{color:var(--ink);background:var(--bloodlow);border-color:var(--blood)}
 .tag.up{color:#9ecf9a;border-color:#2c3f2b}
 .tag.seentag{color:var(--ink);border-color:var(--dimmer)}
 
@@ -249,6 +255,25 @@ select:focus-visible,.chip:focus-visible,.btn:focus-visible,.rate button:focus-v
   font-size:14px;
 }
 .revision .label{color:var(--blood);font-weight:600}
+.revision.v3note{color:var(--ink)}
+.quote{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:17px;
+  color:var(--ink);
+  border-left:2px solid var(--blood);
+  padding-left:12px;
+}
+.quote .attrib{
+  display:block;
+  margin-top:5px;
+  font-family:var(--sans);
+  font-style:normal;
+  font-size:11px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--dimmer);
+}
 
 fieldset{border:0;margin:16px 0 0;padding:0}
 legend{

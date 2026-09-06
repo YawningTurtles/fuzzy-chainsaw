@@ -62,8 +62,18 @@ var SORTS = {
             group:function(b){ return b.country0; } },
   formed: { cmp:function(a,b){
               return ((a.formed===null)-(b.formed===null)) || (a.formed-b.formed) || byName(a,b); },
-            group:function(b){ return b.formed ? (Math.floor(b.formed/10)*10)+'s' : 'Year unknown'; } }
+            group:function(b){ return b.formed ? (Math.floor(b.formed/10)*10)+'s' : 'Year unknown'; } },
+  verdict:{ cmp:function(a,b){
+              return (VRANK[a.verdict] - VRANK[b.verdict]) || (b.stars - a.stars)
+                     || (b.paige - a.paige) || byName(a,b); },
+            group:function(b){ return VLABEL[b.verdict]; } }
 };
+
+/* Paige's own three lists, plus the handful of bands she did not write down. */
+var VRANK  = { want:0, maybe:1, pass:2, 'undefined':3, 'null':3 };
+var VLABEL = { want:'Want to see', maybe:'Maybe', pass:'Pass' };
+VRANK[undefined] = 3; VRANK[null] = 3;
+VLABEL[undefined] = 'Not on her list'; VLABEL[null] = 'Not on her list';
 
 var SCORE_BANDS = [[9,'Paige 9–10'],[7,'Paige 7–8'],[5,'Paige 5–6'],[3,'Paige 3–4'],[1,'Paige 1–2']];
 function scoreBand(s){
@@ -77,7 +87,8 @@ function matchesFilter(b){
     case 'p8':      return b.paige >= 8;
     case 'p6':      return b.paige >= 6;
     case 'sets':    return !!b.specialSet;
-    case 'moved':   return b.delta !== 0;
+    case 'rec':     return b.rec;
+    case 'moved':   return b.delta !== 0 || b.v3Prev !== null;
     case 'unrated': return u.paigeRank == null;
     default:        return true;
   }
@@ -110,9 +121,20 @@ function buildCard(b){
   mid.appendChild(el('p','facts', facts));
 
   var tags = el('div','tags');
+  if(b.verdict){
+    tags.appendChild(el('span','tag v-' + b.verdict,
+      VLABEL[b.verdict] + (b.stars ? ' ' + '★'.repeat(b.stars) : '')));
+  }
+  if(b.rec)   tags.appendChild(el('span','tag rec','Drew & Ryan rec'));
+  if(b.recBy) tags.appendChild(el('span','tag rec', b.recBy));
+  /* v3 moved the score after her notes; the v1→v2 tag has to stop at the pre-v3 value. */
+  if(b.v3Prev !== null){
+    tags.appendChild(el('span','tag v3',
+      (b.paige > b.v3Prev ? '▲ ' : '▼ ') + b.v3Prev + ' → ' + b.paige));
+  }
   if(b.delta !== 0){
     tags.appendChild(el('span','tag ' + (b.delta > 0 ? 'up' : 'down'),
-      (b.delta > 0 ? '▲ ' : '▼ ') + b.paigePrev + ' → ' + b.paige));
+      (b.delta > 0 ? '▲ ' : '▼ ') + b.paigePrev + ' → ' + (b.v3Prev !== null ? b.v3Prev : b.paige)));
   }
   if(b.specialSet) tags.appendChild(el('span','tag','Special set'));
   if(b.deepDive)   tags.appendChild(el('span','tag','Deep dive'));
@@ -135,9 +157,24 @@ function buildCard(b){
 
   detail.appendChild(el('p', null, b.why));
 
+  if(b.paigeQuote){
+    var q = el('p','quote');
+    q.appendChild(document.createTextNode('“' + b.paigeQuote + '”'));
+    q.appendChild(el('span','attrib', '— Paige'));
+    detail.appendChild(q);
+  }
+
+  if(b.v3Note){
+    var v3 = el('p','revision v3note');
+    v3.appendChild(el('span','label', 'Moved ' + b.v3Prev + ' → ' + b.paige + '.'));
+    v3.appendChild(document.createTextNode(' ' + b.v3Note));
+    detail.appendChild(v3);
+  }
+
   if(b.paigeNote){
     var rev = el('p','revision');
-    rev.appendChild(el('span','label', 'Moved ' + b.paigePrev + ' → ' + b.paige + '.'));
+    var to = b.v3Prev !== null ? b.v3Prev : b.paige;
+    rev.appendChild(el('span','label', 'Earlier, ' + b.paigePrev + ' → ' + to + '.'));
     rev.appendChild(document.createTextNode(' ' + b.paigeNote));
     detail.appendChild(rev);
   }
@@ -420,7 +457,8 @@ function start(data){
     b.slug = b.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     b.sortName = b.name.replace(/^The\s+/i,'');
     b.country0 = b.country.split(' / ')[0];
-    b.haystack = [b.name,b.country,b.genre,b.why,b.pedigree,b.usFrequency,b.specialSet,b.paigeNote]
+    b.haystack = [b.name,b.country,b.genre,b.why,b.pedigree,b.usFrequency,b.specialSet,b.paigeNote,
+                  b.paigeQuote,b.v3Note,b.verdict,b.rec ? 'drew ryan rec' : '',b.recBy]
       .filter(Boolean).join(' ').toLowerCase();
     return b;
   });

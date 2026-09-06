@@ -4,7 +4,7 @@
     "country": "Norway",
     "formed": 1991,
     "genre": "Progressive black / Viking metal",
-    "paige": 9,
+    "paige": 6,
     "paigePrev": 9,
     "delta": 0,
     "paigeNote": null,
@@ -15,14 +15,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "Vikinligir Vledi album",
+    "v3Prev": 9,
+    "v3Note": "Paige put this on her want-to-see list. My 9 was too high."
   },
   {
     "name": "Candlemass",
     "country": "Sweden",
     "formed": 1984,
     "genre": "Epic doom metal",
-    "paige": 8,
+    "paige": 6,
     "paigePrev": 8,
     "delta": 0,
     "paigeNote": null,
@@ -33,7 +40,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 0,
+    "rec": true,
+    "recBy": "Ryan Neale",
+    "paigeQuote": null,
+    "v3Prev": 8,
+    "v3Note": "Paige put this on her want-to-see list. My 8 was too high."
   },
   {
     "name": "Overkill",
@@ -51,7 +65,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "too hair metal for me",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Autopsy",
@@ -69,7 +90,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Insect Warfare",
@@ -87,7 +115,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Repulsion",
@@ -105,7 +140,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Voivod",
@@ -123,14 +165,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "The Kovenant",
     "country": "Norway",
     "formed": 1993,
     "genre": "Symphonic black metal",
-    "paige": 10,
+    "paige": 8,
     "paigePrev": 10,
     "delta": 0,
     "paigeNote": null,
@@ -141,7 +190,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 10,
+    "v3Note": "Paige put this on her want-to-see list with two stars. My 10 was too high."
   },
   {
     "name": "Lucifer",
@@ -159,14 +215,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Demolition Hammer",
     "country": "United States",
     "formed": 1986,
     "genre": "Thrash / death metal",
-    "paige": 3,
+    "paige": 5,
     "paigePrev": 5,
     "delta": -2,
     "paigeNote": "Brutal precision thrash with no melodic or atmospheric payload.",
@@ -177,7 +240,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her maybe list. My 3 was too low."
   },
   {
     "name": "YOB",
@@ -195,14 +265,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Sabbat",
     "country": "Japan",
     "formed": 1983,
     "genre": "Black / thrash metal",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 7,
     "delta": -3,
     "paigeNote": "Raw lo-fi blackened thrash; the King Diamond-ish theatrics don't offset thrash plus rawness.",
@@ -213,14 +290,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high."
   },
   {
     "name": "Akercocke",
     "country": "United Kingdom",
     "formed": 1996,
     "genre": "Progressive death / black metal",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 7,
     "delta": -3,
     "paigeNote": "Technical progressive death/black with chaotic gear changes. The Martyr lesson applies despite the atmosphere.",
@@ -231,7 +315,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "death metal infused with electronic too many sound effects and random laughing in songs for me",
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high. Her words: “death metal infused with electronic too many sound effects and random laughing in songs for me.”"
   },
   {
     "name": "Naglfar",
@@ -249,14 +340,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 3,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Anaal Nathrakh",
     "country": "United Kingdom",
     "formed": 1999,
     "genre": "Blackened industrial grind",
-    "paige": 4,
+    "paige": 8,
     "paigePrev": 4,
     "delta": 0,
     "paigeNote": null,
@@ -267,14 +365,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her want-to-see list with two stars. My 4 was too low."
   },
   {
     "name": "Left to Die",
     "country": "United States",
     "formed": 2016,
     "genre": "Death metal",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 5,
     "delta": -1,
     "paigeNote": "Early-Death material — brutal and non-melodic.",
@@ -285,7 +390,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high."
   },
   {
     "name": "Exumer",
@@ -303,7 +415,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Onslaught",
@@ -321,7 +440,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Vreid",
@@ -339,14 +465,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 1,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Saturnus",
     "country": "Denmark",
     "formed": 1991,
     "genre": "Melodic death / doom",
-    "paige": 8,
+    "paige": 6,
     "paigePrev": 8,
     "delta": 0,
     "paigeNote": null,
@@ -357,14 +490,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 8,
+    "v3Note": "Paige put this on her want-to-see list. My 8 was too high."
   },
   {
     "name": "Black Breath",
     "country": "United States",
     "formed": 2005,
     "genre": "Death 'n' roll / d-beat",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 5,
     "delta": -1,
     "paigeNote": "Raw HM-2 crust death — heavy for heavy's sake.",
@@ -375,7 +515,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high."
   },
   {
     "name": "Mortem",
@@ -393,7 +540,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 3,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "black metal-Hellhammer",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Exhumed",
@@ -411,14 +565,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Sadistic Intent",
     "country": "United States",
     "formed": 1987,
     "genre": "Death metal",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 4,
     "delta": 0,
     "paigeNote": null,
@@ -429,14 +590,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high."
   },
   {
     "name": "Panopticon",
     "country": "United States",
     "formed": 2007,
     "genre": "Atmospheric black metal / bluegrass",
-    "paige": 8,
+    "paige": 2,
     "paigePrev": 8,
     "delta": 0,
     "paigeNote": null,
@@ -447,7 +615,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 8,
+    "v3Note": "Paige put this on her pass list. My 8 was too high."
   },
   {
     "name": "Benighted",
@@ -465,7 +640,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Thulcandra",
@@ -483,14 +665,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 3,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Azarath",
     "country": "Poland",
     "formed": 1998,
     "genre": "Blackened death metal",
-    "paige": 3,
+    "paige": 8,
     "paigePrev": 6,
     "delta": -3,
     "paigeNote": "Blast-driven brutal blackened death; speed and force rather than melody.",
@@ -501,7 +690,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her want-to-see list with two stars. My 3 was too low."
   },
   {
     "name": "Disharmonic Orchestra",
@@ -519,7 +715,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": null,
+    "stars": 0,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Gorerotted",
@@ -537,7 +740,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": null,
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Martyr",
@@ -555,7 +765,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Secret Chiefs 3",
@@ -573,14 +790,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": null,
+    "stars": 0,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": "whoa the falafel song is nuts",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Funebrarum",
     "country": "United States",
     "formed": 2000,
     "genre": "Old school death metal",
-    "paige": 3,
+    "paige": 5,
     "paigePrev": 3,
     "delta": 0,
     "paigeNote": null,
@@ -591,7 +815,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "death metal-heavy tho",
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her maybe list. My 3 was too low."
   },
   {
     "name": "Lamp of Murmuur",
@@ -609,7 +840,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Guineapig",
@@ -627,7 +865,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Ceremonium",
@@ -645,7 +890,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "dark slow doom metal",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Hong Kong Fuck You",
@@ -663,7 +915,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": null,
+    "stars": 0,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Brodequin",
@@ -681,7 +940,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Obscura",
@@ -699,14 +965,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Mizmor",
     "country": "United States",
     "formed": 2012,
     "genre": "Blackened doom",
-    "paige": 3,
+    "paige": 5,
     "paigePrev": 5,
     "delta": -2,
     "paigeNote": "Dissonant blackened doom and drone — chaotic and punishing.",
@@ -717,7 +990,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "black metal",
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her maybe list. My 3 was too low."
   },
   {
     "name": "Cerebral Effusion",
@@ -735,7 +1015,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Temple of Void",
@@ -753,7 +1040,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Satan's Revenge on Mankind",
@@ -771,7 +1065,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Devangelic",
@@ -789,7 +1090,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Cruciamentum",
@@ -807,7 +1115,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "death metal",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Rot",
@@ -825,7 +1140,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "One of Nine",
@@ -843,7 +1165,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 3,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "LotR black metal",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Goratory",
@@ -861,7 +1190,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Visceral Disgorge",
@@ -879,7 +1215,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Stabbing",
@@ -897,14 +1240,21 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Imperial Crystalline Entombment",
     "country": "United States",
     "formed": 1997,
     "genre": "Black metal",
-    "paige": 6,
+    "paige": 8,
     "paigePrev": 5,
     "delta": 1,
     "paigeNote": "Symphonic 'blizzard' black metal — keyboards plus cold wintry atmosphere put it closer to her lane than the speed suggests.",
@@ -915,7 +1265,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 6,
+    "v3Note": "Paige put this on her want-to-see list with two stars. My 6 was too low."
   },
   {
     "name": "P.L.F.",
@@ -933,7 +1290,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Killing Addiction",
@@ -951,7 +1315,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Immortal Suffering",
@@ -969,7 +1340,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Keys to the Astral Gates and Mystic Doors",
@@ -987,7 +1365,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "black metal lo fi",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Fleshless",
@@ -1005,7 +1390,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": null,
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Fake Dust",
@@ -1023,7 +1415,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Replicant",
@@ -1041,7 +1440,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Ancient Death",
@@ -1059,7 +1465,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "cosmic death metal",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Bogside Sniper Squadron",
@@ -1077,7 +1490,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Night of the Vampire",
@@ -1095,7 +1515,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 3,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Coscradh",
@@ -1113,7 +1540,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Ingrowing",
@@ -1131,14 +1565,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Desolus",
     "country": "United States",
     "formed": 2019,
     "genre": "Black / thrash metal",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 5,
     "delta": -1,
     "paigeNote": "Old-school blackened thrash; thrash lineage plus raw production.",
@@ -1149,7 +1590,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "they are from DC tho",
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high. Her words: “they are from DC tho.”"
   },
   {
     "name": "Fire Magic",
@@ -1167,14 +1615,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 3,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "black metal",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Crawl",
     "country": "Sweden",
     "formed": 2014,
     "genre": "Swedish death metal / death-crust",
-    "paige": 3,
+    "paige": 5,
     "paigePrev": 3,
     "delta": 0,
     "paigeNote": null,
@@ -1185,7 +1640,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "Swedish death metal/crust punk",
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her maybe list. My 3 was too low."
   },
   {
     "name": "Human Effluence",
@@ -1203,7 +1665,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Barren Path",
@@ -1221,14 +1690,21 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Grave Infestation",
     "country": "Canada",
     "formed": null,
     "genre": "Death metal",
-    "paige": 3,
+    "paige": 5,
     "paigePrev": 3,
     "delta": 0,
     "paigeNote": null,
@@ -1239,7 +1715,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "old school metal from BC",
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her maybe list. My 3 was too low."
   },
   {
     "name": "Ruby the Hatchet",
@@ -1257,7 +1740,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 1,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": "psychedelic groovy rock",
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Thætas",
@@ -1275,7 +1765,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Mortal Wound",
@@ -1293,7 +1790,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Fermented Mess",
@@ -1311,7 +1815,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Pig's Blood",
@@ -1329,7 +1840,14 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Ripping Remains",
@@ -1347,14 +1865,21 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Lay Waste",
     "country": "United States",
     "formed": 2024,
     "genre": "Deathgrind / grindviolence",
-    "paige": 2,
+    "paige": 5,
     "paigePrev": 2,
     "delta": 0,
     "paigeNote": null,
@@ -1365,14 +1890,21 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "maybe",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "political grindcore",
+    "v3Prev": 2,
+    "v3Note": "Paige put this on her maybe list. My 2 was too low."
   },
   {
     "name": "Raider",
     "country": "Canada",
     "formed": null,
     "genre": "Blackened thrash / death",
-    "paige": 3,
+    "paige": 8,
     "paigePrev": 4,
     "delta": -1,
     "paigeNote": "Blackened speed thrash — the idiom veto again.",
@@ -1383,14 +1915,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": "thrash/death metal band from Waterloo Kitchener Canada",
+    "v3Prev": 3,
+    "v3Note": "Paige put this on her want-to-see list with two stars. My 3 was too low."
   },
   {
     "name": "Crud",
     "country": "United States",
     "formed": 2015,
     "genre": "Sludge / death-doom",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 4,
     "delta": 0,
     "paigeNote": null,
@@ -1401,14 +1940,21 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high."
   },
   {
     "name": "Lathe",
     "country": "United States",
     "formed": 2018,
     "genre": "Instrumental drone / doom",
-    "paige": 4,
+    "paige": 2,
     "paigePrev": 5,
     "delta": -1,
     "paigeNote": "Heavy and atmospheric, but no melodic or Scandinavian signal.",
@@ -1419,7 +1965,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": 4,
+    "v3Note": "Paige put this on her pass list. My 4 was too high."
   },
   {
     "name": "Blood Vial",
@@ -1437,7 +1990,14 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "pass",
+    "stars": 0,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Blood Star",
@@ -1455,14 +2015,21 @@
     "deepDive": false,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": null,
+    "stars": 0,
+    "rec": true,
+    "recBy": null,
+    "paigeQuote": null,
+    "v3Prev": null,
+    "v3Note": null
   },
   {
     "name": "Unholy Altar",
     "country": "United States",
     "formed": 2021,
     "genre": "Raw black metal",
-    "paige": 5,
+    "paige": 8,
     "paigePrev": 6,
     "delta": -1,
     "paigeNote": "Sweeping leads and gothic touches emerging, but the core is still raw lo-fi black metal.",
@@ -1473,6 +2040,13 @@
     "deepDive": true,
     "seen": false,
     "paigeRank": null,
-    "notes": ""
+    "notes": "",
+    "verdict": "want",
+    "stars": 2,
+    "rec": false,
+    "recBy": null,
+    "paigeQuote": "mostly lady black metal band",
+    "v3Prev": 5,
+    "v3Note": "Paige put this on her want-to-see list with two stars. My 5 was too low."
   }
 ]

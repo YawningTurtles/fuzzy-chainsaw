@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9EBE2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="11+">
+<title>11+ Warm-up</title>
+<style>
+  :root{
+    --chalk:#E9EBE2;
+    --ink:#161A13;
+    --turf:#1E6B48;
+    --clay:#A8431C;
+    --quiet:#6E7566;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--chalk);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-variant-numeric:tabular-nums;
+    overflow:hidden;
+    -webkit-user-select:none;user-select:none;
+  }
+  #app{height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+
+  /* progress rail */
+  #rail{height:5px;display:flex;gap:1px;flex:0 0 auto;background:rgba(22,26,19,.12)}
+  #rail div{flex:1;background:rgba(22,26,19,.14);position:relative;overflow:hidden}
+  #rail div i{position:absolute;inset:0;transform:scaleX(0);transform-origin:left;background:var(--ink)}
+  #rail div.done i{transform:scaleX(1)}
+
+  /* start screen */
+  #start{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 28px;gap:22px;overflow-y:auto}
+  #start h1{font-size:clamp(38px,13vw,62px);font-weight:800;letter-spacing:-.035em;line-height:.92}
+  #start p{font-size:17px;line-height:1.5;color:var(--quiet);max-width:34ch}
+  #start p b{color:var(--ink);font-weight:600}
+  #go{
+    margin-top:6px;background:var(--ink);color:var(--chalk);border:0;
+    font:600 21px/1 inherit;padding:24px;border-radius:2px;letter-spacing:.01em;cursor:pointer;
+  }
+  #go:active{background:var(--turf)}
+  #start a{color:var(--quiet);font-size:15px}
+
+  /* run screen */
+  #run{flex:1;display:none;flex-direction:column;padding:20px 24px 16px}
+  #meta{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--quiet);font-weight:500}
+  #phase{color:var(--turf);font-weight:700}
+  body.strength #phase{color:var(--clay)}
+  #name{
+    margin-top:auto;font-size:clamp(30px,8.4vw,44px);font-weight:750;line-height:1.02;
+    letter-spacing:-.03em;max-width:16ch;
+  }
+  #cue{margin-top:14px;font-size:19px;line-height:1.42;color:var(--quiet);max-width:26ch;min-height:3em}
+  #clock{
+    margin-top:auto;font-size:clamp(96px,34vw,190px);font-weight:800;line-height:.82;
+    letter-spacing:-.055em;color:var(--turf);
+  }
+  body.strength #clock{color:var(--clay)}
+  body.paused #clock{color:var(--quiet)}
+  #next{margin-top:16px;font-size:15px;color:var(--quiet);min-height:1.3em}
+  #next b{color:var(--ink);font-weight:600}
+
+  #controls{display:flex;gap:10px;margin-top:20px}
+  #controls button{
+    flex:1;background:transparent;border:1.5px solid rgba(22,26,19,.22);color:var(--ink);
+    font:600 16px/1 inherit;padding:19px 0;border-radius:2px;cursor:pointer;
+  }
+  #controls button:active{background:rgba(22,26,19,.1)}
+  #pause{flex:1.6}
+  button:focus-visible{outline:3px solid var(--turf);outline-offset:2px}
+
+  #done{flex:1;display:none;flex-direction:column;justify-content:center;padding:0 28px;gap:18px}
+  #done h2{font-size:clamp(34px,11vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1}
+  #done p{font-size:17px;color:var(--quiet);line-height:1.5;max-width:32ch}
+  #done button{
+    margin-top:6px;background:transparent;border:1.5px solid rgba(22,26,19,.22);color:var(--ink);
+    font:600 17px/1 inherit;padding:20px;border-radius:2px;cursor:pointer;align-self:flex-start;
+    padding-left:34px;padding-right:34px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="rail"></div>
+
+  <section id="start">
+    <h1>11+<br>warm-up</h1>
+    <p><b>13 and a half minutes.</b> Every exercise is called out loud with its cue, so put the phone in your bag and listen. Turn the volume up first.</p>
+    <p>Nordic hamstring, balance and landing work are the parts that carry the evidence. They are all in here.</p>
+    <button id="go">Start warm-up</button>
+    <a href="../">← Training apps</a>
+  </section>
+
+  <section id="run">
+    <div id="meta"><span id="phase">Running</span><span id="left"></span></div>
+    <h2 id="name"></h2>
+    <p id="cue"></p>
+    <div id="clock">0:00</div>
+    <div id="next"></div>
+    <div id="controls">
+      <button id="back">Back</button>
+      <button id="pause">Pause</button>
+      <button id="skip">Skip</button>
+    </div>
+  </section>
+
+  <section id="done">
+    <h2>Warmed up.</h2>
+    <p>Get a ball down and finish with a few passes and shots before kick-off.</p>
+    <button id="again">Run it again</button>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* Abbreviated FIFA 11+, 13:30, audio-cued.
+   Companion to kinetic-chain-program-v4.md — run at both matches.
+   Cut from the full program: shoulder-contact and partner drills, the duplicated
+   running laps, and the plank/hip-lift stack. Retained: Nordic, balance, landing
+   mechanics and cutting, which carry the independent evidence. */
+
+const PLAN = [
+  {p:'Running', n:'Jog out and back', d:60, c:'Easy pace. Land soft and quiet.'},
+  {p:'Running', n:'Hip out', d:45, c:'Jog, stop, lift the knee, rotate it outward, plant.'},
+  {p:'Running', n:'Hip in', d:45, c:'Same drill. Rotate the knee inward across your body.'},
+  {p:'Running', n:'Sideways shuffle', d:45, c:'Hips low. Switch direction halfway.', s:true},
+  {p:'Running', n:'Forward and back sprints', d:45, c:'Two thirds pace forward. Backpedal on your toes.'},
+
+  {p:'Strength', n:'Nordic hamstring', d:60, c:'Kneel. Lean forward slowly. Resist as long as you can, then catch yourself. Three reps.'},
+  {p:'Strength', n:'Single-leg balance', d:60, c:'Thirty seconds each leg. Slight knee bend, eyes up.', s:true},
+  {p:'Strength', n:'Single-leg squat', d:90, c:'Five each side. Knee tracks over the second toe. Slow down, control the bottom.', s:true},
+  {p:'Strength', n:'Side plank', d:60, c:'Thirty seconds each side. Hips high, straight line from shoulder to ankle.', s:true},
+  {p:'Strength', n:'Vertical jumps', d:45, c:'Land soft. Knees apart, absorb through the hips.'},
+  {p:'Strength', n:'Lateral jumps', d:45, c:'Both feet over a line. Quick and quiet.'},
+
+  {p:'Running', n:'Run across the pitch', d:60, c:'Seventy five percent. Long and relaxed.'},
+  {p:'Running', n:'Bounding', d:45, c:'High knees, long strides, drive the arms.'},
+  {p:'Running', n:'Plant and cut', d:60, c:'Plant on the outside foot. Knee over the toe, then accelerate out.'},
+  {p:'Running', n:'Sharp accelerations', d:45, c:'Six seconds hard, then walk back. Repeat.'}
+];
+
+const $ = id => document.getElementById(id);
+
+/* Deadline-based clock rather than a per-second decrement: iOS throttles timers
+   hard once the phone is in a bag or the screen dims, and a decrementing counter
+   silently loses those seconds. Every reading is derived from a wall-clock
+   deadline instead, so the block still finishes in 13:30 of real time. */
+let i = 0, endsAt = 0, paused = false, pauseLeft = 0;
+let tick = null, ac = null, lock = null, halfDone = false, lastWhole = null, running = false;
+
+const rail = $('rail');
+PLAN.forEach(() => rail.insertAdjacentHTML('beforeend','<div><i></i></div>'));
+const bars = [...rail.children];
+
+function beep(freq, ms, vol){
+  try{
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if(ac.state === 'suspended') ac.resume();
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = freq; o.type = 'sine';
+    g.gain.setValueAtTime(vol, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + ms/1000);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + ms/1000);
+  }catch(e){}
+}
+
+function say(text){
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.0; u.pitch = 1; u.volume = 1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function hush(){ try{ speechSynthesis.cancel(); }catch(e){} }
+
+function fmt(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+
+/* Deliberately unclamped: when the timer has been throttled this goes negative,
+   and step() needs that overshoot to know how many exercises actually elapsed.
+   Display sites clamp instead. */
+function left(){ return paused ? pauseLeft : (endsAt - Date.now())/1000; }
+
+function remaining(){
+  let r = left();
+  for(let k=i+1;k<PLAN.length;k++) r += PLAN[k].d;
+  return r;
+}
+
+/* carry is the number of seconds already elapsed into this step, used when the
+   phone was asleep through a step boundary so the block keeps real time rather
+   than stretching by however long the timer was throttled. */
+function load(n, carry){
+  i = n;
+  if(i >= PLAN.length) return finish();
+  const e = PLAN[i];
+  endsAt = Date.now() + e.d*1000 - (carry || 0)*1000;
+  paused = false; pauseLeft = 0; halfDone = false; lastWhole = null;
+  document.body.classList.remove('paused');
+  $('pause').textContent = 'Pause';
+  document.body.classList.toggle('strength', e.p === 'Strength');
+  $('phase').textContent = e.p === 'Strength' ? 'Strength and balance' : 'Running';
+  $('name').textContent = e.n;
+  $('cue').textContent = e.c;
+  $('next').innerHTML = PLAN[i+1] ? 'Next: <b>' + PLAN[i+1].n + '</b>' : 'Last one.';
+  bars.forEach((b,k) => { b.classList.toggle('done', k < i); if(k > i) b.firstElementChild.style.transform = 'scaleX(0)'; });
+  paint();
+  beep(880, 140, .5);
+  say(e.n + '. ' + e.c);
+}
+
+function paint(){
+  const t = left();
+  $('clock').textContent = fmt(t);
+  $('left').textContent = fmt(remaining()) + ' left';
+  const b = bars[i];
+  if(b) b.firstElementChild.style.transform =
+    'scaleX(' + Math.min(1, Math.max(0, 1 - t/PLAN[i].d)) + ')';
+}
+
+function step(){
+  if(paused || !running) return;
+  const t = left();
+
+  if(t <= 0){
+    /* Spill past the end of this step. Normally a fraction of a tick; after the
+       phone has been asleep it can span whole exercises, so walk forward through
+       any that fully elapsed and land inside the one we are actually in. */
+    let over = -t, n = i;
+    for(;;){
+      bars[n].classList.add('done');
+      n++;
+      if(n >= PLAN.length){ finish(); return; }
+      if(over < PLAN[n].d) break;
+      over -= PLAN[n].d;
+    }
+    load(n, over);
+    return;
+  }
+
+  const e = PLAN[i];
+  if(e.s && !halfDone && t <= e.d/2){ halfDone = true; beep(660,110,.4); say('Switch sides'); }
+  const whole = Math.ceil(t);
+  if(whole !== lastWhole && whole <= 3 && whole >= 1){ lastWhole = whole; beep(700, 90, .35); }
+  paint();
+}
+
+function finish(){
+  running = false;
+  clearInterval(tick); tick = null;
+  bars.forEach(b => b.classList.add('done'));
+  $('run').style.display = 'none';
+  $('done').style.display = 'flex';
+  document.body.classList.remove('strength','paused');
+  beep(1046, 400, .5);
+  say('Warm-up complete. Go and get a ball down.');
+  release();
+}
+
+async function grab(){
+  try{ if('wakeLock' in navigator){ lock = await navigator.wakeLock.request('screen');
+    lock.addEventListener('release', () => { lock = null; }); } }catch(e){ lock = null; }
+}
+function release(){ try{ if(lock){ lock.release(); lock = null; } }catch(e){} }
+
+function start(){
+  if(running) return;                       // guard against a double tap on Start
+  running = true;
+  try{ speechSynthesis.speak(new SpeechSynthesisUtterance(' ')); }catch(e){}
+  beep(660, 60, .25);
+  grab();
+  $('start').style.display = 'none';
+  $('done').style.display = 'none';
+  $('run').style.display = 'flex';
+  load(0);
+  clearInterval(tick);
+  tick = setInterval(step, 250);
+}
+
+$('go').onclick = start;
+$('again').onclick = start;
+
+$('pause').onclick = () => {
+  if(!running) return;
+  if(paused){ endsAt = Date.now() + pauseLeft*1000; paused = false; }
+  else { pauseLeft = Math.max(0, left()); paused = true; }
+  document.body.classList.toggle('paused', paused);
+  $('pause').textContent = paused ? 'Resume' : 'Pause';
+  hush();
+  say(paused ? 'Paused' : 'Resuming');
+  paint();
+};
+
+$('skip').onclick = () => {
+  if(!running) return;
+  hush();
+  bars[i].classList.add('done');
+  load(i+1);
+};
+
+/* Back restarts the current exercise if you are more than 3 seconds into it,
+   otherwise it steps to the previous one — the usual transport behaviour. */
+$('back').onclick = () => {
+  if(!running) return;
+  hush();
+  const elapsed = PLAN[i].d - left();
+  load(elapsed > 3 ? i : Math.max(0, i-1));
+};
+
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && running && !lock) grab();
+});
+
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

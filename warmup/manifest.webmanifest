@@ -1,0 +1,16 @@
+{
+  "name": "11+ Warm-up",
+  "short_name": "11+",
+  "description": "Audio-cued abbreviated FIFA 11+ pre-match warm-up (13:30)",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E9EBE2",
+  "theme_color": "#E9EBE2",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,8 +1,12 @@
-/* Service worker for the Kinetic Chain Tracker.
-   Serves the app from cache first (so it works offline / in airplane mode)
-   and refreshes the cache in the background whenever there is a connection. */
-const CACHE = "kct-v8";
-const ASSETS = ["./", "./index.html", "./tracker.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
+/* Service worker for the 11+ Warm-up.
+   Cache-first so the block runs with no signal at the pitch, refreshing in the
+   background whenever there is a connection. Scoped to its own cache so it never
+   collides with the Kinetic Chain Tracker's. */
+const CACHE = "warmup-v1";
+const ASSETS = [
+  "./", "./index.html", "./manifest.webmanifest",
+  "./icon-180.png", "./icon-512.png", "./icon-maskable-512.png"
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -15,11 +19,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      /* Only ever evict this app's own caches. The sub-apps in touch/, warmup/
-         and mdf/ have their own service workers at narrower scopes, but they
-         share this origin's cache storage — caches.keys() returns theirs too. */
-      .then((keys) => Promise.all(
-        keys.filter((k) => k.startsWith("kct-") && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("warmup-") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

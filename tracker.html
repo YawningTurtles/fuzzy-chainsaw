@@ -130,6 +130,8 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .progressbar>div{height:100%; background:var(--accent); width:0;}
 .nextup{border-top:1px solid var(--line); padding-top:10px; margin-top:6px; font-size:.9rem; color:var(--dim);}
 .nu-label{font-size:.72rem; color:var(--faint); text-transform:uppercase; letter-spacing:.06em;}
+.makeup-head{border-top:2px solid var(--blue); margin:24px 0 12px; padding-top:14px;}
+.makeup-head h2{margin:2px 0 0;}
 .controls{display:grid; grid-template-columns:1fr 1.4fr 1fr 1fr; gap:8px; margin-top:14px;}
 .controls button{min-height:58px; padding:10px 4px; font-size:.92rem;}
 .controls .pausebtn{background:var(--accent); color:#06170f; font-weight:700;}
@@ -364,6 +366,7 @@ const PROGRAM = {
   revision: "September 2026",
   rir: 2,
   painLimit: 3,          // during a set: >3/10, or sharp, ends that exercise
+  makeupWindow: 10,      // how far back a missed session can still be picked up
 
   /* Priority stack, in the program's own order. */
   priorities: [
@@ -380,7 +383,7 @@ const PROGRAM = {
       note:"Highest-load session of the week. FIFA 11+ as the warm-up, no separate strength work.",
       match:{ format:"11-a-side", minutes:50 }, movements:[] },
 
-    { day:1, type:"strength", label:"Hip rotation & adductor end-range", est:"~12 min",
+    { day:1, type:"strength", label:"Hip rotation & adductor end-range", est:"~12 min", lowerBody:true,
       note:"24 hours post-match. Deliberately low fatigue.",
       movements:[{ id:"cossack", sets:3 }, { id:"t9090", sets:3 }, { id:"add_iso", sets:5 }] },
 
@@ -393,15 +396,15 @@ const PROGRAM = {
       note:"Second-highest load of the week. FIFA 11+ as the warm-up, no separate strength work.",
       match:{ format:"7-a-side", minutes:40 }, movements:[] },
 
-    { day:4, type:"strength", label:"Eccentrics", est:"~10 min",
+    { day:4, type:"strength", label:"Eccentrics", est:"~10 min", lowerBody:true, eccentric:true,
       note:"72 hours before Sunday — the only slot that respects the no-novel-eccentrics-within-48h rule.",
       movements:[{ id:"nordic", sets:2 }, { id:"copenhagen", sets:2 }] },
 
-    { day:5, type:"strength", label:"Posterior chain — heavy", est:"~12 min",
+    { day:5, type:"strength", label:"Posterior chain — heavy", est:"~12 min", lowerBody:true,
       note:"48 hours before Sunday. Heaviest day, but no grinding — leave 2 reps in reserve on every set.",
       movements:[{ id:"db_rdl", sets:3 }, { id:"sl_calf", sets:3 }] },
 
-    { day:6, type:"strength", label:"Unilateral quad & balance", est:"~14 min",
+    { day:6, type:"strength", label:"Unilateral quad & balance", est:"~14 min", lowerBody:true,
       note:"Moderate. 24 hours before the 11-a-side.",
       movements:[{ id:"bss", sets:3 }, { id:"spanish", sets:3 }, { id:"sl_balance", sets:3 }] }
   ],
@@ -1344,7 +1347,8 @@ function logHoldSet(mid, side, seconds){
     loggedAt: Date.now()
   });
   // Find the spec so completion and rest behave the same as a rep movement.
-  const spec = (rotationFor(date).movements.find(x=>x.id===mid) || { sets: w.sets.length });
+  // specFor also looks into a make-up block, whose movements are not in today's rotation.
+  const spec = specFor(date, mid) || { sets: w.sets.length };
   afterLog(mid, spec.sets, painGated(draft.pain, draft.sharp));
 }
 function undoSet(mid){
@@ -1378,6 +1382,151 @@ function startRestTick(){
     if (el) el.textContent = "Rest " + fmtClock((restUntil - Date.now())/1000);
     else { clearInterval(restHandle); restHandle = null; }
   }, 500);
+}
+
+/* ===================== make-up sessions =====================
+   A missed strength day can be picked up on a later day. The work is logged
+   against the day it is ACTUALLY performed, never backdated into the day that
+   was missed: the 24-hour check reads yesterday's `work` to decide what a
+   symptom is attributable to, and the volume-cut rule keys off that, so
+   backfilling would silently misattribute the load. The missed day instead
+   carries a `madeUpOn` pointer, which is what credits it in the week view. */
+
+function specFor(date, mid){
+  const rot = rotationFor(date);
+  let spec = rot.movements.find(x => x.id === mid);
+  if (spec) return spec;
+  const d = state.days[date];
+  if (d && d.makeup){
+    spec = rotationFor(d.makeup.from).movements.find(x => x.id === mid);
+    if (spec) return spec;
+  }
+  return null;
+}
+
+/* `evaluated` is set by closeOutMovement, so it is the authoritative record
+   that a movement was finished on that day — including sessions that ran at
+   half volume under a cut, which a raw set count would misread as unfinished. */
+function movementDone(d, spec){
+  const w = d && d.work && d.work[spec.id];
+  if (!w) return false;
+  return !!w.evaluated || w.stopped || w.sets.length >= targetEntries(spec.id, spec.sets);
+}
+
+function missedSessions(){
+  const t = todayStr(), out = [];
+  for (let k = 1; k <= PROGRAM.makeupWindow; k++){
+    const date = addDays(t, -k);
+    if (date < state.program.start) break;
+    const rot = rotationFor(date);
+    if (rot.type !== "strength") continue;
+    const d = state.days[date];
+    if (d && d.madeUpOn) continue;
+    const missing = rot.movements.filter(spec => !movementDone(d, spec));
+    if (missing.length)
+      out.push({ date, rot, missing, partial: missing.length < rot.movements.length });
+  }
+  return out;
+}
+
+function nextMatchWithin(fromDate, days){
+  for (let k = 0; k <= days; k++){
+    const dt = addDays(fromDate, k);
+    if (rotationFor(dt).type === "match") return { date: dt, inDays: k };
+  }
+  return null;
+}
+/* The program's own timing rules, checked against the day you want to train —
+   surfaced as warnings, never as blocks. Moving a session is your call. */
+function makeupConflicts(srcRot, onDate){
+  const out = [];
+  if (rotationFor(onDate).type === "match")
+    out.push("There is a match today — that plus the 11+ is already the week's highest load.");
+  const m = nextMatchWithin(onDate, 2);
+  const when = m ? (m.inDays === 0 ? "today" : m.inDays === 1 ? "tomorrow" : "in two days") : "";
+  if (srcRot.eccentric && m)
+    out.push(`Standing rule: never add novel high-volume eccentrics within 48 hours of a match, and the next match is ${when}.`);
+  if (srcRot.lowerBody && !srcRot.eccentric && m && m.inDays === 1)
+    out.push(`This is lower-body loading the day before a match (${fmtShort(m.date)}). The program deliberately keeps that day clear of it.`);
+  return out;
+}
+
+function startMakeup(date){
+  const t = todayStr(), d = getDay(t, true);
+  if (d.makeup){ toast("Finish or remove the current make-up session first."); return; }
+  d.makeup = { from: date, addedAt: Date.now() };
+  getDay(date, true).madeUpOn = t;
+  save(); closeModal(); render(); window.scrollTo(0, 0);
+  toast(`${DOW[rotationFor(date).day]}'s session added to today ✓`);
+}
+function cancelMakeup(){
+  const t = todayStr(), d = getDay(t, true);
+  if (!d.makeup) return;
+  const specs = rotationFor(d.makeup.from).movements;
+  if (specs.some(s => ((d.work[s.id] || {}).sets || []).length)){
+    toast("Undo the logged sets first."); return;
+  }
+  const src = state.days[d.makeup.from];
+  if (src && src.madeUpOn === t) delete src.madeUpOn;
+  specs.forEach(s => { delete d.work[s.id]; });
+  delete d.makeup;
+  save(); render();
+  toast("Make-up session removed.");
+}
+
+function makeupBlockHTML(d){
+  if (!d.makeup) return "";
+  const src = rotationFor(d.makeup.from);
+  const specs = src.movements;
+  const anyWork = specs.some(s => ((d.work[s.id] || {}).sets || []).length);
+  const allDone = specs.every(s => movementComplete(d, s.id, s.sets));
+  const conflicts = makeupConflicts(src, d.date);
+  return `
+    <div class="makeup-head">
+      <div class="nu-label">Make-up session</div>
+      <h2>${DOW[src.day]} · ${esc(src.label)}</h2>
+      <p class="faint" style="margin:4px 0 0;">Missed ${esc(fmtDate(d.makeup.from))}. It logs against today, so tomorrow's 24-hour check still attributes the load to the day you actually trained.</p>
+    </div>
+    ${conflicts.map(c => `<div class="banner amber"><span>⚠️ ${esc(c)}</span></div>`).join("")}
+    ${allDone ? `<div class="banner green"><span>✓ Made up — ${esc(fmtShort(d.makeup.from))} is credited in the week view.</span></div>` : ""}
+    ${specs.map(spec => movementCardHTML(d, spec)).join("")}
+    ${!anyWork ? `<button class="ghost big-btn" onclick="cancelMakeup()">Remove this make-up session</button>` : ""}
+  `;
+}
+function makeupPromptHTML(d){
+  if (d.makeup) return "";
+  const missed = missedSessions();
+  if (!missed.length) return "";
+  const list = missed.slice(0, 3).map(x =>
+    `<li>${DOW[x.rot.day]} ${esc(fmtShort(x.date))} — ${esc(x.rot.label)}${x.partial ? " <span class=\"faint\">(part done)</span>" : ""}</li>`).join("");
+  return `<div class="card">
+    <div class="set-head"><h2 style="margin:0;">Missed sessions</h2>
+      <span class="chip amber">${missed.length}</span></div>
+    <ul class="tight dim" style="margin:6px 0 10px;">${list}${missed.length > 3 ? `<li class="faint">and ${missed.length - 3} more</li>` : ""}</ul>
+    <button class="big-btn" style="margin-top:0;" onclick="showModal(chooseMakeupHTML())">Make one up today</button>
+  </div>`;
+}
+function chooseMakeupHTML(){
+  const missed = missedSessions(), t = todayStr();
+  if (!missed.length)
+    return `<h2>Nothing outstanding</h2>
+      <p class="dim">No missed strength session in the last ${PROGRAM.makeupWindow} days.</p>
+      <button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+  const rows = missed.map(x => {
+    const conflicts = makeupConflicts(x.rot, t);
+    return `<div class="card" style="margin-bottom:10px;">
+      <div class="set-head"><h2 style="margin:0; font-size:1.05rem;">${DOW[x.rot.day]} · ${esc(x.rot.label)}</h2>
+        <span class="chip">${esc(fmtShort(x.date))}</span></div>
+      <p class="faint" style="margin:4px 0 6px;">${x.partial ? "Part done — still " : "Outstanding: "}${x.missing.map(s => esc(MOVEMENTS[s.id].short)).join(", ")}</p>
+      ${conflicts.map(c => `<div class="banner amber" style="margin:8px 0;"><span>⚠️ ${esc(c)}</span></div>`).join("")}
+      <button class="${conflicts.length ? "" : "primary"} big-btn" style="margin-top:0;" onclick="startMakeup('${x.date}')">
+        ${conflicts.length ? "Do it today anyway" : "Do it today"}</button>
+    </div>`;
+  }).join("");
+  return `<h2>Make up a session</h2>
+    <p class="faint" style="margin:0 0 10px;">One at a time. The work is logged against today, not backdated.</p>
+    ${rows}
+    <button class="ghost big-btn" onclick="closeModal()">Cancel</button>`;
 }
 
 /* ===================== match / run / reassessment ===================== */
@@ -1566,6 +1715,8 @@ function todayHTML(){
     ${resume}${banners.join("")}
     ${rot.note ? `<p class="dim" style="margin:0 0 12px; font-size:.95rem;">${esc(rot.note)}</p>` : ""}
     ${rot.type === "match" ? matchDayHTML(d, rot) : strengthDayHTML(d, rot)}
+    ${makeupBlockHTML(d)}
+    ${makeupPromptHTML(d)}
     ${mobilityCardHTML(d)}
     ${runCardHTML(d)}
   `;
@@ -1757,12 +1908,26 @@ function weekHTML(){
                         : `<span class="faint">match not logged</span>`);
       if (!future){ possible++; if (d.warmupDone) done++; }
       if (!future){ possible++; if (d.match) done++; }
+    } else if (d.madeUpOn){
+      // Missed on the day, trained later. Credit it here rather than leaving a
+      // permanent hole — the session happened, just not when it was scheduled.
+      bits.push(`<span class="faint">missed — made up ${esc(fmtShort(d.madeUpOn))}</span>`);
+      if (!future) rot.movements.forEach(()=>{ possible++; done++; });
     } else {
       rot.movements.forEach(spec=>{
         const m = MOVEMENTS[spec.id];
         const w = d.work[spec.id] || { sets: [], stopped:false };
         const tgt = targetEntries(spec.id, spec.sets);
         bits.push(`${esc(m.short)} <span class="faint">${w.sets.length}/${tgt}</span>${w.stopped?' <span style="color:var(--red)">✕pain</span>':""}`);
+        if (!future){ possible++; if (w.sets.length >= tgt || w.stopped) done++; }
+      });
+    }
+    if (d.makeup){
+      rotationFor(d.makeup.from).movements.forEach(spec=>{
+        const m = MOVEMENTS[spec.id];
+        const w = d.work[spec.id] || { sets: [], stopped:false };
+        const tgt = targetEntries(spec.id, spec.sets);
+        bits.push(`<span style="color:var(--blue)">+${esc(m.short)}</span> <span class="faint">${w.sets.length}/${tgt}</span>`);
         if (!future){ possible++; if (w.sets.length >= tgt || w.stopped) done++; }
       });
     }
@@ -1776,7 +1941,7 @@ function weekHTML(){
         ${chk ? `<div class="faint">24h check: ${chk.score}/10 vs baseline ${chk.baseline} (${esc(chk.attribution)})</div>` : ""}</div>
       <div class="wstat" title="mobility / 11+ or session">
         <span class="dot ${d.mobilityComplete?"on":(future?"":"miss")}"></span>
-        <span class="dot ${(rot.type==="match" ? d.warmupDone : Object.keys(d.work||{}).length)?"on":(future?"":"miss")}"></span>
+        <span class="dot ${(rot.type==="match" ? d.warmupDone : (Object.keys(d.work||{}).length || d.madeUpOn))?"on":(future?"":"miss")}"></span>
       </div>
     </div>`;
   }).join("");
@@ -1976,6 +2141,15 @@ function exportMarkdown(){
           const pain = Math.max(...w.sets.map(s=>s.pain||0));
           return `${m.short} ${w.sets.length}/${targetEntries(spec.id, spec.sets)} — ${detail}${pain?` (peak knee ${pain}/10)`:""}${w.stopped?` — STOPPED: ${w.stopReason}`:""}`;
         }).join("; ");
+      }
+      if (d && d.madeUpOn) work = `missed — made up ${d.madeUpOn}`;
+      if (d && d.makeup){
+        const mk = rotationFor(d.makeup.from);
+        work += `; MAKE-UP of ${d.makeup.from} (${mk.label}): ` + mk.movements.map(spec=>{
+          const m = MOVEMENTS[spec.id];
+          const w = d.work[spec.id] || { sets: [] };
+          return `${m.short} ${w.sets.length}/${targetEntries(spec.id, spec.sets)}`;
+        }).join(" ");
       }
       if (d && d.run) work += `; run ${d.run.intervals}×${d.run.runMin}/${d.run.walkMin}`;
       md += `| ${date} | ${DOW[rot.day]} · ${rot.label} | ${work} | ${mob} | ${score} |\n`;

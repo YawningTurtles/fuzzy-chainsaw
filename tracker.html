@@ -364,6 +364,7 @@ const PROGRAM = {
   title: "Hip-to-Knee Program",
   specVersion: 4,
   revision: "September 2026",
+  build: "2026-09-15.2",   // shown in Data → About, so "am I on the new version?" is answerable
   rir: 2,
   painLimit: 3,          // during a set: >3/10, or sharp, ends that exercise
   makeupWindow: 10,      // how far back a missed session can still be picked up
@@ -1693,6 +1694,12 @@ function todayHTML(){
     banners.push(`<div class="banner amber"><span>📋 Week ${due} reassessment is due (you are ${weeksIn()} weeks in).</span>
       <button onclick="showModal(assessFormHTML())">Do it</button></div>`);
 
+  const logged = Object.values(state.days).filter(x =>
+    Object.keys(x.work||{}).length || x.mobilityComplete || x.match || x.run).length;
+  if (!logged && !state.painChecks.length)
+    banners.push(`<div class="banner blue"><span>📭 No training history on this device. An app added to the Home Screen can keep its own storage, separate from Safari — if your history is in Safari, export a JSON backup there and import it here.</span>
+      <button onclick="nav('data')">Import</button></div>`);
+
   const cuts = Object.keys(state.cuts).filter(m=>MOVEMENTS[m]);
   if (cuts.length)
     banners.push(`<div class="banner amber"><span>➗ Half volume queued for ${esc(cuts.map(m=>MOVEMENTS[m].short).join(", "))} after a 24-hour check above baseline.</span></div>`);
@@ -2045,6 +2052,23 @@ function dataHTML(){
       <p class="faint" style="margin-top:8px;">Last export: ${state.lastExport ? esc(fmtDate(state.lastExport)) : "never"}</p>
     </div>
     <div class="card">
+      <h2>This device</h2>
+      ${(()=>{
+        const dates = Object.keys(state.days).sort();
+        const logged = Object.values(state.days).filter(x =>
+          Object.keys(x.work||{}).length || x.mobilityComplete || x.match || x.run).length;
+        const missed = missedSessions().length;
+        return `<table>
+          <tr><th>Days with logged work</th><td class="num">${logged}</td></tr>
+          <tr><th>Range</th><td class="num">${dates.length ? esc(fmtShort(dates[0])) + " – " + esc(fmtShort(dates[dates.length-1])) : "—"}</td></tr>
+          <tr><th>24-hour checks</th><td class="num">${state.painChecks.length}</td></tr>
+          <tr><th>Missed sessions outstanding</th><td class="num">${missed}</td></tr>
+          <tr><th>Build</th><td class="num">${esc(PROGRAM.build)}</td></tr>
+        </table>`;
+      })()}
+      <p class="faint" style="margin:8px 0 0;">If this is empty but your phone has history elsewhere, you are looking at a second copy of the app with its own storage — import a backup to bring it across.</p>
+    </div>
+    <div class="card">
       <h2>Import</h2>
       <p class="faint">Restore a JSON backup or move data from another browser.</p>
       <input type="file" id="importfile" accept=".json,application/json" onchange="importJSON(this)">
@@ -2072,7 +2096,7 @@ function dataHTML(){
     </div>
     <div class="card">
       <h2>About</h2>
-      <p class="faint">${esc(PROGRAM.title)} · spec v${PROGRAM.specVersion}, ${esc(PROGRAM.revision)} revision ·
+      <p class="faint">${esc(PROGRAM.title)} · spec v${PROGRAM.specVersion}, ${esc(PROGRAM.revision)} revision · build ${esc(PROGRAM.build)} ·
       single offline file · zero network requests · no accounts.
       ${state.legacySymptomChecks ? `<br><br>${state.legacySymptomChecks.length} morning checks from the previous version are kept in your backup on the old 0–3 scale. They are not mixed into the 0–10 pain history, because they are a different instrument.` : ""}</p>
     </div>`;
@@ -2268,6 +2292,23 @@ else if (!baselineKnown() && Object.keys(state.days).length > 1) askBaseline();
 else if (checkDue()) askCheck();
 window.addEventListener("beforeunload", save);
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+  /* The page you are looking at was served by whichever worker was already in
+     control, so the launch that installs a new build still shows the old one.
+     Reload once when the new worker takes over, and an installed Home Screen
+     app lands on the new build in the same launch instead of the next.
+     Guarded three ways: only when replacing an existing worker (not on first
+     install), only once, and only in the first few seconds — never yanking the
+     page out from under a session already in progress. */
+  const bootedAt = Date.now();
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloaded || !hadController) return;
+    if (state && state.activeSession) return;
+    if (Date.now() - bootedAt > 10000) return;
+    reloaded = true;
+    location.reload();
+  });
   navigator.serviceWorker.register("sw.js").catch(()=>{});
 }
 </script>

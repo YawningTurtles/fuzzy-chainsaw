@@ -319,6 +319,17 @@ document.addEventListener('visibilitychange', () => {
 });
 
 if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  /* Pick up a new build on the launch that installs it rather than the next one.
+     Never mid-warm-up: the block is not persisted, so a reload would lose it. */
+  const bootedAt = Date.now();
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(reloaded || !hadController || running) return;
+    if(Date.now() - bootedAt > 10000) return;
+    reloaded = true;
+    location.reload();
+  });
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 </script>

@@ -364,7 +364,7 @@ const PROGRAM = {
   title: "Hip-to-Knee Program",
   specVersion: 4,
   revision: "September 2026",
-  build: "2026-09-15.2",   // shown in Data → About, so "am I on the new version?" is answerable
+  build: "2026-10-12.1",  // shown in Data → About, so "am I on the new version?" is answerable
   rir: 2,
   painLimit: 3,          // during a set: >3/10, or sharp, ends that exercise
   makeupWindow: 10,      // how far back a missed session can still be picked up
@@ -696,7 +696,75 @@ function load(){
   Object.keys(MOVEMENTS).forEach(mid=>{
     if (!state.progress[mid]) state.progress[mid] = { step:0, streak:0, since:todayStr(), history:[] };
   });
+  checkReentry();
 }
+
+/* ===================== coming back after a break =====================
+   Two weeks or more with no logged strength set starts a re-entry week:
+   every movement's first session back runs at half volume (the same cut the
+   pain rules use, so it is served and cleared the same way), and streaks
+   restart, since two qualifying sessions either side of a gap are not two
+   consecutive sessions. Strength holds over a gap this short; tolerance to
+   eccentric loading and the protection against soreness fade faster, which is
+   what the half volume covers. Loads are left where they are, but any movement
+   whose dose was raised and never performed is listed with a one-tap step back. */
+const REENTRY_GAP = 14;
+
+function lastStrengthDate(before){
+  let last = null;
+  Object.values(state.days).forEach(d=>{
+    if (before && d.date >= before) return;
+    const any = Object.values(d.work||{}).some(w => w.sets && w.sets.length);
+    if (any && (!last || d.date > last)) last = d.date;
+  });
+  return last;
+}
+function lastPerformedStep(mid){
+  const m = MOVEMENTS[mid];
+  const dates = Object.keys(state.days).sort().reverse();
+  for (const date of dates){
+    const w = (state.days[date].work||{})[mid];
+    if (w && w.sets && w.sets.length){
+      const label = w.sets[w.sets.length-1].rung;
+      const i = m.ladder.findIndex(x => x.label === label);
+      return i >= 0 ? { i, label, date } : null;
+    }
+  }
+  return null;
+}
+function checkReentry(){
+  const t = todayStr();
+  const last = lastStrengthDate(t);
+  if (!last) return;
+  const gap = daysBetween(last, t);
+  if (gap < REENTRY_GAP) return;
+  if (state.reentry && state.reentry.lastTrained === last) return;   // already set up for this gap
+  if (lastStrengthDate() && lastStrengthDate() >= t) return;          // already training today
+  const reason = `first session back after ${gap} days off`;
+  Object.keys(MOVEMENTS).forEach(mid=>{
+    state.cuts[mid] = { reason, setOn: t, reentry: true };
+    state.progress[mid].streak = 0;
+  });
+  state.reentry = { since: t, lastTrained: last, gapDays: gap, dismissed: false };
+  save();
+}
+function reentryStepBacks(){
+  return Object.keys(MOVEMENTS).map(mid=>{
+    const p = lastPerformedStep(mid);
+    return p && p.i < rung(mid).i ? { mid, ...p } : null;
+  }).filter(Boolean);
+}
+function applyStepBacks(){
+  reentryStepBacks().forEach(s=>{
+    const pr = state.progress[s.mid];
+    pr.history.push({ date: todayStr(), from: MOVEMENTS[s.mid].ladder[pr.step].label,
+                      to: s.label, note: "re-entry: back to last performed load" });
+    pr.step = s.i; pr.streak = 0; pr.since = todayStr();
+  });
+  save(); render();
+  toast("Back to your last performed loads.");
+}
+function dismissReentry(){ if (state.reentry) state.reentry.dismissed = true; save(); render(); }
 let saveTimer = null;
 function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); }
@@ -1264,22 +1332,33 @@ function cancelHold(){
 let setDraft = {};                      // {mid: {reps, rir, pain, sharp}}
 let restUntil = null, restFor = null;   // inter-set rest, scoped to one movement
 
+/* RIR starts unset on every set. A pre-filled RIR got logged untouched on every
+   set, which made the progression gate (top set at RIR >= target) pass on
+   autopilot and left the one number meant to scale load with no signal in it. */
 function draftFor(mid){
   const m = MOVEMENTS[mid];
-  if (!setDraft[mid]) setDraft[mid] = { reps: m.reps || 0, rir: PROGRAM.rir, pain: 0, sharp: false };
+  if (!setDraft[mid]) setDraft[mid] = { reps: m.reps || 0, rir: null, pain: 0, sharp: false };
   return setDraft[mid];
 }
 function clearDraft(mid){
   const m = MOVEMENTS[mid];
-  setDraft[mid] = { reps: m.reps || 0, rir: PROGRAM.rir, pain: 0, sharp: false };
+  setDraft[mid] = { reps: m.reps || 0, rir: null, pain: 0, sharp: false };
 }
-function setRir(mid, v){ draftFor(mid).rir = v; render(); }
+/* Any tap re-renders the card, which rebuilt the reps input from the draft and
+   threw away a number typed but not yet logged. Pull it into the draft first. */
+function syncReps(mid){
+  const el = document.getElementById("reps-"+mid);
+  if (el) draftFor(mid).reps = parseInt(el.value) || 0;
+}
+function setRir(mid, v){ syncReps(mid); draftFor(mid).rir = v; render(); }
 function setPain(mid, v){
+  syncReps(mid);
   draftFor(mid).pain = v;
   ensureAudio(); beep(v > PROGRAM.painLimit ? 400 : 880, .1); buzz(40);
   render();
 }
 function toggleSharp(mid){
+  syncReps(mid);
   const d = draftFor(mid); d.sharp = !d.sharp;
   ensureAudio(); beep(d.sharp ? 400 : 880, .1); buzz(40);
   render();
@@ -1324,9 +1403,10 @@ function afterLog(mid, specSets, gated){
 
 function logStrengthSet(mid, specSets){
   const date = todayStr(), d = getDay(date, true), w = workFor(d, mid);
+  syncReps(mid);
   const draft = draftFor(mid);
-  const repsEl = document.getElementById("reps-"+mid);
-  if (repsEl) draft.reps = parseInt(repsEl.value) || 0;
+  if (!(draft.reps > 0)){ toast("Enter the reps you did first."); buzz(80); return; }
+  if (draft.rir == null){ toast("Tap how many reps you had in reserve."); buzz(80); return; }
   const r = rung(mid);
   w.sets.push({
     setNumber: w.sets.length + 1,
@@ -1700,7 +1780,15 @@ function todayHTML(){
     banners.push(`<div class="banner blue"><span>📭 No training history on this device. An app added to the Home Screen can keep its own storage, separate from Safari — if your history is in Safari, export a JSON backup there and import it here.</span>
       <button onclick="nav('data')">Import</button></div>`);
 
-  const cuts = Object.keys(state.cuts).filter(m=>MOVEMENTS[m]);
+  const allCuts = Object.keys(state.cuts).filter(m=>MOVEMENTS[m]);
+  const reCuts = allCuts.filter(m=>state.cuts[m].reentry);
+  const cuts = allCuts.filter(m=>!state.cuts[m].reentry);
+  if (state.reentry && !state.reentry.dismissed && reCuts.length){
+    const backs = reentryStepBacks();
+    const backList = backs.map(s=>`${MOVEMENTS[s.mid].short} ${rung(s.mid).label} → ${s.label}`).join(", ");
+    banners.push(`<div class="banner amber"><span>↩ Welcome back: ${state.reentry.gapDays} days since your last strength session (${fmtShort(state.reentry.lastTrained)}). Each movement's first session back is half volume, and progress streaks restart.${backs.length ? ` These doses were raised but never done: ${esc(backList)}.` : ""}</span>
+      ${backs.length ? `<button onclick="applyStepBacks()">Use last loads</button>` : `<button onclick="dismissReentry()">Got it</button>`}</div>`);
+  }
   if (cuts.length)
     banners.push(`<div class="banner amber"><span>➗ Half volume queued for ${esc(cuts.map(m=>MOVEMENTS[m].short).join(", "))} after a 24-hour check above baseline.</span></div>`);
 
@@ -1835,10 +1923,10 @@ function activeSetHTML(mid, i, total, spec){
     <div class="entrygrid">
       <div><label>Reps${m.perSide?"/side":""}</label>
         <input type="number" id="reps-${mid}" inputmode="numeric" min="0" value="${draft.reps}"></div>
-      <div><label>RIR — target ${PROGRAM.rir}</label><div class="rirrow">${rirBtns}</div></div>
+      <div><label>RIR — target ${PROGRAM.rir}${draft.rir==null?' · <span style="color:var(--amber)">tap one</span>':""}</label><div class="rirrow">${rirBtns}</div></div>
     </div>
     ${painRowHTML(mid, draft)}
-    <button class="primary big-btn" onclick="logStrengthSet('${mid}',${spec.sets})">Log set ${i} ✓</button>
+    <button class="primary big-btn" ${draft.rir==null?'style="opacity:.45"':""} onclick="logStrengthSet('${mid}',${spec.sets})">Log set ${i} ✓</button>
   </div>`;
 }
 function activeHoldHTML(mid, i, total, spec){
@@ -2135,7 +2223,10 @@ function exportMarkdown(){
     md += `| ${m.name} | ${r.label} | ${daysAtRung(mid)} | ${toward} | ${m.gate.rule} |\n`;
   });
   const cuts = Object.keys(state.cuts).filter(m=>MOVEMENTS[m]);
-  md += `\n**Half-volume queued:** ${cuts.length ? cuts.map(m=>`${MOVEMENTS[m].name} (${state.cuts[m].reason})`).join("; ") : "none"}\n\n---\n\n`;
+  md += `\n**Half-volume queued:** ${cuts.length ? cuts.map(m=>`${MOVEMENTS[m].name} (${state.cuts[m].reason})`).join("; ") : "none"}\n`;
+  if (state.reentry)
+    md += `**Last re-entry:** ${state.reentry.since}, after ${state.reentry.gapDays} days with no strength work (last session ${state.reentry.lastTrained})\n`;
+  md += `\n---\n\n`;
 
   for (let wk = 3; wk >= 0; wk--){
     const mon = addDays(thisMon, -wk*7);
@@ -2259,6 +2350,7 @@ function applyImport(mode){
   state.painChecks.sort((a,b)=>a.date.localeCompare(b.date));
   state.assessments.sort((a,b)=>a.date.localeCompare(b.date));
   window._pendingImport = null;
+  checkReentry();
   save(); closeModal(); render();
   toast(mode === "replace" ? "Backup restored ✓" : "Backups merged ✓");
 }

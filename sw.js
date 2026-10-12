@@ -11,7 +11,7 @@
    Static assets (icons, manifest) stay cache-first — they effectively never
    change, and they are what makes the offline launch fast. */
 
-const CACHE = "kct-v9";
+const CACHE = "kct-v10";
 const ASSETS = ["./", "./index.html", "./tracker.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 const NET_TIMEOUT = 2500;
 

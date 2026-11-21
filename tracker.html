@@ -677,6 +677,13 @@ function migrate(old){
   out.assessments.sort((a,b)=>a.date.localeCompare(b.date));
 
   out.needPushupMax = !out.assessments.some(a => a.values && a.values.pushup_max != null);
+  /* Keep the pre-block save verbatim. This migration rewrites localStorage in
+     place, and the athlete may not have exported recently — so the old state
+     stays recoverable from inside the app rather than only from a backup they
+     might not have. Downloadable on the Data tab; re-importing it would simply
+     migrate again, so it is offered as a file, not an in-place restore. */
+  try { out.preBlockSnapshot = { savedAt: todayStr(), fromVersion: old.v || 4, data: old }; }
+  catch(e){}
   out.program.start = PROGRAM.blockStart;
   out.program.notice = "New block: Winter Consistency. Three strength days, a ten-minute Floor every day, and weekly targets instead of daily streaks.";
   return out;
@@ -2329,6 +2336,11 @@ function dataHTML(){
       <h2>Import</h2>
       <input type="file" id="importfile" accept=".json,application/json" onchange="importJSON(this)">
     </div>
+    ${state.preBlockSnapshot ? `<div class="card">
+      <h2>Before this block</h2>
+      <p class="faint" style="margin:4px 0 8px;">Your save as it stood on ${esc(fmtDate(state.preBlockSnapshot.savedAt))}, before the Winter block migration rewrote it. Kept in case anything here looks wrong.</p>
+      <button class="ghost big-btn" style="margin-top:0;" onclick="exportPreBlock()">⬇ Download the pre-block snapshot</button>
+    </div>` : ""}
     ${seeded ? `<div class="card">
       <h2>Seeded baseline</h2>
       <p class="faint" style="margin:4px 0 8px;">The 31 Oct measurements from the v3 handoff were added so the first assessment has something to move against. They were not measured in this app.</p>
@@ -2363,6 +2375,12 @@ function download(filename, text, mime){
   setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 800);
 }
 function markExported(){ state.lastExport = todayStr(); save(); render(); }
+function exportPreBlock(){
+  if (!state.preBlockSnapshot) return;
+  download(`kinetic-tracker-preblock-v${state.preBlockSnapshot.fromVersion}-${state.preBlockSnapshot.savedAt}.json`,
+    JSON.stringify(state.preBlockSnapshot.data, null, 2), "application/json");
+  toast("Pre-block snapshot downloaded ✓");
+}
 function exportJSON(){
   download(`kinetic-tracker-backup-${todayStr()}.json`,
     JSON.stringify(Object.assign({}, state, { activeSession: null }), null, 2), "application/json");

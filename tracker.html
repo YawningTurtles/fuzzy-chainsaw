@@ -388,7 +388,7 @@ const PROGRAM = {
   title: "Kinetic Chain Program",
   programVersion: "v3 — Winter Consistency Block",
   specVersion: 5,
-  build: "2026-11-21.2",
+  build: "2026-11-21.3",
   blockStart: "2026-11-23",
   blockEnd:   "2027-03-14",
   blockWeeks: 16,
@@ -653,14 +653,18 @@ function migrate(old){
     out.days[date] = nd;
   });
 
-  // Carry rungs forward where the movement still exists and the ladder still
-  // reaches that far; a shortened ladder clamps rather than throwing.
+  // Carry rungs forward BY LABEL, never by index. Some ladders changed shape
+  // for this block — the Cossack lost its bodyweight rung, so the old index 1
+  // (15 lb goblet) would land on 20 lb and silently add load, which is the one
+  // thing this block exists to prevent. Match what they were actually on.
   Object.keys(out.progress).forEach(mid=>{
     const prev = (old.progress || {})[mid];
     if (!prev) return;
-    out.progress[mid].step = Math.min(prev.step || 0, MOVEMENTS[mid].ladder.length - 1);
+    out.progress[mid].step = migrateRungIndex(mid, prev, old.days || {});
     out.progress[mid].history = prev.history || [];
-    out.progress[mid].since = prev.since || out.firstSeen;
+    // A new block starts fresh: sessions from the old one do not count toward
+    // a rung here, so streaks begin at the block start rather than carrying.
+    out.progress[mid].since = PROGRAM.blockStart;
   });
 
   // Section 12: drop the old cuts outright. They were all set under the
@@ -688,6 +692,47 @@ function migrate(old){
   out.program.notice = "New block: Winter Consistency. Three strength days, a ten-minute Floor every day, and weekly targets instead of daily streaks.";
   return out;
 }
+/* Find the rung they were actually on, by name rather than position.
+   In order of trust: the label their last rung change moved them TO, then the
+   label recorded against the last set they actually performed, then the load
+   that set carried. Only if none of those resolve does it fall back to the
+   bottom — guessing upward is the one direction that can hurt. */
+function normRung(s){
+  return String(s||"").toLowerCase()
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\blbs\b/g, "lb")
+    .replace(/\bdb\b/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+function migrateRungIndex(mid, prevProgress, oldDays){
+  const L = MOVEMENTS[mid].ladder;
+  const byLabel = lbl => {
+    if (!lbl) return -1;
+    const n = normRung(lbl);
+    return L.findIndex(x => normRung(x.label) === n);
+  };
+  const hist = prevProgress.history || [];
+  let i = byLabel(hist.length ? hist[hist.length-1].to : null);
+  if (i >= 0) return i;
+
+  let lastSet = null;
+  Object.keys(oldDays).sort().reverse().some(dt=>{
+    const w = (oldDays[dt].work || {})[mid];
+    if (w && w.sets && w.sets.length){ lastSet = w.sets[w.sets.length-1]; return true; }
+    return false;
+  });
+  if (lastSet){
+    i = byLabel(lastSet.rung);
+    if (i >= 0) return i;
+    if (lastSet.load > 0){
+      i = L.findIndex(x => x.num === lastSet.load);
+      if (i >= 0) return i;
+    }
+  }
+  return 0;
+}
+
 function load(){
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -1218,26 +1263,36 @@ function deleteBonusSet(i){
   d.bonusSets.splice(i,1);
   save(); showModal(bonusEditorHTML(mid)); render();
 }
+/* Both maxes, once, before week 1. The push-up max sets the bonus dose; the
+   pull-up max decides whether Strength B runs max-minus-2 or 3x3 eccentrics,
+   which is a measurement, not something to infer from an old rung label. */
 function askPushupMax(){
-  showModal(`<h2>Push-up max</h2>
-    <p class="dim" style="margin:0;">One set, full range, to set the bonus dose. Every bonus set after this is half of it, so take the honest number rather than the heroic one.</p>
-    <label>Max push-ups</label>
-    <input type="number" id="pm-max" inputmode="numeric" min="0" value="20">
+  showModal(`<h2>Two quick max tests</h2>
+    <p class="dim" style="margin:0;">One set each, full range, before the block starts. The push-up number sets every bonus set at half of it; the pull-up number decides whether Thursday is max-minus-2 or 3×3 eccentrics. Honest numbers, not heroic ones.</p>
+    <label>Max push-ups, one set</label>
+    <input type="number" id="pm-max" inputmode="numeric" min="0" placeholder="e.g. 20">
+    <label>Max strict pull-ups, one set</label>
+    <input type="number" id="pu-max" inputmode="numeric" min="0" placeholder="e.g. 3">
     <div class="yn"><button class="primary" onclick="savePushupMax()">Save</button>
     <button class="ghost" onclick="closeModal()">Later</button></div>`, true);
 }
 function savePushupMax(){
-  const el = document.getElementById("pm-max");
-  const v = Math.max(1, parseInt(el && el.value) || 0);
+  const pv = parseInt((document.getElementById("pm-max")||{}).value);
+  const uv = parseInt((document.getElementById("pu-max")||{}).value);
+  if (isNaN(pv) && isNaN(uv)){ toast("Enter at least one of them."); return; }
   const t = todayStr();
   let a = state.assessments.find(x => x.date === t);
-  if (!a){ a = { id: uid(), date: t, source:"push-up max test", values:{} }; state.assessments.push(a); }
-  a.values.pushup_max = v;
+  if (!a){ a = { id: uid(), date: t, source:"starting max test", values:{} }; state.assessments.push(a); }
+  if (!isNaN(pv)) a.values.pushup_max = Math.max(1, pv);
+  if (!isNaN(uv)) a.values.pullup_max = Math.max(0, uv);
   state.assessments.sort((x,y)=>x.date.localeCompare(y.date));
-  state.needPushupMax = false;
+  if (a.values.pushup_max != null) state.needPushupMax = false;
   applyAssessmentToBonus(a.values);
   save(); closeModal(); render();
-  toast(`Push-up max ${v} — bonus sets are ${Math.max(1,Math.round(v/2))} reps.`);
+  const bits = [];
+  if (a.values.pushup_max != null) bits.push(`bonus push-ups ${Math.max(1,Math.round(a.values.pushup_max/2))} reps`);
+  if (a.values.pullup_max != null) bits.push(`pull-ups on ${rung("pullup").label}`);
+  toast(bits.join(" · ") || "Saved ✓");
 }
 /* Bonus rungs move only at an assessment, never on session streaks. The same
    measurement also decides the Strength B pull-up rung: at a max of 3 or
@@ -2406,7 +2461,7 @@ function dataHTML(){
       <label style="display:flex; align-items:center; gap:10px; font-size:1rem; color:var(--text);">
         <input type="checkbox" style="width:auto; min-height:auto;" ${state.settings.vibrate?"checked":""}
           onchange="state.settings.vibrate=this.checked; save();"> Vibration</label>
-      <button class="ghost big-btn" onclick="askPushupMax()">Retest push-up max</button>
+      <button class="ghost big-btn" onclick="askPushupMax()">Retest the max tests</button>
     </div>
     <div class="card">
       <h2>About</h2>

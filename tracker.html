@@ -102,16 +102,44 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
   font-size:.72rem; color:var(--faint); display:flex; flex-direction:column; align-items:center; gap:3px;}
 .nav button.active{color:var(--accent);}
 .nav .ico{font-size:1.3rem; line-height:1;}
-.weekrow{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line);}
-.weekrow.today{background:rgba(76,195,138,.06); margin:0 -8px; padding-left:8px; padding-right:8px;
-  border-radius:8px;}
-.weekrow .wd{width:52px; flex-shrink:0; font-weight:600; font-size:.9rem;}
-.weekrow .wd small{display:block; color:var(--faint); font-weight:400; font-size:.75rem;}
-.weekrow .wbody{flex:1; font-size:.88rem; line-height:1.4;}
-.weekrow .wstat{display:flex; gap:5px; flex-shrink:0; padding-top:3px;}
-.dot{width:11px; height:11px; border-radius:50%; background:var(--panel2); border:1px solid var(--line);}
-.dot.on{background:var(--accent); border-color:var(--accent);}
-.dot.miss{background:transparent; border-color:#5a2b28;}
+
+/* ---- the Floor: one checklist, one complete button ---- */
+.floorrow{display:flex; align-items:flex-start; gap:12px; padding:11px 2px;
+  border-top:1px solid var(--line);}
+.floorrow:first-of-type{border-top:0;}
+.floorrow .cbox{width:32px; height:32px; border-radius:9px; border:2px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; margin-top:1px;}
+.floorrow .cbox.on{background:var(--accent); border-color:var(--accent); color:#06170f;}
+.floorrow button{background:none; padding:0; min-height:44px; flex:1; text-align:left;
+  display:flex; align-items:flex-start; gap:12px; color:inherit;}
+.floorrow .ftext b{display:block; font-weight:600; font-size:.98rem; line-height:1.3;}
+.floorrow .ftext span{display:block; color:var(--faint); font-size:.84rem; line-height:1.35;}
+.floorrow.on .ftext b{color:var(--dim); text-decoration:line-through; text-decoration-color:var(--faint);}
+
+/* ---- bonus work-day counters ---- */
+.bonusgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px;}
+.bonusbtn{position:relative; min-height:94px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:3px; background:var(--panel2);
+  border:1px solid var(--line); border-radius:var(--radius);}
+.bonusbtn b{font-size:1.9rem; font-weight:800; line-height:1; font-variant-numeric:tabular-nums;}
+.bonusbtn span{font-size:.82rem; color:var(--dim); text-align:center; line-height:1.25;}
+.bonusbtn:disabled{opacity:.35;}
+.bonusbtn .nag{position:absolute; top:7px; right:9px; width:9px; height:9px; border-radius:50%;
+  background:var(--amber);}
+.bonusmeta{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+
+/* ---- weekly win metric ---- */
+.winrow{display:flex; gap:10px; margin-top:8px;}
+.winstat{flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+  padding:11px 8px; text-align:center;}
+.winstat b{display:block; font-size:1.45rem; font-weight:800; line-height:1.1;
+  font-variant-numeric:tabular-nums;}
+.winstat b.hit{color:var(--accent);}
+.winstat span{display:block; font-size:.74rem; color:var(--faint); text-transform:uppercase;
+  letter-spacing:.05em; margin-top:2px;}
+.supset{font-size:.72rem; color:var(--faint); text-transform:uppercase; letter-spacing:.07em;
+  margin:18px 0 -2px;}
+
 #session{position:fixed; inset:0; z-index:250; background:var(--bg); display:none;}
 #session.open{display:block;}
 .sess-inner{height:100%; display:flex; flex-direction:column; max-width:640px; margin:0 auto;
@@ -146,15 +174,12 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 .modal h2{margin-top:0;}
 .yn{display:flex; gap:10px; margin-top:16px;}
 .yn button{flex:1;}
-.scorebtns{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
-.scorebtns button{text-align:left; display:flex; flex-direction:column; align-items:flex-start; gap:2px;}
-.scorebtns button b{font-size:1.02rem;}
-.scorebtns button span{font-size:.85rem; color:var(--dim); font-weight:400;}
 .painscale{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-top:12px;}
 .painscale button{min-height:54px; padding:6px 0; font-size:1.05rem; background:var(--panel2);
   border:1px solid var(--line);}
 .painscale button.sel{background:var(--accent); color:#06170f; font-weight:700;}
 .painscale button.sel.hot{background:var(--red); color:#1a0605;}
+details summary{cursor:pointer;}
 </style>
 </head>
 <body>
@@ -171,363 +196,327 @@ td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
 <script>
 "use strict";
 /* =====================================================================
-   Kinetic Chain Tracker — spec v4
-   Tracks the Hip-to-Knee Program revision of September 2026
-   (kinetic-chain-program-v4.md), which supersedes the v3 daily
-   single-movement rotation.
+   Kinetic Chain Tracker — app spec v5
+   Tracks Kinetic Chain Program v3: Winter Consistency Block
+   (Mon 23 Nov 2026 → Sun 14 Mar 2027), which replaces the six-day
+   one-movement-group-per-day rotation.
 
-   The three structural changes from v3, and why the code shape changed:
+   The block exists because the tracker's own Sep–Nov data showed
+   training happening in 10–12 day bursts separated by 2–3 week gaps,
+   with every restart resetting loads. So the app's job changed:
 
-   1. Progression is criteria-based, never calendar-based. The six-week
-      load wave is gone entirely — there is no "program week" any more.
-      Each movement sits on a ladder and only steps up when its own
-      criterion is met, so loads live in state, not in a lookup table.
-   2. One focus per day, no rest days, and no post-match lift. Sunday and
-      Wednesday are matches with the 11+ as the warm-up and nothing else.
-   3. Knee monitoring moved from a 0–3 "symptom increase" score to the
-      program's own 0–10 pain rules, which gate sets during a session and
-      halve a movement's volume after a bad 24-hour check.
+   1. Three fixed strength days instead of six variable ones.
+   2. A ten-minute Floor that always counts as a successful day, so
+      there is no such thing as an all-or-nothing morning.
+   3. Weekly win targets, not daily streaks — a missed day must not
+      read as a broken run, because that is what ended the last block.
+   4. Re-entry after a gap keeps the load and trims a set, instead of
+      cutting the load. Restarting at the bottom was the thing that
+      made November's numbers match September's.
    ===================================================================== */
 
 const MOVEMENTS = {
 
-  /* ---------- Monday: hip rotation and adductor end-range ---------- */
-  cossack: {
-    id:"cossack", name:"Cossack squat", short:"Cossack",
-    kind:"reps", reps:8, perSide:true, rest:45,
-    tempo:"3 sec down · 1 sec pause · 2 sec up",
-    cue:"Heel down on the working side, sink to depth, control the return. Do not bounce.",
+  /* ---------- Strength A — Lower (Monday) ---------- */
+  bss: {
+    id:"bss", name:"Bulgarian split squat", short:"BSS",
+    kind:"reps", reps:8, perSide:true, rest:75, kneeCheck:true,
+    tempo:"3-1-1", cue:"Knee over 2nd toe, no medial collapse.",
     ladder:[
-      { label:"Bodyweight", num:0 },
-      { label:"15 lb goblet", num:15 },
-      { label:"20 lb goblet", num:20 },
-      { label:"25 lb goblet", num:25 }
-    ],
-    gate:{ type:"quality", need:1,
-      ask:"Full depth held 3 sec, no heel lift, both sides?",
-      rule:"Bodyweight to 15 lb goblet when full depth is held for 3 sec without heel lift." }
+      { label:"Bodyweight", num:0 }, { label:"10 lb/hand", num:10 },
+      { label:"15 lb/hand", num:15 }, { label:"20 lb/hand", num:20 },
+      { label:"25 lb/hand", num:25 }, { label:"30 lb/hand", num:30 }
+    ]
   },
-  t9090: {
-    id:"t9090", name:"Loaded 90/90 transition", short:"90/90",
-    kind:"reps", reps:6, perSide:true, rest:45,
-    tempo:"Slow throughout",
-    cue:"No hands. Drive from the hip, not momentum.",
+  db_rdl: {
+    id:"db_rdl", name:"DB Romanian deadlift", short:"DB RDL",
+    kind:"reps", reps:8, perSide:false, rest:90,
+    tempo:"3-0-1", cue:"Hips back, neutral spine.",
     ladder:[
-      { label:"Bodyweight", num:0 },
-      { label:"5 lb ankle load", num:5 },
-      { label:"10 lb ankle load", num:10 }
-    ],
-    gate:{ type:"quality", need:1,
-      ask:"3 × 6 per side smooth, without hands?",
-      rule:"Progress to a 5 lb ankle load (or a slower tempo) when 3 × 6 per side is smooth without hands." }
+      { label:"25 lb", num:25 }, { label:"30 lb", num:30 }, { label:"35 lb", num:35 },
+      { label:"40 lb", num:40 }, { label:"45 lb", num:45 }, { label:"50 lb", num:50 },
+      { label:"Single-leg B-stance, 25 lb", num:25 }
+    ]
   },
-  add_iso: {
-    id:"add_iso", name:"Adductor squeeze isometric", short:"Add squeeze",
-    kind:"hold", hold:20, perSide:false, rest:30,
-    tempo:"Isometric",
-    cue:"Ball or rolled towel between the knees, 70% effort.",
-    ladder:[{ label:"70% effort", num:0 }],
-    gate:{ type:"none", rule:"Fixed dose. Tracked against the adductor squeeze test at reassessment." }
+  copenhagen: {
+    id:"copenhagen", name:"Copenhagen plank", short:"Copenhagen",
+    kind:"reps", reps:6, perSide:true, rest:60,
+    tempo:"3 sec eccentric", cue:"Hips stacked, body straight.",
+    ladder:[
+      { label:"Short lever — knee on bench", num:0, sets:2, reps:6 },
+      { label:"Short lever — knee on bench, 3×8", num:0, sets:3, reps:8 },
+      { label:"Long lever — foot on bench", num:0, sets:2, reps:6 },
+      { label:"Long lever — foot on bench, 3×8", num:0, sets:3, reps:8 }
+    ]
+  },
+  sl_calf: {
+    id:"sl_calf", name:"Single-leg calf raise", short:"SL calf",
+    kind:"reps", reps:12, perSide:true, rest:60, kneeCheck:true,
+    tempo:"2-1-2", cue:"Full range, push through the big toe.",
+    ladder:[
+      { label:"Bodyweight", num:0 }, { label:"10 lb", num:10 },
+      { label:"15 lb", num:15 }, { label:"20 lb", num:20 }, { label:"25 lb", num:25 }
+    ]
   },
 
-  /* ---------- Tuesday: core anti-extension and upper ---------- */
-  deadbug: {
-    id:"deadbug", name:"Dead bug with band", short:"Dead bug",
-    kind:"reps", reps:8, perSide:true, rest:45,
-    tempo:"2-0-2",
-    cue:"Low back stays flat on the mat throughout. Stop where it lifts.",
-    ladder:[{ label:"Band", num:0 }],
-    gate:{ type:"none", rule:"Fixed dose — quality is the progression, not load." }
-  },
-  plank_ppt: {
-    id:"plank_ppt", name:"Plank with PPT", short:"Plank",
-    kind:"hold", hold:40, perSide:false, rest:45,
-    tempo:"Isometric",
-    cue:"Actively tuck the tailbone. If it is easy, it is not being cued.",
-    ladder:[{ label:"Bodyweight", num:0 }],
-    gate:{ type:"none", rule:"Fixed dose." }
+  /* ---------- Strength B — Upper + Core (Thursday) ---------- */
+  pullup: {
+    id:"pullup", name:"Pull-up", short:"Pull-up",
+    kind:"reps", reps:null, perSide:false, rest:90,
+    tempo:"2-0-1", cue:"Full hang to chin over bar. Stop 2 short of failure.",
+    ladder:[
+      { label:"Eccentric 3×3", num:0, sets:3, reps:3 },
+      { label:"Max minus 2", num:0 },
+      { label:"Max minus 1", num:0 },
+      { label:"+5 lb (DB between feet)", num:5 }
+    ]
   },
   db_pullover: {
     id:"db_pullover", name:"DB pullover", short:"Pullover",
     kind:"reps", reps:10, perSide:false, rest:60,
-    tempo:"3 sec down · 1 sec pause · 2 sec up",
-    cue:"Stop the moment the low back wants to arch off the bench.",
+    tempo:"3-0-1", cue:"Ribs down, low back flat on the bench.",
     ladder:[
-      { label:"25 lb DB", num:25 },
-      { label:"30 lb DB", num:30 },
-      { label:"35 lb DB", num:35 },
-      { label:"40 lb DB", num:40 }
-    ],
-    gate:{ type:"load", need:2,
-      rule:"All prescribed reps with ~2 in reserve on the top set, two consecutive sessions, then the next 5 lb increment." }
+      { label:"25 lb", num:25 }, { label:"30 lb", num:30 },
+      { label:"35 lb", num:35 }, { label:"40 lb", num:40 }
+    ]
   },
-  pullup: {
-    id:"pullup", name:"Pull-ups or ring rows", short:"Pull-up",
-    kind:"reps", reps:null, perSide:false, rest:90,
-    tempo:"Controlled",
-    cue:"Leave 2 in reserve — stop 2 short of failure, whatever that number is today.",
-    ladder:[{ label:"Max minus 2", num:0 }],
-    gate:{ type:"none", rule:"Self-regulating: the rep target is whatever leaves 2 in reserve." }
+  deadbug: {
+    id:"deadbug", name:"Dead bug with band", short:"Dead bug",
+    kind:"reps", reps:8, perSide:true, rest:45,
+    tempo:"Slow", cue:"Low back pressed into the floor.",
+    ladder:[
+      { label:"Band", num:0 },
+      { label:"Band + 3 sec hold", num:0 },
+      { label:"Heavier band", num:0 }
+    ]
+  },
+  plank_ppt: {
+    id:"plank_ppt", name:"Plank with PPT", short:"Plank",
+    kind:"hold", hold:40, perSide:false, rest:45,
+    tempo:"Hold", cue:"Squeeze the glutes, tuck the pelvis.",
+    ladder:[
+      { label:"40 sec", num:0, hold:40 }, { label:"45 sec", num:0, hold:45 },
+      { label:"50 sec", num:0, hold:50 }, { label:"60 sec", num:0, hold:60 },
+      { label:"60 sec + side planks", num:0, hold:60 }
+    ]
   },
 
-  /* ---------- Thursday: eccentrics ---------- */
+  /* ---------- Strength C — Lower (Saturday) ---------- */
+  cossack: {
+    id:"cossack", name:"Goblet Cossack squat", short:"Cossack",
+    kind:"reps", reps:8, perSide:true, rest:60, kneeCheck:true,
+    tempo:"3-1-1", cue:"Heel down, sit into the hip.",
+    ladder:[
+      { label:"15 lb goblet", num:15 }, { label:"20 lb goblet", num:20 },
+      { label:"25 lb goblet", num:25 }, { label:"30 lb goblet", num:30 }
+    ]
+  },
   nordic: {
-    id:"nordic", name:"Nordic hamstring", short:"Nordic",
+    id:"nordic", name:"Nordic curl", short:"Nordic",
     kind:"reps", reps:5, perSide:false, rest:90,
-    tempo:"4 sec lower",
-    cue:"Hook the feet, lean forward, resist as long as possible, catch with the hands.",
+    tempo:"Slowest possible lowering", cue:"Hips extended, lower as one unit.",
     ladder:[
       { label:"Hands assisting through range", num:0 },
-      { label:"Reduced hand assistance", num:0 },
-      { label:"Catch only at the end of range", num:0 },
-      { label:"Full eccentric, no assistance", num:0 }
-    ],
-    gate:{ type:"quality", need:1, minDays:21,
-      ask:"Full eccentric controlled for all 5 reps?",
-      rule:"Reduce hand assistance or increase range when the full eccentric is controlled for 5 reps. Minimum three weeks at the current dose." }
-  },
-  copenhagen: {
-    id:"copenhagen", name:"Copenhagen adduction", short:"Copenhagen",
-    kind:"reps", reps:6, perSide:true, rest:90,
-    tempo:"2-1-2",
-    cue:"Knee on the bench to start. Body in a straight line.",
-    ladder:[
-      { label:"Short lever — knee on bench", num:0 },
-      { label:"Long lever — foot on bench", num:0 }
-    ],
-    gate:{ type:"quality", need:1, minDays:21,
-      ask:"2 × 6 per side clean and pain-free?",
-      rule:"Short lever to long lever when 2 × 6 is clean and pain-free, minimum three weeks at the current dose." }
-  },
-
-  /* ---------- Friday: posterior chain, heavy ---------- */
-  db_rdl: {
-    id:"db_rdl", name:"DB Romanian deadlift", short:"DB RDL",
-    kind:"reps", reps:8, perSide:false, rest:90,
-    tempo:"3 sec down · 1 sec pause · 2 sec up",
-    cue:"Hips straight back, slight knee bend. Load in the hamstrings and glutes.",
-    ladder:[
-      { label:"25 lbs", num:25 }, { label:"30 lbs", num:30 },
-      { label:"35 lbs", num:35 }, { label:"40 lbs", num:40 },
-      { label:"45 lbs", num:45 }, { label:"50 lbs", num:50 }
-    ],
-    gate:{ type:"load", need:2,
-      rule:"All prescribed reps with ~2 in reserve on the top set, two consecutive sessions, then the next 5 lb increment." }
-  },
-  sl_calf: {
-    id:"sl_calf", name:"Single-leg calf raise, weighted", short:"SL calf",
-    kind:"reps", reps:12, perSide:true, rest:60,
-    tempo:"2-0-3",
-    cue:"Off a stair edge for full range at the bottom.",
-    ladder:[
-      { label:"Bodyweight", num:0 }, { label:"10 lbs", num:10 },
-      { label:"15 lbs", num:15 }, { label:"20 lbs", num:20 },
-      { label:"25 lbs", num:25 }
-    ],
-    gate:{ type:"load", need:2,
-      rule:"All prescribed reps with ~2 in reserve on the top set, two consecutive sessions, then the next 5 lb increment." }
-  },
-
-  /* ---------- Saturday: unilateral quad and balance ---------- */
-  bss: {
-    id:"bss", name:"Bulgarian split squat", short:"BSS",
-    kind:"reps", reps:8, perSide:true, rest:75,
-    tempo:"3 sec down · 1 sec pause · 2 sec up",
-    cue:"Rear foot on the bench, front shin near vertical. Knee tracks over the second toe.",
-    ladder:[
-      { label:"Bodyweight", num:0 }, { label:"10 lbs/hand", num:10 },
-      { label:"15 lbs/hand", num:15 }, { label:"20 lbs/hand", num:20 },
-      { label:"25 lbs/hand", num:25 }
-    ],
-    gate:{ type:"load", need:2,
-      rule:"All prescribed reps with ~2 in reserve on the top set, two consecutive sessions, then the next 5 lb increment." }
+      { label:"Partial range unassisted", num:0 },
+      { label:"Full range unassisted", num:0 }
+    ]
   },
   spanish: {
-    id:"spanish", name:"Spanish squat isometric", short:"Spanish sq",
+    id:"spanish", name:"Spanish squat", short:"Spanish sq",
     kind:"hold", hold:30, perSide:false, rest:60,
-    tempo:"Isometric",
-    cue:"Band behind the knees, anchored. Shins vertical, sit back into it.",
-    ladder:[{ label:"Heavy band", num:0 }],
-    gate:{ type:"none", rule:"Fixed dose. Also the substitution when knee pain gates another exercise." }
+    tempo:"Hold", cue:"Shins vertical, sit back into the band.",
+    ladder:[
+      { label:"Heavy band, 30 sec", num:0, hold:30 },
+      { label:"Heavy band, 45 sec", num:0, hold:45 },
+      { label:"Heavy band, 60 sec", num:0, hold:60 }
+    ]
   },
   sl_balance: {
     id:"sl_balance", name:"Single-leg balance, eyes closed", short:"SL balance",
     kind:"hold", hold:30, perSide:true, rest:45,
-    tempo:"Isometric",
-    cue:"Slight knee bend. This is 11+ transfer work.",
-    ladder:[{ label:"Eyes closed", num:0 }],
-    gate:{ type:"none", rule:"Fixed dose." }
+    tempo:"Hold", cue:"Soft knee, level pelvis.",
+    ladder:[
+      { label:"Eyes closed", num:0 },
+      { label:"Eyes closed on a folded mat", num:0 },
+      { label:"Eyes closed with head turns", num:0 }
+    ]
+  },
+
+  /* ---------- Bonus work-day sets ----------
+     These never advance on session streaks. Their rung changes only at an
+     assessment, from the measured max — see applyAssessmentToBonus(). */
+  pullup_bonus: {
+    id:"pullup_bonus", name:"Pull-up (bonus set)", short:"Bonus pull-up",
+    kind:"bonus", bonus:true, perSide:false,
+    cue:"Stop 4+ reps short of failure. Every set should feel easy.",
+    ladder:[
+      { label:"Eccentric 2 reps (jump to top, 3–5 sec lower)", num:0, reps:2, eccentric:true },
+      { label:"50% of strict max", num:0, pctOfMax:0.5, maxKey:"pullup_max" }
+    ]
+  },
+  pushup_bonus: {
+    id:"pushup_bonus", name:"Push-up (bonus set)", short:"Bonus push-up",
+    kind:"bonus", bonus:true, perSide:false,
+    cue:"Body straight, chest to fist height. Never to failure.",
+    ladder:[
+      { label:"50% of max, 1-0-1", num:0, pctOfMax:0.5, maxKey:"pushup_max" },
+      { label:"50% of max, 3-0-1", num:0, pctOfMax:0.5, maxKey:"pushup_max" },
+      { label:"Retest max, then 50% at 3-0-1", num:0, pctOfMax:0.5, maxKey:"pushup_max" }
+    ]
+  },
+
+  /* ---------- Retired from the previous block ----------
+     Not scheduled any more. Kept so their logged history still renders and
+     exports, and so a save written before this block loads without gaps.
+     90/90 work moved into Floor item 3; the adductor isometric is covered by
+     Copenhagen and the Cossack. */
+  t9090: {
+    id:"t9090", name:"Loaded 90/90 transition", short:"90/90",
+    kind:"reps", reps:6, perSide:true, rest:45, retired:true,
+    tempo:"Slow throughout", cue:"Retired — now Floor item 3.",
+    ladder:[{ label:"Bodyweight", num:0 }, { label:"5 lb ankle load", num:5 }, { label:"10 lb ankle load", num:10 }]
+  },
+  add_iso: {
+    id:"add_iso", name:"Adductor squeeze isometric", short:"Add squeeze",
+    kind:"hold", hold:20, perSide:false, rest:30, retired:true,
+    tempo:"Isometric", cue:"Retired — covered by Copenhagen and the Cossack.",
+    ladder:[{ label:"70% effort", num:0 }]
   }
 };
 
 const PROGRAM = {
-  title: "Hip-to-Knee Program",
-  specVersion: 4,
-  revision: "September 2026",
-  build: "2026-09-15.2",   // shown in Data → About, so "am I on the new version?" is answerable
+  title: "Kinetic Chain Program",
+  programVersion: "v3 — Winter Consistency Block",
+  specVersion: 5,
+  build: "2026-11-21.1",
+  blockStart: "2026-11-23",
+  blockEnd:   "2027-03-14",
+  blockWeeks: 16,
   rir: 2,
-  painLimit: 3,          // during a set: >3/10, or sharp, ends that exercise
-  makeupWindow: 10,      // how far back a missed session can still be picked up
+  painLimit: 3,            // during a set: >3/10, or sharp, ends that exercise
+  advancePainMax: 1,       // next-morning check must be 0 or 1 to bank a session
+  dropPainMin: 3,          // next-morning check at or above this drops a rung
 
-  /* Priority stack, in the program's own order. */
-  priorities: [
-    "Hip rotation and adductor end-range mobility and strength (daily)",
-    "Hip flexor length under load (daily)",
-    "FIFA 11+ at both matches",
-    "Posterior chain and unilateral quad strength (rotating, 3×/week across the split)",
-    "Left ankle dorsiflexion maintenance (daily, 2 min)"
-  ],
+  /* A week is a win on these two counts. Deliberately not a daily streak:
+     the previous block died when one missed day read as a broken run. */
+  win: { floorDays: 5, strengthSessions: 2 },
 
-  /* One focus per day, no rest days. Index 0 = Sunday ... 6 = Saturday. */
+  /* Index 0 = Sunday … 6 = Saturday. */
   rotation: [
-    { day:0, type:"match", label:"Match — 11-a-side", est:"50 min + 11+",
-      note:"Highest-load session of the week. FIFA 11+ as the warm-up, no separate strength work.",
-      match:{ format:"11-a-side", minutes:50 }, movements:[] },
-
-    { day:1, type:"strength", label:"Hip rotation & adductor end-range", est:"~12 min", lowerBody:true,
-      note:"24 hours post-match. Deliberately low fatigue.",
-      movements:[{ id:"cossack", sets:3 }, { id:"t9090", sets:3 }, { id:"add_iso", sets:5 }] },
-
-    { day:2, type:"strength", label:"Core anti-extension & upper", est:"~14 min",
-      note:"No lower-body loading the day before Wednesday.",
-      movements:[{ id:"deadbug", sets:3 }, { id:"plank_ppt", sets:3 },
-                 { id:"db_pullover", sets:3 }, { id:"pullup", sets:3 }] },
-
-    { day:3, type:"match", label:"Match — 7-a-side", est:"40 min + 11+",
-      note:"Second-highest load of the week. FIFA 11+ as the warm-up, no separate strength work.",
-      match:{ format:"7-a-side", minutes:40 }, movements:[] },
-
-    { day:4, type:"strength", label:"Eccentrics", est:"~10 min", lowerBody:true, eccentric:true,
-      note:"72 hours before Sunday — the only slot that respects the no-novel-eccentrics-within-48h rule.",
-      movements:[{ id:"nordic", sets:2 }, { id:"copenhagen", sets:2 }] },
-
-    { day:5, type:"strength", label:"Posterior chain — heavy", est:"~12 min", lowerBody:true,
-      note:"48 hours before Sunday. Heaviest day, but no grinding — leave 2 reps in reserve on every set.",
-      movements:[{ id:"db_rdl", sets:3 }, { id:"sl_calf", sets:3 }] },
-
-    { day:6, type:"strength", label:"Unilateral quad & balance", est:"~14 min", lowerBody:true,
-      note:"Moderate. 24 hours before the 11-a-side.",
-      movements:[{ id:"bss", sets:3 }, { id:"spanish", sets:3 }, { id:"sl_balance", sets:3 }] }
+    { day:0, type:"floor",      label:"Floor", est:"10 min", movements:[] },
+    { day:1, type:"strength_a", label:"Strength A — Lower", est:"10 + 25 min",
+      movements:[{ id:"bss", sets:3 }, { id:"copenhagen", sets:2 },
+                 { id:"db_rdl", sets:3 }, { id:"sl_calf", sets:2 }],
+      supersets:[["bss","copenhagen"],["db_rdl","sl_calf"]] },
+    { day:2, type:"floor",      label:"Floor", est:"10 min", movements:[] },
+    { day:3, type:"match",      label:"Soccer — 7-a-side", est:"10 min + evening match",
+      note:"Floor in the morning, soccer in the evening.",
+      match:{ format:"7-a-side" }, movements:[] },
+    { day:4, type:"strength_b", label:"Strength B — Upper + Core", est:"10 + 20 min",
+      note:"No loaded lower-body work today — the day after soccer.",
+      movements:[{ id:"pullup", sets:3 }, { id:"deadbug", sets:3 },
+                 { id:"db_pullover", sets:3 }, { id:"plank_ppt", sets:3 }],
+      supersets:[["pullup","deadbug"],["db_pullover","plank_ppt"]] },
+    { day:5, type:"floor",      label:"Floor", est:"10 min", movements:[] },
+    { day:6, type:"strength_c", label:"Strength C — Lower", est:"15 + 25 min",
+      note:"Extended Floor today — foam rolling is added.",
+      movements:[{ id:"cossack", sets:3 }, { id:"sl_balance", sets:3 },
+                 { id:"nordic", sets:2 }, { id:"spanish", sets:3 }],
+      supersets:[["cossack","sl_balance"],["nordic","spanish"]] }
   ],
 
-  /* Daily mobility block, ~12 min. Hip-weighted, loaded and active throughout,
-     no passive hold longer than 30 seconds. */
-  mobility: {
-    sectionRest: 30, transitionSame: 5, transitionNew: 10,
-    primer: "Optional: 60–90 sec of foam roller or massage gun before the block as a primer. Not a substitute for any element below.",
-    sections: [
-      { name:"Ankle maintenance — left only", items:[
-        { name:"Banded talar-glide knee-to-wall rocks — Left", sets:2, perSide:false,
-          manual:true, reps:15, rx:"2 × 15",
-          cue:"Drive the knee past the toes, heel stays down. The band pulls the talus back." }
-      ]},
-      { name:"Hip rotation", noRestBefore:true, items:[
-        { name:"90/90 active transitions, no hands", sets:1, perSide:false,
-          manual:true, reps:8, rx:"8 slow per side",
-          cue:"Rotate between sides without touching the floor. This is the strength half of hip rotation." },
-        { name:"90/90 ER hinge hold, front leg", sets:2, perSide:true, dur:30,
-          rx:"2 × 30 sec per side", cue:"Tall spine, hinge forward over the front shin." }
-      ]},
-      { name:"Adductors", noRestBefore:true, items:[
-        { name:"Cossack squat or adductor rock-back", sets:1, perSide:true,
-          manual:true, reps:8, rx:"8 per side",
-          cue:"Sink into the bottom and own it. Do not bounce." }
-      ]},
-      { name:"Hip flexors", noRestBefore:true, items:[
-        { name:"Half-kneeling hip flexor, PPT + overhead reach", sets:2, perSide:true, dur:30,
-          rx:"2 × 30 sec per side",
-          cue:"Squeeze the rear glute first, tuck the tailbone, then reach overhead. Front of the rear hip, not the low back." }
-      ]},
-      { name:"Hip CARs", noRestBefore:true, items:[
-        { name:"Hip CARs — Left", sets:2, perSide:false, dur:40,
-          rx:"3 circles each direction · 10–15 sec per circle",
-          cue:"Largest possible arc, no pelvic compensation. Doubles as a daily self-check.",
-          setNames:["clockwise","counter-clockwise"] },
-        { name:"Hip CARs — Right", sets:2, perSide:false, dur:40,
-          rx:"3 circles each direction · 10–15 sec per circle",
-          cue:"Largest possible arc, no pelvic compensation.",
-          setNames:["clockwise","counter-clockwise"] }
-      ]}
+  /* Each missed strength day has exactly one make-up slot, the next day.
+     Never two strength sessions stacked on one day; the Floor is never made up. */
+  makeup: { 1:2, 4:5, 6:0 },   // Mon→Tue, Thu→Fri, Sat→Sun (day-of-week indices)
+
+  /* ---------- the Daily Floor ---------- */
+  floor: {
+    minutes: 10, extendedMinutes: 15,
+    items: [
+      { id:"fl_talar", name:"Banded talar-glide knee-to-wall rocks",
+        dose:"15 left, 10 right", cue:"Heel down, knee tracks over 2nd toe.",
+        kit:"Band, wall", steps:[{ reps:15, label:"Left" }, { reps:10, label:"Right" }] },
+      { id:"fl_mtp", name:"Right big toe (MTP) mobilization",
+        dose:"10 reps × 3 sec hold, then 1 × 30 sec extension hold",
+        cue:"Stabilize the metatarsal head, push the toe straight up.",
+        kit:"Hands", steps:[{ reps:10 }, { dur:30, label:"Extension hold" }] },
+      { id:"fl_9090", name:"90/90 active transitions + end-range lift-offs",
+        dose:"8 transitions, then 5 lift-offs per side",
+        cue:"Tall spine, lift the back knee from the floor at end range.",
+        kit:"Mat", steps:[{ reps:8, label:"Transitions" }, { reps:5, label:"Lift-offs left" }, { reps:5, label:"Lift-offs right" }] },
+      { id:"fl_hipflexor", name:"Half-kneeling hip flexor stretch, PPT + overhead reach",
+        dose:"45 sec per side", cue:"Posterior pelvic tilt first, then reach.",
+        kit:"Mat", steps:[{ dur:45, label:"Left" }, { dur:45, label:"Right" }] },
+      { id:"fl_cossack", name:"Cossack rock-back",
+        dose:"8 per side", cue:"Heel down on the bent leg, chest up.",
+        kit:"Mat", steps:[{ reps:8, label:"Left" }, { reps:8, label:"Right" }] }
+    ],
+    extendedItems: [
+      { id:"fl_roll_quads", name:"Foam roll quads / rectus femoris",
+        dose:"60 sec per side", cue:"Slow passes, extra time on tender spots.",
+        kit:"Roller", steps:[{ dur:60, label:"Left" }, { dur:60, label:"Right" }] },
+      { id:"fl_roll_add", name:"Foam roll adductors / lateral hip",
+        dose:"60 sec per side", cue:"Slow passes.",
+        kit:"Roller", steps:[{ dur:60, label:"Left" }, { dur:60, label:"Right" }] }
     ]
   },
 
-  /* Abbreviated FIFA 11+, run at both matches. The audio-cued version lives in
-     warmup.html; this is the reference list the card shows. */
-  warmup: {
-    total:"13:30", href:"warmup/",
-    parts:[
-      { name:"Part 1 · Running (4:00)", items:[
-        "Jog out and back, 60 sec", "Hip out, 45 sec", "Hip in, 45 sec",
-        "Sideways shuffle, 45 sec, switch halfway", "Forward and backward sprints, 45 sec" ]},
-      { name:"Part 2 · Strength, plyometrics, balance (6:00)", items:[
-        "Nordic hamstring, 3 reps, 60 sec", "Single-leg balance, 30 sec per side",
-        "Single-leg squat, 5 per side, 90 sec", "Side plank, 30 sec per side",
-        "Vertical jumps, soft landings, 45 sec", "Lateral jumps over a line, 45 sec" ]},
-      { name:"Part 3 · Running (3:30)", items:[
-        "Run across the pitch at 75%, 60 sec", "Bounding, 45 sec",
-        "Plant and cut, 60 sec", "Sharp accelerations, 45 sec" ]}
-    ]
+  /* ---------- bonus work-day sets ---------- */
+  bonus: {
+    pullup_bonus: { setsPerDay:[3,5], daysPerWeek:[4,5], skipDow:[4], minGapHours:1,
+      note:"Never Thursday — that is Strength B." },
+    pushup_bonus: { setsPerDay:[3,4], daysPerWeek:[5], skipDow:[], minGapHours:1 },
+    nagAfterHour: 14,      // badge if fewer than 2 sets by 2pm
+    nagBelow: 2,
+    painRestDays: 3
   },
 
-  /* Return-to-running. Phase 1 of the walk-to-run protocol is skipped: match
-     sprinting is a harder stimulus than jogging and is currently symptom-free. */
-  running: {
-    runMin:4, walkMin:1, intervals:6, maxPerWeek:3,
-    growthCap:0.10, protectedWeeks:4,
-    rules:[
-      "4 min run / 1 min walk × 6, three sessions per week maximum.",
-      "Metronome at 5 to 10% above current cadence.",
-      "24-hour symptom check after every session before advancing.",
-      "Cap weekly volume growth at 10%.",
-      "Never run the day before Sunday's match during the first four weeks."
-    ]
-  },
+  /* ---------- re-entry after a gap (replaces the old load cuts) ---------- */
+  reentry: [
+    { minGap:0,  maxGap:13, setCut:0, rungDrop:0, note:null },
+    { minGap:14, maxGap:27, setCut:1, rungDrop:0,
+      note:"Welcome back. Same weight, one fewer set today." },
+    { minGap:28, maxGap:9999, setCut:1, rungDrop:1,
+      note:"Welcome back. One rung down and one fewer set today; normal sets next session." }
+  ],
 
-  /* Pain rules, right medial knee. The safety net, not a treatment plan —
-     no diagnosis exists for this knee. */
-  pain: {
-    during:"3/10 or less, steady or fading, is acceptable — continue. Above 3/10, or sharp, catching, or rising through a set: stop that exercise and substitute an isometric or a pain-free range.",
-    after:"Back to baseline within 24 hours means the load was tolerated. Worse than baseline beyond 24 hours means cut that exercise's volume by half next session.",
-    escalation:"Two consecutive weeks of no improvement, or worsening despite load management, is a red flag.",
-    substitutes:["Spanish squat isometric","Wall sit","The same movement through a pain-free range only"],
-    redFlags:[
-      "Locking", "Giving way", "Effusion or swelling", "Night pain or rest pain",
-      "Inability to bear weight", "Pain reaching and staying above 5/10",
-      "A discrete traumatic pop with rapid swelling"
-    ]
-  },
-
-  /* Reassessment at 6 and 12 weeks. All criteria-based, never calendar-based —
-     these are measures, not gates. */
-  reassessWeeks: [6, 12],
+  /* ---------- assessments ---------- */
+  assessDates: ["2026-12-19","2027-01-16","2027-02-13","2027-03-13"],
   measures: [
-    { id:"hip_rot_l", label:"Hip rotation, prone — left (deg total)", type:"num",
-      target:"85° or more total per hip, under 8° asymmetry" },
-    { id:"hip_rot_r", label:"Hip rotation, prone — right (deg total)", type:"num",
-      target:"85° or more total per hip, under 8° asymmetry" },
-    { id:"kick", label:"Kicking range, subjective", type:"text",
-      target:"Higher kick, less restriction reaching for a ball" },
-    { id:"cossack_depth", label:"Cossack depth — full depth 3 sec, heel down, both sides", type:"bool",
-      target:"Yes" },
-    { id:"ktw_l", label:"Left ankle knee-to-wall (in)", type:"num", target:"Within 0.5 in of the right" },
-    { id:"ktw_r", label:"Right ankle knee-to-wall (in)", type:"num", target:"—" },
-    { id:"hop_l", label:"Single-leg hop for distance — left (in)", type:"num", target:"Establish a baseline" },
-    { id:"hop_r", label:"Single-leg hop for distance — right (in)", type:"num", target:"Establish a baseline" },
-    { id:"pain_match", label:"Right knee pain during a match (0–10)", type:"num", target:"Trending down" },
-    { id:"pain_24h", label:"Right knee pain 24h after a match (0–10)", type:"num", target:"Trending down" },
-    { id:"squeeze", label:"Adductor squeeze test (0–10 effort tolerated)", type:"num",
-      target:"Baseline, tracked against Copenhagen progression" },
-    { id:"landing", label:"Landing quality — single-leg drop, no knee cave", type:"bool",
-      target:"Yes — the 11+ trains neuromuscular control, not strength alone" }
+    { id:"ktw_l", label:"Knee-to-wall, left (in)", type:"num", target:"Asymmetry under 0.8 in" },
+    { id:"ktw_r", label:"Knee-to-wall, right (in)", type:"num", target:"Asymmetry under 0.8 in" },
+    { id:"cossack_depth", label:"Full Cossack depth, heel down", type:"bool", target:"Yes" },
+    { id:"hop_l", label:"Single-leg hop, left", type:"num", target:"Asymmetry under 10%" },
+    { id:"hop_r", label:"Single-leg hop, right", type:"num", target:"Asymmetry under 10%" },
+    { id:"pullup_max", label:"Max strict pull-ups, one set", type:"num", target:"Sets the bonus dose; 4+ switches off eccentrics" },
+    { id:"pushup_max", label:"Max push-ups, one set, full range", type:"num", target:"Sets the bonus dose" },
+    { id:"pain_match", label:"Pain during match (0–10)", type:"num", target:"0" },
+    { id:"pain_24h", label:"Pain 24 hours after (0–10)", type:"num", target:"0" }
+  ],
+  /* Carried over from the handoff spec so the first assessment has something
+     to move against. Marked as seeded, and deletable on the Data tab. */
+  seedAssessment: { date:"2026-10-31", source:"v3 spec handoff",
+    values:{ ktw_l:7.5, ktw_r:8, cossack_depth:"yes", hop_l:43, hop_r:35, pain_match:0, pain_24h:1 } },
+
+  /* ---------- morning flow ---------- */
+  morning: [
+    "7:30–7:50 — dishwasher, dog, start coffee. Mat and band stay set up overnight.",
+    "7:50 — Floor, plus strength on Mon/Thu/Sat. Podcast or audiobook only during this block.",
+    "After — coffee, handwritten notes, breakfast.",
+    "Mon and Thu — optional 7:00 alarm to get the full session in without rushing.",
+    "Mat before mug. No sitting down with coffee until the Floor is done.",
+    "After 8:15 with nothing started — Floor only, and tap Short on time."
   ],
 
-  caveats: [
-    "No diagnosis exists for the right medial knee. The pain rules are the safety net, not a treatment plan.",
-    "The injury-prevention evidence (11+, Nordic, Copenhagen) comes overwhelmingly from youth and young-adult male soccer cohorts. Mechanisms generalise; the specific effect sizes were not measured in this demographic.",
-    "Hip strengthening is justified by the pain literature, not by a prevention claim. Correcting hip weakness has never been shown to prevent knee injury.",
-    "The asymmetry-to-injury link is weak. Closing gaps is defensible on its own merits, not as risk reduction.",
-    "A short daily block maintains strength well but under-doses genuine maximal-strength and hypertrophy adaptation for large muscles, which is volume-driven. If a real strength goal emerges, some sessions need consolidating and lengthening."
-  ]
+  pain: {
+    during:"3/10 or less, steady or fading, is acceptable — continue. Above 3/10, or sharp, catching, or rising through a set: stop that exercise.",
+    substitutes:["Spanish squat isometric","Wall sit","The same movement through a pain-free range only"],
+    redFlags:["Locking","Giving way","Effusion or swelling","Night pain or rest pain",
+      "Inability to bear weight","Pain reaching and staying above 5/10",
+      "A discrete traumatic pop with rapid swelling"]
+  },
+
+  warmup: { total:"13:30", href:"warmup/" }
 };
 
 /* ===================== date helpers ===================== */
@@ -560,9 +549,7 @@ function daysBetween(a,b){
   const [ay,am,ad]=a.split("-").map(Number), [by,bm,bd]=b.split("-").map(Number);
   return Math.round((new Date(by,bm-1,bd) - new Date(ay,am-1,ad)) / 86400000);
 }
-function fmtTime(ts){
-  return new Date(ts).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
-}
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -580,16 +567,17 @@ function blankProgress(){
 }
 function defaultState(){
   return {
-    v: 4,
+    v: 5,
     firstSeen: todayStr(),
-    program: { start: todayStr(), notice: null },
-    progress: blankProgress(),   // {mid: {step, streak, since, history[]}}
-    cuts: {},                    // {mid: {reason, setOn}} — halve the next session
-    days: {},                    // keyed by YYYY-MM-DD
-    painChecks: [],              // {date, score, forDate, attribution, movements[]}
-    baseline: null,              // baseline right medial knee pain, 0–10
-    assessments: [],             // {date, weeksIn, values{}}
-    logs: [],                    // WBLT + preserved history from earlier versions
+    program: { start: PROGRAM.blockStart, notice: null },
+    progress: blankProgress(),
+    days: {},
+    painChecks: [],
+    baseline: 0,
+    assessments: [],
+    bonusRestUntil: null,     // set when elbow/shoulder pain is reported
+    needPushupMax: false,     // one-off prompt after migration
+    logs: [],
     lastExport: null,
     activeSession: null,
     settings: { sound: true, vibrate: true }
@@ -601,17 +589,23 @@ function blankDay(date){
     date,
     type: rot.type,
     movements: rot.movements.map(m=>m.id),
-    work: {},               // {mid: {sets:[], stopped:bool, stopReason, substitution}}
-    mobilityComplete: false,
-    warmupDone: false,      // FIFA 11+ run before the match
-    match: null,            // {endTime, minutes, format, painDuring, note}
-    run: null               // {intervals, runMin, walkMin, cadence, note}
+    work: {},
+    floorComplete: false,
+    floorItems: [],      // ids of ticked Floor items
+    deferred: false,     // strength swapped out by "Short on time"
+    bonusSets: [],       // {movement, rung, reps, loggedAt}
+    warmupDone: false,
+    match: null,
+    makeup: null,        // {from}
+    madeUpOn: null,
+    reentry: null        // {gap, setCut, rungDrop, appliedAt}
   };
 }
 function rotationFor(dateOrDow){
   const dow = typeof dateOrDow === "number" ? dateOrDow : dowOf(dateOrDow);
   return PROGRAM.rotation[dow];
 }
+function isStrengthDay(dateOrDow){ return rotationFor(dateOrDow).type.indexOf("strength") === 0; }
 function getDay(date, create){
   let d = state.days[date];
   if (!d){
@@ -619,64 +613,72 @@ function getDay(date, create){
     d = state.days[date] = blankDay(date);
   }
   if (!d.work) d.work = {};
+  if (!d.floorItems) d.floorItems = [];
+  if (!d.bonusSets) d.bonusSets = [];
   return d;
 }
 function dayOrBlank(date){ return state.days[date] || blankDay(date); }
 
-/* Migrate a v2/v3 save forward. Nothing is deleted: days and their logged work
-   are kept verbatim (movements that left the program simply stop being rendered
-   but still export), and the old 0–3 symptom scores are parked in their own
-   bucket rather than being mixed into the new 0–10 pain scale, which would be a
-   silent unit change on the user's own history. */
+/* Migrate a save written for the previous block. Nothing is thrown away:
+   logged work on retired movements stays and still exports, mobility becomes
+   the Floor, and the old load cuts are cleared because section 6 replaces them
+   with a re-entry rule that keeps the weight. */
 function migrate(old){
   if (!old) return defaultState();
-  if (old.v >= 4) return old;
+  if (old.v >= 5) return old;
 
   const out = defaultState();
   out.firstSeen = old.firstSeen || todayStr();
   out.lastExport = old.lastExport || null;
   out.settings = old.settings || { sound:true, vibrate:true };
   out.logs = (old.logs || []).slice();
-  out.migratedFrom = old.v || 2;
+  out.painChecks = (old.painChecks || []).slice();
+  out.assessments = (old.assessments || []).slice();
+  out.baseline = old.baseline != null ? old.baseline : 0;
+  out.migratedFrom = old.v || 4;
+  if (old.legacySymptomChecks) out.legacySymptomChecks = old.legacySymptomChecks;
 
-  // v2 stored everything in logs; v3 already had a day model. Fold v2 first.
-  if (!old.days){
-    (old.logs || []).forEach(l=>{
-      const touch = () => {
-        if (!out.days[l.date]) out.days[l.date] = blankDay(l.date);
-        return out.days[l.date];
-      };
-      if (l.type === "mobility") touch().mobilityComplete = true;
-      else if (l.type === "match"){
-        const d = touch();
-        d.match = { endTime:null, minutes:l.minutes, format:null, painDuring:null, note:l.note };
-      }
-    });
-  } else {
-    Object.entries(old.days).forEach(([date, day])=>{
-      const nd = blankDay(date);
-      nd.work = day.work || {};
-      nd.mobilityComplete = !!day.mobilityComplete;
-      if (day.matchEndTime || day.matchLogged){
-        nd.match = { endTime: day.matchEndTime || null, minutes: day.matchMinutes || null,
-                     format: null, painDuring: null, note: day.matchNote || "" };
-      }
-      if (day.jog) nd.legacyJog = day.jog;
-      if (day.repWork) nd.legacyRepWork = day.repWork;
-      if (day.mtpComplete) nd.legacyMtp = true;
-      out.days[date] = nd;
-    });
+  Object.entries(old.days || {}).forEach(([date, day])=>{
+    const nd = blankDay(date);
+    nd.work = day.work || {};
+    // the old daily mobility block is this block's Floor
+    nd.floorComplete = !!(day.floorComplete || day.mobilityComplete);
+    nd.floorItems = day.floorItems || [];
+    nd.bonusSets = day.bonusSets || [];
+    nd.warmupDone = !!day.warmupDone;
+    nd.match = day.match || null;
+    if (day.run) nd.legacyRun = day.run;
+    if (day.repWork) nd.legacyRepWork = day.repWork;
+    if (day.mobilityMinutes) nd.mobilityMinutes = day.mobilityMinutes;
+    out.days[date] = nd;
+  });
+
+  // Carry rungs forward where the movement still exists and the ladder still
+  // reaches that far; a shortened ladder clamps rather than throwing.
+  Object.keys(out.progress).forEach(mid=>{
+    const prev = (old.progress || {})[mid];
+    if (!prev) return;
+    out.progress[mid].step = Math.min(prev.step || 0, MOVEMENTS[mid].ladder.length - 1);
+    out.progress[mid].history = prev.history || [];
+    out.progress[mid].since = prev.since || out.firstSeen;
+  });
+
+  // Section 12: drop the old cuts outright. They were all set under the
+  // previous block's re-entry rules and section 6 replaces them.
+  out.cutsClearedOnMigration = Object.keys(old.cuts || {});
+
+  // Seed the last measured assessment so the first one has something to move
+  // against. Marked, and removable on the Data tab.
+  const seed = PROGRAM.seedAssessment;
+  if (!out.assessments.some(a => a.date === seed.date)){
+    out.assessments.push({ id: uid(), date: seed.date, source: seed.source,
+      values: Object.assign({}, seed.values) });
   }
+  out.assessments.sort((a,b)=>a.date.localeCompare(b.date));
 
-  // Old 0–3 "symptom increase" scores are a different instrument to the new
-  // 0–10 pain score. Keep them, clearly labelled, but do not convert them.
-  const oldChecks = (old.symptomChecks || []);
-  if (oldChecks.length) out.legacySymptomChecks = oldChecks;
-
-  const start = (old.program && old.program.weekStart) || out.firstSeen;
-  out.program.start = start;
-  Object.keys(out.progress).forEach(mid=>{ out.progress[mid].since = start; });
-  out.program.notice = "Updated to the September 2026 revision. Progression is now criteria-based, so the six-week load wave is gone — set each movement's starting load on the Progress tab.";
+  out.needPushupMax = !out.assessments.some(a => a.values && a.values.pushup_max != null);
+  out.program.start = PROGRAM.blockStart;
+  out.program.notice = "New block: Winter Consistency. Three strength days, a ten-minute Floor every day, and weekly targets instead of daily streaks.";
   return out;
 }
 function load(){
@@ -690,164 +692,254 @@ function load(){
   if (!state.painChecks) state.painChecks = [];
   if (!state.assessments) state.assessments = [];
   if (!state.logs) state.logs = [];
-  if (!state.cuts) state.cuts = {};
-  // A movement added to the program after this save was written still needs a rung.
   if (!state.progress) state.progress = blankProgress();
   Object.keys(MOVEMENTS).forEach(mid=>{
     if (!state.progress[mid]) state.progress[mid] = { step:0, streak:0, since:todayStr(), history:[] };
   });
+  if (state.baseline == null) state.baseline = 0;
 }
 let saveTimer = null;
 function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){} }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); }
 
-function weeksIn(){ return Math.floor(daysBetween(state.program.start, todayStr())/7); }
+/* ===================== the block ===================== */
+function blockWeek(){
+  const d = daysBetween(PROGRAM.blockStart, todayStr());
+  if (d < 0) return 0;
+  return Math.min(PROGRAM.blockWeeks, Math.floor(d/7) + 1);
+}
+function blockStarted(){ return daysBetween(PROGRAM.blockStart, todayStr()) >= 0; }
 
-/* ===================== progression =====================
-   Criteria-based, never calendar-based. Each movement sits on a rung of its own
-   ladder; a session either qualifies or resets the streak, and the app offers
-   the next rung only once the movement's own criterion is met. Nothing advances
-   on its own — the offer is always a prompt, never an automatic change. */
+/* ===================== doses and rungs =====================
+   A rung can change the prescription, not just the load: Copenhagen goes 2×6 →
+   3×8, the plank and Spanish squat lengthen their hold, the first pull-up rung
+   is 3×3 eccentrics. So the dose is the rung merged over the rotation's spec,
+   with the re-entry set cut applied last. */
 function rung(mid){
   const m = MOVEMENTS[mid], p = state.progress[mid];
   const i = Math.min(Math.max(p ? p.step : 0, 0), m.ladder.length-1);
-  return { i, ...m.ladder[i], top: i >= m.ladder.length-1 };
+  return Object.assign({ i, top: i >= m.ladder.length-1 }, m.ladder[i]);
 }
-function setsFor(mid, specSets){
-  // A bad 24-hour check halves this movement's next session, per the pain rules.
-  return state.cuts[mid] ? Math.max(1, Math.ceil(specSets/2)) : specSets;
+function setCutToday(date){
+  const d = state.days[date || todayStr()];
+  return d && d.reentry ? (d.reentry.setCut || 0) : 0;
 }
-function sessionQualifies(mid, sets){
+function doseFor(mid, baseSets, date){
+  const m = MOVEMENTS[mid], r = rung(mid);
+  let sets = r.sets != null ? r.sets : baseSets;
+  const cut = setCutToday(date);
+  if (cut) sets = Math.max(1, sets - cut);
+  return {
+    sets,
+    reps: r.reps != null ? r.reps : m.reps,
+    hold: r.hold != null ? r.hold : m.hold,
+    label: r.label, num: r.num || 0, rungIndex: r.i, top: r.top
+  };
+}
+/* Rep movements log one entry per set; per-side holds log one per side. */
+function targetEntries(mid, baseSets, date){
+  const m = MOVEMENTS[mid], dose = doseFor(mid, baseSets, date);
+  return m.kind === "hold" && m.perSide ? dose.sets*2 : dose.sets;
+}
+
+/* ===================== progression =====================
+   Section 5. An advance needs two things the app cannot know at the same
+   moment: every set at RIR 2 or easier (known when the session closes) and a
+   next-morning pain check of 0 or 1 (known the following day). So a session
+   records whether it qualified on performance, and the morning check decides
+   whether it banks. Streaks are then DERIVED from that history rather than
+   incremented in place, which keeps them correct after an undo, an edit or an
+   import. Rung changes stay stored decisions, because advancing is confirmed
+   by the athlete and a drop is a safety event worth keeping in the record. */
+
+function performanceQualifies(mid, w, baseSets, date){
   const m = MOVEMENTS[mid];
-  if (!sets.length) return false;
-  if (m.gate.type !== "load") return false;
-  // Every set at the prescribed reps, and ~2 in reserve on the top set.
-  const allReps = sets.every(s => (s.reps||0) >= m.reps);
-  const top = sets[sets.length-1];
-  return allReps && (top.rir||0) >= PROGRAM.rir;
+  if (!w || w.stopped) return false;
+  const dose = doseFor(mid, baseSets, date);
+  if (w.sets.length < targetEntries(mid, baseSets, date)) return false;
+  if (w.sets.some(s => s.sharp)) return false;
+  if (m.kind === "hold") return w.sets.every(s => (s.seconds||0) >= dose.hold);
+  if (dose.reps == null) return w.sets.every(s => (s.rir||0) >= PROGRAM.rir);   // pull-ups: max minus 2
+  return w.sets.every(s => (s.reps||0) >= dose.reps && (s.rir||0) >= PROGRAM.rir);
+}
+
+function checkForDay(date){ return state.painChecks.find(c => c.forDate === date) || null; }
+
+/* banked | broken | waiting */
+function sessionOutcome(date, mid){
+  const d = state.days[date], w = d && d.work[mid];
+  if (!w || !w.sets.length) return null;
+  if (!w.qualified) return "broken";
+  const chk = checkForDay(date);
+  if (!chk) return "waiting";                       // cannot bank until the morning after
+  if (chk.score >= PROGRAM.dropPainMin) return "broken";
+  if (chk.score <= PROGRAM.advancePainMax) return "banked";
+  return "broken";   // a 2 is neither a drop nor a bank; the consecutive run ends
+}
+function sessionDatesFor(mid){
+  return Object.keys(state.days)
+    .filter(dt => (state.days[dt].work[mid]||{sets:[]}).sets.length)
+    .sort();
+}
+/* Only sessions performed AT the current rung count toward leaving it. The
+   date guard alone is not enough: advancing on the same day you trained would
+   otherwise credit that session, which was done at the rung below, to the new
+   one. Every set records the rung it was performed at, so use that. */
+function atCurrentRung(mid, dt){
+  const w = state.days[dt] && state.days[dt].work[mid];
+  if (!w || !w.sets.length) return false;
+  return w.sets[0].rung === rung(mid).label;
+}
+function countableSessions(mid){
+  const since = state.progress[mid].since;
+  return sessionDatesFor(mid).filter(dt => dt >= since && atCurrentRung(mid, dt));
+}
+function streakFor(mid){
+  let streak = 0;
+  for (const dt of countableSessions(mid)){
+    const o = sessionOutcome(dt, mid);
+    if (o === "banked") streak++;
+    else if (o === "broken") streak = 0;
+    else break;                       // waiting on a 24-hour check
+  }
+  return streak;
+}
+function waitingFor(mid){
+  return countableSessions(mid).filter(dt => sessionOutcome(dt, mid) === "waiting");
+}
+function recomputeStreaks(){
+  Object.keys(MOVEMENTS).forEach(mid=>{ state.progress[mid].streak = streakFor(mid); });
 }
 function eligibleToAdvance(mid){
-  const m = MOVEMENTS[mid], p = state.progress[mid], r = rung(mid);
-  if (m.gate.type === "none" || r.top) return false;
-  if (p.streak < (m.gate.need||1)) return false;
-  if (m.gate.minDays && daysBetween(p.since, todayStr()) < m.gate.minDays) return false;
-  return true;
+  const m = MOVEMENTS[mid];
+  if (m.bonus || m.retired) return false;
+  if (rung(mid).top) return false;
+  return streakFor(mid) >= 2;
 }
-function daysAtRung(mid){ return daysBetween(state.progress[mid].since, todayStr()); }
-function advance(mid){
+function advance(mid, kneeOk){
   const p = state.progress[mid], m = MOVEMENTS[mid];
   if (p.step >= m.ladder.length-1) return;
-  p.history.push({ date: todayStr(), from: m.ladder[p.step].label, to: m.ladder[p.step+1].label });
-  p.step++; p.streak = 0; p.since = todayStr();
-  save(); closeModal(); render();
+  p.history.push({ date: todayStr(), from: m.ladder[p.step].label,
+                   to: m.ladder[p.step+1].label, kneeChecked: !!kneeOk });
+  p.step++; p.since = todayStr();
+  recomputeStreaks(); save(); closeModal(); render();
   toast(`${m.short} → ${m.ladder[p.step].label} ✓`);
 }
+function dropRung(mid, reason){
+  const p = state.progress[mid], m = MOVEMENTS[mid];
+  if (p.step <= 0){ p.since = todayStr(); return false; }
+  p.history.push({ date: todayStr(), from: m.ladder[p.step].label,
+                   to: m.ladder[p.step-1].label, drop:true, reason });
+  p.step--; p.since = todayStr();
+  return true;
+}
 function holdRung(mid){
-  state.progress[mid].streak = 0;
-  save(); closeModal(); render();
-  toast("Held at the current dose.");
+  state.progress[mid].since = todayStr();
+  recomputeStreaks(); save(); closeModal(); render();
+  toast("Held at the current rung.");
 }
 function stepTo(mid, i){
   const p = state.progress[mid], m = MOVEMENTS[mid];
   p.step = Math.min(Math.max(i,0), m.ladder.length-1);
-  p.streak = 0; p.since = todayStr();
-  save(); render();
+  p.since = todayStr();
+  recomputeStreaks(); save(); render();
   toast(`${m.short} set to ${m.ladder[p.step].label}`);
-}
-
-/* Called once a movement's sets are done for the day. Load gates are scored from
-   the logged sets; quality gates ask their one question. */
-function closeOutMovement(mid, date){
-  const d = getDay(date, true), w = d.work[mid];
-  if (!w || w.evaluated) return;
-  const m = MOVEMENTS[mid], p = state.progress[mid];
-  w.evaluated = true;
-
-  // The volume cut applied to this session has now been served.
-  if (state.cuts[mid]){ delete state.cuts[mid]; }
-
-  if (w.stopped){ p.streak = 0; save(); return; }   // pain-gated: never a qualifying session
-
-  if (m.gate.type === "load"){
-    if (sessionQualifies(mid, w.sets)) p.streak++; else p.streak = 0;
-    save();
-    if (eligibleToAdvance(mid)) offerAdvance(mid);
-  } else if (m.gate.type === "quality"){
-    save();
-    askQuality(mid);
-  } else {
-    save();
-  }
-}
-function askQuality(mid){
-  const m = MOVEMENTS[mid], r = rung(mid);
-  if (r.top){ render(); return; }
-  const waiting = m.gate.minDays && daysAtRung(mid) < m.gate.minDays
-    ? `<p class="faint" style="margin:8px 0 0;">Minimum ${Math.round(m.gate.minDays/7)} weeks at a dose before progressing — you are ${daysAtRung(mid)} days in. The answer is still recorded.</p>` : "";
-  showModal(`<h2>${esc(m.name)}</h2>
-    <p style="margin:0;"><b>${esc(m.gate.ask)}</b></p>
-    <p class="faint" style="margin:6px 0 0;">Currently: ${esc(r.label)}</p>
-    ${waiting}
-    <div class="yn">
-      <button class="primary" onclick="answerQuality('${mid}',true)">Yes</button>
-      <button class="ghost" onclick="answerQuality('${mid}',false)">Not yet</button></div>`);
-}
-function answerQuality(mid, yes){
-  const p = state.progress[mid];
-  if (yes) p.streak++; else p.streak = 0;
-  save(); closeModal();
-  if (yes && eligibleToAdvance(mid)) offerAdvance(mid);
-  else { render(); toast(yes ? "Logged ✓" : "Logged — holding at this dose."); }
 }
 function offerAdvance(mid){
   const m = MOVEMENTS[mid], p = state.progress[mid];
   const next = m.ladder[p.step+1];
-  showModal(`<h2>Ready to progress</h2>
+  const knee = m.kneeCheck;
+  showModal(`<h2>Ready to move up</h2>
     <p style="margin:0;"><b>${esc(m.name)}</b></p>
-    <p class="dim" style="margin:8px 0 0;">${esc(m.gate.rule)}</p>
+    <p class="dim" style="margin:8px 0 0;">Two consecutive sessions at RIR ${PROGRAM.rir} or easier, each followed by a clean morning check.</p>
     <table style="margin-top:12px;">
       <tr><th>Now</th><td>${esc(rung(mid).label)}</td></tr>
       <tr><th>Next</th><td style="color:var(--accent);font-weight:700;">${esc(next.label)}</td></tr>
-      <tr><th>At this dose</th><td>${daysAtRung(mid)} days</td></tr>
     </table>
-    <div class="yn">
-      <button class="primary" onclick="advance('${mid}')">Move up</button>
-      <button class="ghost" onclick="holdRung('${mid}')">Stay here</button></div>`);
+    ${knee ? `<p class="dim" style="margin:12px 0 0;"><b>Knee-tracking check.</b> On the last session, did the knee stay over the second toe with no medial collapse?</p>
+      <div class="yn">
+        <button class="primary" onclick="advance('${mid}',true)">Yes — move up</button>
+        <button class="ghost" onclick="holdRung('${mid}')">No — hold</button></div>`
+     : `<div class="yn">
+        <button class="primary" onclick="advance('${mid}',false)">Move up</button>
+        <button class="ghost" onclick="holdRung('${mid}')">Stay here</button></div>`}`);
+}
+function readyMovements(){
+  return Object.keys(MOVEMENTS).filter(eligibleToAdvance);
 }
 
-/* ===================== pain =====================
-   During a set: 3/10 or less, steady or fading, is acceptable. Above 3/10, or
-   sharp/catching/rising, ends that exercise for the day.
-   After 24 hours: worse than baseline halves that exercise's next session. */
+/* Called once a movement's sets are done for the day. */
+function closeOutMovement(mid, date, baseSets){
+  const d = getDay(date, true), w = d.work[mid];
+  if (!w || w.evaluated) return;
+  w.evaluated = true;
+  w.qualified = performanceQualifies(mid, w, baseSets, date);
+  // Rule 3: a sharp set drops a rung immediately, without waiting for morning.
+  if (w.sets.some(s => s.sharp)){
+    if (dropRung(mid, "sharp set logged")) {
+      recomputeStreaks(); save();
+      showModal(`<h2 style="color:var(--amber)">Rung dropped</h2>
+        <p>${esc(MOVEMENTS[mid].name)} is back to <b>${esc(rung(mid).label)}</b> after a set logged as sharp.</p>
+        <p class="dim">${esc(PROGRAM.pain.during)}</p>
+        <button class="primary big-btn" onclick="closeModal(); render();">Understood</button>`);
+      return;
+    }
+  }
+  recomputeStreaks(); save();
+}
+
+/* ===================== re-entry after a gap =====================
+   Section 6. The previous block cut the load after a lay-off, which is why
+   November's numbers matched September's. This keeps the weight and trims a
+   set instead; only a gap of four weeks or more steps the rung down. */
+function lastStrengthBefore(date){
+  const dates = Object.keys(state.days)
+    .filter(dt => dt < date && Object.keys(state.days[dt].work||{})
+      .some(mid => !MOVEMENTS[mid]?.bonus && (state.days[dt].work[mid].sets||[]).length))
+    .sort();
+  return dates.length ? dates[dates.length-1] : null;
+}
+function reentryRuleFor(gap){
+  return PROGRAM.reentry.find(r => gap >= r.minGap && gap <= r.maxGap) || PROGRAM.reentry[0];
+}
+/* Applied once, the first time a strength day is opened after a gap. */
+function applyReentry(date){
+  const d = getDay(date, true);
+  if (d.reentry || !isStrengthDay(date)) return;
+  const last = lastStrengthBefore(date);
+  if (!last) return;                                  // nothing to come back from
+  const gap = daysBetween(last, date);
+  const rule = reentryRuleFor(gap);
+  if (!rule.setCut && !rule.rungDrop) return;
+  const dropped = [];
+  if (rule.rungDrop){
+    rotationFor(date).movements.forEach(spec=>{
+      if (dropRung(spec.id, `${gap}-day gap`)) dropped.push(MOVEMENTS[spec.id].short);
+    });
+  }
+  d.reentry = { gap, setCut: rule.setCut, rungDrop: rule.rungDrop,
+                dropped, note: rule.note, appliedAt: Date.now() };
+  recomputeStreaks(); save();
+}
+
+/* ===================== pain checks =====================
+   The next-morning check is now load-bearing twice over: it decides whether
+   yesterday's session banks toward an advance, and a 3 or higher drops a rung
+   on everything worked yesterday. */
 function painGated(pain, sharp){ return sharp || (pain||0) > PROGRAM.painLimit; }
 
-function baselineKnown(){ return state.baseline != null; }
-function setBaseline(v){
-  state.baseline = v;
-  save(); closeModal(); render();
-  toast(`Baseline set to ${v}/10.`);
-}
-function askBaseline(){
-  showModal(`<h2>Set your knee baseline</h2>
-    <p class="dim" style="margin:0;">What is the right medial knee like on an ordinary day, with no training the day before? The 24-hour checks are read against this number, so it is worth being honest rather than optimistic.</p>
-    <div class="painscale">${[0,1,2,3,4,5,6,7,8,9,10].map(v=>
-      `<button onclick="setBaseline(${v})">${v}</button>`).join("")}</div>`, true);
-}
-
-/* The 24-hour check, attributed to yesterday. */
 function attributionFor(checkDate){
   const prev = addDays(checkDate, -1);
   const rot = rotationFor(prev);
   const d = state.days[prev];
-  const worked = d ? Object.keys(d.work||{}).filter(mid => MOVEMENTS[mid] && (d.work[mid].sets||[]).length) : [];
+  const worked = d ? Object.keys(d.work||{}).filter(mid =>
+    MOVEMENTS[mid] && !MOVEMENTS[mid].bonus && (d.work[mid].sets||[]).length) : [];
   const matched = !!(d && d.match);
-  const ran = !!(d && d.run);
   let attribution;
-  if (rot.type === "match" && matched && worked.length) attribution = "match + lift";
-  else if (rot.type === "match" && matched) attribution = "match";
-  else if (worked.length && ran) attribution = "lift + run";
+  if (rot.type === "match" && matched && worked.length) attribution = "soccer + lift";
+  else if (rot.type === "match" && matched) attribution = "soccer";
   else if (worked.length) attribution = "lift";
-  else if (ran) attribution = "run";
+  else if (d && d.floorComplete) attribution = "floor only";
   else attribution = "no logged load";
   return { attribution, movements: worked, forDate: prev };
 }
@@ -857,67 +949,272 @@ function checkDue(){
   return Object.keys(state.days).some(k => k < t);
 }
 function askCheck(){
-  if (!baselineKnown()){ askBaseline(); return; }
   const t = todayStr(), info = attributionFor(t);
   showModal(`<h2>24-hour check</h2>
-    <p style="margin:0;"><b>Right medial knee this morning, 0 to 10.</b></p>
-    <p class="faint" style="margin:6px 0 0;">Your baseline is <b>${state.baseline}/10</b>. Attributed to ${esc(fmtDate(info.forDate))} — <b>${esc(info.attribution)}</b>${info.movements.length ? " (" + info.movements.map(m=>MOVEMENTS[m].short).join(", ") + ")" : ""}.</p>
+    <p style="margin:0;"><b>Right knee this morning, 0 to 10.</b></p>
+    <p class="faint" style="margin:6px 0 0;">Attributed to ${esc(fmtDate(info.forDate))} — <b>${esc(info.attribution)}</b>${info.movements.length ? " (" + info.movements.map(m=>MOVEMENTS[m].short).join(", ") + ")" : ""}. A 0 or 1 banks yesterday's session toward its next rung; a 3 or more steps it back down.</p>
     <div class="painscale">${[0,1,2,3,4,5,6,7,8,9,10].map(v=>
-      `<button class="${v>state.baseline?"hot":""}" onclick="answerCheck(${v})">${v}</button>`).join("")}</div>
+      `<button class="${v>=PROGRAM.dropPainMin?"hot":""}" onclick="answerCheck(${v})">${v}</button>`).join("")}</div>
     <button class="ghost big-btn" onclick="closeModal()">Ask me later today</button>`);
 }
-function answerCheck(score){
-  const t = todayStr(), info = attributionFor(t);
+/* forDate lets a missed check be backfilled for an older day. */
+function answerCheck(score, forDate){
+  const t = todayStr();
+  const target = forDate || addDays(t, -1);
+  const info = attributionFor(addDays(target, 1));
+  state.painChecks = state.painChecks.filter(c => c.forDate !== target);
   state.painChecks.push({
-    date: t, score, baseline: state.baseline,
-    attribution: info.attribution, movements: info.movements, forDate: info.forDate
+    date: forDate ? addDays(target,1) : t, score, baseline: state.baseline,
+    attribution: info.attribution, movements: info.movements, forDate: target,
+    backfilled: !!forDate
   });
+  state.painChecks.sort((a,b)=>a.forDate.localeCompare(b.forDate));
 
-  // Worse than baseline beyond 24 hours: halve that exercise's volume next session.
-  const worse = score > state.baseline;
-  const cut = [];
-  if (worse){
+  const dropped = [];
+  if (score >= PROGRAM.dropPainMin){
     info.movements.forEach(mid=>{
-      if (!MOVEMENTS[mid]) return;
-      state.cuts[mid] = { reason:`${score}/10 vs baseline ${state.baseline} on ${t}`, setOn:t };
-      cut.push(MOVEMENTS[mid].name);
+      if (MOVEMENTS[mid] && dropRung(mid, `${score}/10 the morning after ${target}`))
+        dropped.push(MOVEMENTS[mid].short);
     });
   }
-  save(); closeModal();
+  recomputeStreaks(); save(); closeModal();
 
-  if (cut.length){
-    showModal(`<h2>Volume halved next session</h2>
-      <p>This morning is <b>${score}/10</b> against a baseline of <b>${state.baseline}/10</b> — worse than baseline more than 24 hours after the load.</p>
-      <p class="dim">Per the pain rules, the next session of ${esc(cut.join(" and "))} runs at half volume. The app has already applied it; it clears itself once that session is done.</p>
+  if (dropped.length){
+    showModal(`<h2 style="color:var(--amber)">Rung dropped</h2>
+      <p>A <b>${score}/10</b> the morning after ${esc(fmtShort(target))} steps ${esc(dropped.join(" and "))} back one rung.</p>
+      <p class="dim">The load comes back the same way it went up: two clean sessions in a row.</p>
       <button class="primary big-btn" onclick="closeModal(); render();">Understood</button>`);
-  } else if (escalationFlagged()){
-    showModal(`<h2 style="color:var(--amber)">Escalation flag</h2>
-      <p>Two consecutive weeks without improvement. The program calls that a red flag.</p>
-      <p class="dim">${esc(PROGRAM.pain.escalation)}</p>
-      <button class="primary big-btn" onclick="closeModal(); render();">Understood</button>`);
-  } else {
-    render();
-    toast(score <= state.baseline ? "Check logged — at or below baseline ✓" : `Check logged — ${score}/10`);
+    return;
   }
+  const ready = readyMovements();
+  if (ready.length){ offerAdvance(ready[0]); return; }
+  render();
+  toast(score <= PROGRAM.advancePainMax ? "Check logged — session banked ✓" : `Check logged — ${score}/10`);
 }
-/* Two consecutive weeks of no improvement: compare the mean of the last 14 days
-   against the 14 before it. Needs enough checks in both windows to mean anything,
-   so a sparse fortnight never raises the flag on its own. */
-function escalationFlagged(){
-  if (!baselineKnown()) return false;
-  const t = todayStr();
-  const win = (from, to) => state.painChecks.filter(c => c.date > from && c.date <= to).map(c=>c.score);
-  const recent = win(addDays(t,-14), t);
-  const prior  = win(addDays(t,-28), addDays(t,-14));
-  if (recent.length < 7 || prior.length < 7) return false;
-  const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
-  const mr = mean(recent), mp = mean(prior);
-  return mr > state.baseline && mr >= mp;
+function backfillCheck(date){
+  showModal(`<h2>Morning after ${esc(fmtDate(date))}</h2>
+    <p class="dim" style="margin:0;">This session is waiting on a check before it can count toward a rung. What was the knee like the next morning?</p>
+    <div class="painscale">${[0,1,2,3,4,5,6,7,8,9,10].map(v=>
+      `<button class="${v>=PROGRAM.dropPainMin?"hot":""}" onclick="answerCheck(${v},'${date}')">${v}</button>`).join("")}</div>
+    <button class="ghost big-btn" onclick="closeModal()">Cancel</button>`);
 }
-function recentPainMean(days){
+
+/* ===================== weekly win =====================
+   Section 9. Floor on 5 of 7 days and 2 of 3 strength sessions. No daily
+   streak is shown anywhere — that counter is what made one missed day feel
+   like a broken block. */
+function movementComplete(d, mid, baseSets){
+  const w = d && d.work ? d.work[mid] : null;
+  if (!w) return false;
+  return w.stopped || w.sets.length >= targetEntries(mid, baseSets, d.date);
+}
+function sessionCompleteOn(date, rot){
+  const d = state.days[date];
+  if (!d) return false;
+  return rot.movements.every(spec => movementComplete(d, spec.id, spec.sets));
+}
+/* A session counts whether it happened on its own day or in its make-up slot. */
+function strengthSessionDone(sessionDate){
+  const rot = rotationFor(sessionDate);
+  if (!isStrengthDay(sessionDate)) return false;
+  if (sessionCompleteOn(sessionDate, rot)) return true;
+  const d = state.days[sessionDate];
+  if (d && d.madeUpOn) return sessionCompleteOn(d.madeUpOn, rot);
+  return false;
+}
+function weekStats(mondayISO){
   const t = todayStr();
-  const a = state.painChecks.filter(c=>c.date > addDays(t,-days)).map(c=>c.score);
-  return a.length ? Math.round(a.reduce((x,y)=>x+y,0)/a.length*10)/10 : null;
+  let floor = 0, strength = 0, slots = 0, elapsed = 0;
+  for (let i=0; i<7; i++){
+    const date = addDays(mondayISO, i);
+    const d = state.days[date];
+    if (date <= t) elapsed++;
+    if (d && d.floorComplete) floor++;
+    if (isStrengthDay(date)){ slots++; if (strengthSessionDone(date)) strength++; }
+  }
+  const win = floor >= PROGRAM.win.floorDays && strength >= PROGRAM.win.strengthSessions;
+  return { floor, strength, slots, elapsed, win,
+           complete: daysBetween(mondayISO, t) >= 6 };
+}
+function blockWeekMondays(){
+  const out = [];
+  let m = mondayOf(PROGRAM.blockStart);
+  for (let i=0; i<PROGRAM.blockWeeks; i++){ out.push(m); m = addDays(m, 7); }
+  return out;
+}
+function winWeeksTotal(){
+  const t = todayStr();
+  return blockWeekMondays().filter(m => m <= t && weekStats(m).win).length;
+}
+/* Consecutive winning weeks ending with the most recent completed week.
+   The current week counts once it has already met both targets. */
+function winStreak(){
+  const t = todayStr();
+  const weeks = blockWeekMondays().filter(m => m <= t);
+  let streak = 0;
+  for (let i = weeks.length - 1; i >= 0; i--){
+    const s = weekStats(weeks[i]);
+    if (s.win) streak++;
+    else if (s.complete) break;
+    else continue;            // current week not yet a win, but not yet lost
+  }
+  return streak;
+}
+
+/* ===================== the Floor ===================== */
+function floorItemsFor(date){
+  const base = PROGRAM.floor.items;
+  return dowOf(date) === 6 ? base.concat(PROGRAM.floor.extendedItems) : base;
+}
+function toggleFloorItem(id){
+  const d = getDay(todayStr(), true);
+  const i = d.floorItems.indexOf(id);
+  if (i >= 0) d.floorItems.splice(i,1); else d.floorItems.push(id);
+  ensureAudio(); beep(880,.07); buzz(25);
+  // Ticking every item is the same statement as pressing the button.
+  if (floorItemsFor(d.date).every(it => d.floorItems.includes(it.id))) d.floorComplete = true;
+  save(); render();
+}
+function completeFloor(){
+  const d = getDay(todayStr(), true);
+  d.floorComplete = !d.floorComplete;
+  if (d.floorComplete){ ensureAudio(); cueEnd(); }
+  save(); render();
+  if (d.floorComplete) toast("Floor done. That is a successful day ✓");
+}
+
+/* ===================== bonus work-day sets ===================== */
+function latestMax(key){
+  for (let i = state.assessments.length - 1; i >= 0; i--){
+    const v = state.assessments[i].values || {};
+    if (v[key] != null && !isNaN(Number(v[key]))) return Number(v[key]);
+  }
+  return null;
+}
+function bonusDose(mid){
+  const r = rung(mid);
+  if (r.pctOfMax){
+    const max = latestMax(r.maxKey);
+    if (max == null) return { reps: null, label: r.label, needsMax: r.maxKey };
+    return { reps: Math.max(1, Math.round(max * r.pctOfMax)), label: r.label };
+  }
+  return { reps: r.reps || 1, label: r.label };
+}
+function bonusResting(){
+  return !!(state.bonusRestUntil && todayStr() < state.bonusRestUntil);
+}
+function bonusAllowedToday(mid){
+  if (bonusResting()) return false;
+  const cfg = PROGRAM.bonus[mid];
+  return !(cfg.skipDow || []).includes(dowOf(todayStr()));
+}
+function bonusCount(mid, date){
+  const d = state.days[date || todayStr()];
+  return d ? (d.bonusSets||[]).filter(b => b.movement === mid).length : 0;
+}
+function bonusWeekCount(mid){
+  const mon = mondayOf(todayStr());
+  let n = 0;
+  for (let i=0;i<7;i++) n += bonusCount(mid, addDays(mon, i));
+  return n;
+}
+function logBonusSet(mid){
+  if (!bonusAllowedToday(mid)) return;
+  const dose = bonusDose(mid);
+  if (dose.reps == null){ askPushupMax(); return; }
+  const d = getDay(todayStr(), true);
+  d.bonusSets.push({ movement: mid, rung: dose.label, reps: dose.reps, loggedAt: Date.now() });
+  ensureAudio(); beep(990,.09); buzz(30);
+  save(); render();
+}
+function bonusNag(mid){
+  if (!bonusAllowedToday(mid)) return false;
+  return new Date().getHours() >= PROGRAM.bonus.nagAfterHour
+      && bonusCount(mid) < PROGRAM.bonus.nagBelow;
+}
+function reportBonusPain(){
+  state.bonusRestUntil = addDays(todayStr(), PROGRAM.bonus.painRestDays);
+  save(); closeModal(); render();
+  toast(`Bonus sets paused until ${fmtShort(state.bonusRestUntil)}.`);
+}
+function bonusEditorHTML(mid){
+  const d = getDay(todayStr(), true);
+  const sets = (d.bonusSets||[]).map((b,i)=>({b,i})).filter(x => x.b.movement === mid);
+  const m = MOVEMENTS[mid];
+  return `<h2>${esc(m.name)} today</h2>
+    ${sets.length ? sets.map(({b,i})=>`
+      <div class="setblock"><div class="set-head">
+        <span>${fmtTime(b.loggedAt)} — ${b.reps} reps</span>
+        <span style="display:flex; gap:8px;">
+          <button class="ghost small" onclick="editBonusReps(${i})">Edit</button>
+          <button class="ghost small" onclick="deleteBonusSet(${i})">Delete</button>
+        </span></div></div>`).join("")
+     : `<p class="dim">No sets logged yet today.</p>`}
+    <p class="faint" style="margin-top:10px;">${esc(m.cue)}</p>
+    <button class="ghost big-btn" onclick="closeModal()">Close</button>`;
+}
+function editBonusReps(i){
+  const d = getDay(todayStr(), true), b = d.bonusSets[i];
+  if (!b) return;
+  showModal(`<h2>Edit set</h2>
+    <label>Reps</label>
+    <input type="number" id="be-reps" inputmode="numeric" min="0" value="${b.reps}">
+    <div class="yn"><button class="primary" onclick="saveBonusReps(${i})">Save</button>
+    <button class="ghost" onclick="showModal(bonusEditorHTML('${b.movement}'))">Cancel</button></div>`);
+}
+function saveBonusReps(i){
+  const d = getDay(todayStr(), true), b = d.bonusSets[i];
+  if (!b) return;
+  const el = document.getElementById("be-reps");
+  b.reps = Math.max(0, parseInt(el && el.value) || 0);
+  save(); showModal(bonusEditorHTML(b.movement)); render();
+}
+function deleteBonusSet(i){
+  const d = getDay(todayStr(), true), b = d.bonusSets[i];
+  if (!b) return;
+  const mid = b.movement;
+  d.bonusSets.splice(i,1);
+  save(); showModal(bonusEditorHTML(mid)); render();
+}
+function askPushupMax(){
+  showModal(`<h2>Push-up max</h2>
+    <p class="dim" style="margin:0;">One set, full range, to set the bonus dose. Every bonus set after this is half of it, so take the honest number rather than the heroic one.</p>
+    <label>Max push-ups</label>
+    <input type="number" id="pm-max" inputmode="numeric" min="0" value="20">
+    <div class="yn"><button class="primary" onclick="savePushupMax()">Save</button>
+    <button class="ghost" onclick="closeModal()">Later</button></div>`, true);
+}
+function savePushupMax(){
+  const el = document.getElementById("pm-max");
+  const v = Math.max(1, parseInt(el && el.value) || 0);
+  const t = todayStr();
+  let a = state.assessments.find(x => x.date === t);
+  if (!a){ a = { id: uid(), date: t, source:"push-up max test", values:{} }; state.assessments.push(a); }
+  a.values.pushup_max = v;
+  state.assessments.sort((x,y)=>x.date.localeCompare(y.date));
+  state.needPushupMax = false;
+  applyAssessmentToBonus(a.values);
+  save(); closeModal(); render();
+  toast(`Push-up max ${v} — bonus sets are ${Math.max(1,Math.round(v/2))} reps.`);
+}
+/* Bonus rungs move only at an assessment, never on session streaks. The same
+   measurement also decides the Strength B pull-up rung: at a max of 3 or
+   fewer the session is 3×3 eccentrics, not max-minus-2. */
+function applyAssessmentToBonus(values){
+  const max = values.pullup_max != null ? Number(values.pullup_max) : null;
+  if (max == null || isNaN(max)) return;
+  const setStep = (mid, step, reason) => {
+    const p = state.progress[mid], L = MOVEMENTS[mid].ladder;
+    if (p.step === step) return;
+    p.history.push({ date: todayStr(), from: L[p.step].label, to: L[step].label, reason });
+    p.step = step; p.since = todayStr();
+  };
+  if (max >= 4){
+    if (state.progress.pullup_bonus.step < 1) setStep("pullup_bonus", 1, "pull-up max 4+");
+    if (state.progress.pullup.step < 1) setStep("pullup", 1, "pull-up max 4+");
+  } else {
+    if (state.progress.pullup.step > 0) setStep("pullup", 0, `pull-up max ${max} — back to eccentrics`);
+  }
 }
 
 /* ===================== audio + vibration + wake lock ===================== */
@@ -960,58 +1257,50 @@ async function grabWakeLock(){
 }
 function dropWakeLock(){ try { if (wakeLock){ wakeLock.release(); wakeLock = null; } } catch(e){} }
 document.addEventListener("visibilitychange", ()=>{
-  if (document.visibilityState === "visible" && state && (state.activeSession || holdTimer)) grabWakeLock();
+  if (document.visibilityState === "visible" && state && (state.activeSession || holdState)) grabWakeLock();
 });
 
-/* ===================== mobility flow ===================== */
-function buildFlow(sections, sectionRestSec){
+/* ===================== guided Floor run =====================
+   The Floor is a checklist first — that is what the spec asks for and what
+   survives a rushed morning. This runner is kept as a second way in, because
+   the hands-free timed version is what made the old mobility block the one
+   habit that stuck. */
+function buildFloorFlow(date){
   const steps = [];
-  sections.forEach((sec, si)=>{
-    if (si > 0 && !sec.noRestBefore){
-      steps.push({ type:"rest", name:"Section rest", cue:"Breathe. Next section starts automatically.",
-        dur:sectionRestSec, section:sec.name });
-    }
-    sec.items.forEach(item=>{
-      for (let s=1; s<=item.sets; s++){
-        const sides = item.perSide ? ["Left","Right"] : [null];
-        sides.forEach(side=>{
-          let label = item.name;
-          if (item.setNames) label += " — " + item.setNames[s-1];
-          if (side) label += " — " + side;
-          steps.push({
-            type:"ex", name:label, base:item.name, cue:item.cue, rx:item.rx,
-            dur:item.dur, manual:!!item.manual, reps:item.reps,
-            section:sec.name, side, set:s, sets:item.sets
-          });
-        });
-      }
+  floorItemsFor(date).forEach(item=>{
+    (item.steps || [{ reps: 1 }]).forEach((st, i)=>{
+      steps.push({
+        type:"ex",
+        name: item.name + (st.label ? " — " + st.label : ""),
+        base: item.name, cue: item.cue, rx: item.dose,
+        dur: st.dur, manual: !st.dur, reps: st.reps,
+        section: "Daily Floor", itemId: item.id, side: st.label || null,
+        set: i+1, sets: (item.steps||[]).length
+      });
     });
   });
   const out = [];
   for (let i=0; i<steps.length; i++){
     const cur = steps[i], prev = out.length ? out[out.length-1] : null;
-    if (prev && prev.type !== "rest" && cur.type !== "rest" && !cur.manual){
-      const sameEx = prev.base === cur.base;
-      const switching = sameEx && prev.side !== cur.side && cur.side;
-      out.push({ type:"trans", name: switching ? "Switch sides" : "Get set",
-        next: cur, dur: sameEx ? PROGRAM.mobility.transitionSame : PROGRAM.mobility.transitionNew,
-        section: cur.section });
+    if (prev && cur.type !== "rest" && !cur.manual){
+      out.push({ type:"trans", name: prev.base === cur.base ? "Switch sides" : "Get set",
+        next: cur, dur: prev.base === cur.base ? 5 : 10, section: cur.section });
     }
     out.push(cur);
   }
   return out;
 }
-function mobilitySteps(){ return buildFlow(PROGRAM.mobility.sections, PROGRAM.mobility.sectionRest); }
 
 /* ===================== session engine ===================== */
 let tickHandle = null, lastWarnSec = null, lastPersist = 0;
 function S(){ return state.activeSession; }
 
-function startMobility(){
+function startFloorRun(){
   ensureAudio();
+  const date = todayStr();
   state.activeSession = {
-    id: uid(), kind:"mobility", date: todayStr(), startedAt: Date.now(),
-    steps: mobilitySteps(), idx: 0, timer: null, repEntries: []
+    id: uid(), kind:"floor", date, startedAt: Date.now(),
+    steps: buildFloorFlow(date), idx: 0, timer: null, ticked: []
   };
   armStep(); grabWakeLock(); openSession(); startTick(); save();
 }
@@ -1021,11 +1310,9 @@ function armStep(){
   else s.timer = { endsAt: Date.now() + st.dur*1000, total: st.dur, paused:false, remaining:null };
   lastWarnSec = null;
 }
-function logMobilitySet(){
-  const s = S(); const st = s.steps[s.idx];
-  const el = document.getElementById("in-mreps");
-  const reps = el ? (parseInt(el.value) || 0) : (st.reps || 0);
-  (s.repEntries = s.repEntries || []).push({ name: st.base, side: st.side, set: st.set, reps });
+function logFloorStep(){
+  const s = S(), st = s.steps[s.idx];
+  if (st.itemId && !s.ticked.includes(st.itemId)) s.ticked.push(st.itemId);
   ensureAudio(); beep(880,.1); buzz(40);
   advanceFlow(false);
 }
@@ -1059,6 +1346,8 @@ function backStep(){
 }
 function advanceFlow(skipped){
   const s = S();
+  const st = s.steps[s.idx];
+  if (!skipped && st.type === "ex" && st.itemId && !s.ticked.includes(st.itemId)) s.ticked.push(st.itemId);
   if (s.idx >= s.steps.length - 1){ finishFlow(); return; }
   s.idx++;
   if (skipped && s.steps[s.idx] && s.steps[s.idx].type === "trans" && s.idx < s.steps.length-1) s.idx++;
@@ -1066,27 +1355,29 @@ function advanceFlow(skipped){
 }
 function finishFlow(){
   const s = S();
-  recordFlowCompletion(s);
+  recordFlowCompletion(s, true);
   cueEnd();
   state.activeSession = null;
   dropWakeLock(); stopTick(); save();
   closeSession(); render();
-  toast("Mobility block complete — logged ✓");
+  toast("Floor complete. That is a successful day ✓");
 }
-function recordFlowCompletion(s){
+function recordFlowCompletion(s, full){
   const d = getDay(s.date, true);
-  d.mobilityComplete = true;
-  d.mobilityMinutes = Math.round((Date.now() - s.startedAt)/60000);
-  if (s.repEntries && s.repEntries.length) d.repWork = s.repEntries;
+  (s.ticked || []).forEach(id => { if (!d.floorItems.includes(id)) d.floorItems.push(id); });
+  if (full) d.floorComplete = true;
+  d.floorMinutes = Math.round((Date.now() - s.startedAt)/60000);
 }
 function endSessionEarly(){
-  showModal(`<h2>End session?</h2>
-    <p class="dim">Nothing from this block will be logged.</p>
+  showModal(`<h2>End the guided run?</h2>
+    <p class="dim">Items you have already done stay ticked on the checklist.</p>
     <div class="yn"><button class="warn" onclick="confirmEnd()">End it</button>
     <button onclick="closeModal()">Keep going</button></div>`);
 }
 function confirmEnd(){
   closeModal();
+  const s = S();
+  if (s) recordFlowCompletion(s, false);
   state.activeSession = null;
   dropWakeLock(); stopTick(); save();
   closeSession(); render();
@@ -1129,7 +1420,7 @@ function resumeSession(){
         overdue = (Date.now() - s.timer.endsAt)/1000;
       }
       if (overdue > 0){
-        recordFlowCompletion(s);
+        recordFlowCompletion(s, true);
         state.activeSession = null; save(); closeSession(); render(); return;
       }
     }
@@ -1152,22 +1443,15 @@ function flowHTML(s){
   const doneEx = s.steps.slice(0, s.idx).filter(x=>x.type==="ex").length + (st.type==="ex"?1:0);
   const nxt = nextExercise(s);
   let title, rx, cue, cls="";
-  if (st.type === "ex"){
-    title = st.name; rx = st.rx + (st.sets>1 && !st.setNames ? ` · set ${st.set}/${st.sets}` : ""); cue = st.cue;
-  } else if (st.type === "trans"){
-    title = st.name === "Switch sides" ? "Switch sides" : ("Next: " + st.next.name);
-    rx = st.next ? st.next.rx : ""; cue = st.next ? st.next.cue : ""; cls = "transition";
-  } else {
-    title = "Section rest"; rx = PROGRAM.mobility.sectionRest + " seconds";
-    cue = "Up next: " + (nxt ? nxt.name : "done"); cls = "resting";
-  }
+  if (st.type === "ex"){ title = st.name; rx = st.rx || ""; cue = st.cue; }
+  else { title = st.name === "Switch sides" ? "Switch sides" : ("Next: " + st.next.name);
+         rx = st.next ? st.next.rx : ""; cue = st.next ? st.next.cue : ""; cls = "transition"; }
   const paused = s.timer && s.timer.paused;
   const isManual = st.type === "ex" && st.manual;
   const middle = isManual
     ? `<div style="margin:20px 0;">
-        <label>Reps done${st.side ? " ("+st.side.toLowerCase()+")" : ""}</label>
-        <input type="number" id="in-mreps" inputmode="numeric" min="0" value="${st.reps || 0}">
-        <button class="primary big-btn" onclick="logMobilitySet()">Log set ${st.set}/${st.sets} ✓ — next</button>
+        <div class="bigtime" style="font-size:clamp(52px,16vw,88px);">${st.reps || ""}</div>
+        <button class="primary big-btn" onclick="logFloorStep()">Done — next</button>
       </div>`
     : `<div class="bigtime ${cls}" id="bigtime">--</div>
        <div class="progressbar"><div id="stepbar"></div></div>`;
@@ -1182,20 +1466,17 @@ function flowHTML(s){
         <button onclick="skipStep()">Skip ⏭</button></div>`;
   return `<div class="sess-inner">
     <div class="sess-top">
-      <span class="sess-section">${esc(st.section || "Daily mobility block")}</span>
-      <span style="display:flex; gap:8px;">
-        <button class="ghost small" onclick="showStepList()">☰ All</button>
-        <button class="ghost small" onclick="endSessionEarly()">End</button>
-      </span>
+      <span class="sess-section">${esc(st.section || "Daily Floor")}</span>
+      <button class="ghost small" onclick="endSessionEarly()">End</button>
     </div>
-    <div class="faint">Daily mobility block · exercise ${doneEx} of ${exSteps.length}</div>
+    <div class="faint">Floor · step ${doneEx} of ${exSteps.length}</div>
     <div class="sess-name">${esc(title)}</div>
     <div class="sess-rx">${esc(rx)}</div>
     <div class="sess-cue">${esc(cue)}</div>
     ${middle}
     ${nxt && st.type==="ex"
-      ? `<div class="nextup"><div class="nu-label">Next up</div><b>${esc(nxt.name)}</b> — ${esc(nxt.rx)}</div>`
-      : `<div class="nextup" style="visibility:${st.type==='ex'?'visible':'hidden'}"><div class="nu-label">Next up</div>Last exercise — almost done</div>`}
+      ? `<div class="nextup"><div class="nu-label">Next up</div><b>${esc(nxt.name)}</b></div>`
+      : `<div class="nextup" style="visibility:${st.type==='ex'?'visible':'hidden'}"><div class="nu-label">Next up</div>Last one</div>`}
     ${controls}
   </div>`;
 }
@@ -1203,35 +1484,12 @@ function nextExercise(s){
   for (let i=s.idx+1; i<s.steps.length; i++) if (s.steps[i].type === "ex") return s.steps[i];
   return null;
 }
-function showStepList(){
-  const s = S(); if (!s) return;
-  let curEx = s.idx;
-  while (curEx < s.steps.length && s.steps[curEx].type !== "ex") curEx++;
-  let html = `<h2>Full routine</h2><p class="faint" style="margin:0;">Tap an exercise to jump to it.</p><div class="steplist">`;
-  let lastSection = "";
-  s.steps.forEach((st,i)=>{
-    if (st.type !== "ex") return;
-    if (st.section !== lastSection){ html += `<h3>${esc(st.section)}</h3>`; lastSection = st.section; }
-    const cls = i === curEx ? "cur" : (i < s.idx ? "done" : "");
-    html += `<div class="sl-row ${cls}" onclick="jumpToStep(${i})">${i < s.idx ? "✓ " : (i===curEx ? "▶ " : "")}${esc(st.name)} <span class="faint">· ${st.manual ? st.reps + " reps" : st.dur + "s"}</span></div>`;
-  });
-  html += `</div><button class="ghost big-btn" onclick="closeModal()">Close</button>`;
-  showModal(html);
-}
-function jumpToStep(i){
-  const s = S(); if (!s) return;
-  s.idx = i; armStep(); save(); closeModal(); renderSession();
-}
 
-/* ===================== isometric hold timer =====================
-   Four movements in the split are timed holds rather than rep sets (adductor
-   squeeze, plank with PPT, Spanish squat, single-leg balance). They run a
-   countdown in place on the card so the phone can sit on the floor. */
+/* ===================== isometric hold timer ===================== */
 let holdTimer = null, holdState = null;
-function startHold(mid, side){
-  const m = MOVEMENTS[mid];
+function startHold(mid, side, secs){
   ensureAudio(); grabWakeLock();
-  holdState = { mid, side: side||null, endsAt: Date.now() + m.hold*1000, total: m.hold };
+  holdState = { mid, side: side||null, endsAt: Date.now() + secs*1000, total: secs };
   clearInterval(holdTimer);
   holdTimer = setInterval(holdTick, 250);
   render();
@@ -1246,33 +1504,35 @@ function holdTick(){
   if (rem <= 0){
     clearInterval(holdTimer); holdTimer = null;
     cueEnd(); dropWakeLock();
-    const { mid, side } = holdState;
+    const { mid, side, total } = holdState;
     holdState = null; lastWarnSec = null;
-    logHoldSet(mid, side, MOVEMENTS[mid].hold);
+    logHoldSet(mid, side, total);
   }
 }
 function cancelHold(){
   clearInterval(holdTimer); holdTimer = null;
-  const done = holdState ? Math.round(holdState.total - holdLeft()) : 0;
-  const st = holdState; holdState = null; lastWarnSec = null;
+  const st = holdState;
+  const done = st ? Math.round(st.total - holdLeft()) : 0;
+  holdState = null; lastWarnSec = null;
   dropWakeLock();
-  if (st && done >= 3) logHoldSet(st.mid, st.side, done);   // a partial hold still counts as done
+  if (st && done >= 3) logHoldSet(st.mid, st.side, done);
   else render();
 }
 
 /* ===================== strength: inline day logging ===================== */
-let setDraft = {};                      // {mid: {reps, rir, pain, sharp}}
-let restUntil = null, restFor = null;   // inter-set rest, scoped to one movement
+let setDraft = {};
+let restUntil = null, restFor = null;
 
 function draftFor(mid){
   const m = MOVEMENTS[mid];
-  if (!setDraft[mid]) setDraft[mid] = { reps: m.reps || 0, rir: PROGRAM.rir, pain: 0, sharp: false };
+  if (!setDraft[mid]){
+    const spec = specFor(todayStr(), mid);
+    const dose = doseFor(mid, spec ? spec.sets : 3);
+    setDraft[mid] = { reps: dose.reps || 0, rir: PROGRAM.rir, pain: 0, sharp: false };
+  }
   return setDraft[mid];
 }
-function clearDraft(mid){
-  const m = MOVEMENTS[mid];
-  setDraft[mid] = { reps: m.reps || 0, rir: PROGRAM.rir, pain: 0, sharp: false };
-}
+function clearDraft(mid){ delete setDraft[mid]; draftFor(mid); }
 function setRir(mid, v){ draftFor(mid).rir = v; render(); }
 function setPain(mid, v){
   draftFor(mid).pain = v;
@@ -1284,81 +1544,73 @@ function toggleSharp(mid){
   ensureAudio(); beep(d.sharp ? 400 : 880, .1); buzz(40);
   render();
 }
-
-/* How many logged entries make this movement complete today. Rep movements log
-   one entry per set (reps are per side within the set); timed holds log one
-   entry per side, so a per-side hold needs two entries per set. */
-function targetEntries(mid, specSets){
-  const m = MOVEMENTS[mid];
-  const sets = setsFor(mid, specSets);
-  return m.kind === "hold" && m.perSide ? sets*2 : sets;
+/* Today's rotation, or the make-up block layered on top of it. */
+function specFor(date, mid){
+  const rot = rotationFor(date);
+  let spec = rot.movements.find(x => x.id === mid);
+  if (spec) return spec;
+  const d = state.days[date];
+  if (d && d.makeup){
+    spec = rotationFor(d.makeup.from).movements.find(x => x.id === mid);
+    if (spec) return spec;
+  }
+  return null;
 }
 function workFor(d, mid){
   return d.work[mid] || (d.work[mid] = { sets: [], stopped:false, stopReason:null });
 }
-function movementComplete(d, mid, specSets){
-  const w = d.work[mid];
-  if (!w) return false;
-  return w.stopped || w.sets.length >= targetEntries(mid, specSets);
-}
-
-function afterLog(mid, specSets, gated){
+function afterLog(mid, baseSets, gated){
   const date = todayStr(), d = getDay(date, true), w = workFor(d, mid);
   if (gated){
+    const dr = draftFor(mid);
     w.stopped = true;
-    w.stopReason = draftFor(mid).sharp
-      ? "Sharp or catching"
-      : `Pain ${draftFor(mid).pain}/10 — above the ${PROGRAM.painLimit}/10 limit`;
+    w.stopReason = dr.sharp ? "Sharp or catching"
+      : `Pain ${dr.pain}/10 — above the ${PROGRAM.painLimit}/10 limit`;
   }
   clearDraft(mid);
-  const complete = movementComplete(d, mid, specSets);
+  const complete = movementComplete(d, mid, baseSets);
   if (!complete){
-    restUntil = Date.now() + MOVEMENTS[mid].rest*1000; restFor = mid; startRestTick();
-  } else {
-    restUntil = null; restFor = null;
-  }
+    restUntil = Date.now() + (MOVEMENTS[mid].rest||60)*1000; restFor = mid; startRestTick();
+  } else { restUntil = null; restFor = null; }
   cueEnd(); save(); render();
   if (gated) showPainStop(mid);
-  else if (complete) closeOutMovement(mid, date);
+  else if (complete) closeOutMovement(mid, date, baseSets);
 }
-
-function logStrengthSet(mid, specSets){
+function logStrengthSet(mid, baseSets){
   const date = todayStr(), d = getDay(date, true), w = workFor(d, mid);
   const draft = draftFor(mid);
   const repsEl = document.getElementById("reps-"+mid);
   if (repsEl) draft.reps = parseInt(repsEl.value) || 0;
-  const r = rung(mid);
+  const dose = doseFor(mid, baseSets);
   w.sets.push({
     setNumber: w.sets.length + 1,
-    rung: r.label, load: r.num,
+    rung: dose.label, load: dose.num,
     reps: draft.reps, rir: draft.rir,
     pain: draft.pain, sharp: draft.sharp,
     loggedAt: Date.now()
   });
-  afterLog(mid, specSets, painGated(draft.pain, draft.sharp));
+  afterLog(mid, baseSets, painGated(draft.pain, draft.sharp));
 }
 function logHoldSet(mid, side, seconds){
   const date = todayStr(), d = getDay(date, true), w = workFor(d, mid);
   const draft = draftFor(mid);
-  const r = rung(mid);
+  const spec = specFor(date, mid) || { sets: w.sets.length };
+  const dose = doseFor(mid, spec.sets);
   w.sets.push({
     setNumber: w.sets.length + 1,
-    rung: r.label, side: side || null,
+    rung: dose.label, side: side || null,
     seconds, pain: draft.pain, sharp: draft.sharp,
     loggedAt: Date.now()
   });
-  // Find the spec so completion and rest behave the same as a rep movement.
-  // specFor also looks into a make-up block, whose movements are not in today's rotation.
-  const spec = specFor(date, mid) || { sets: w.sets.length };
   afterLog(mid, spec.sets, painGated(draft.pain, draft.sharp));
 }
 function undoSet(mid){
   const d = getDay(todayStr(), true), w = d.work[mid];
   if (!w || !w.sets.length) return;
   w.sets.pop();
-  w.stopped = false; w.stopReason = null; w.evaluated = false;
+  w.stopped = false; w.stopReason = null; w.evaluated = false; w.qualified = false;
   restUntil = null; restFor = null;
-  save(); render();
+  recomputeStreaks(); save(); render();
 }
 function showPainStop(mid){
   const m = MOVEMENTS[mid];
@@ -1367,7 +1619,6 @@ function showPainStop(mid){
     <p class="dim">${esc(PROGRAM.pain.during)}</p>
     <p class="dim">Substitute one of:</p>
     <ul class="tight dim">${PROGRAM.pain.substitutes.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
-    <p class="faint">The stop is recorded against ${esc(rung(mid).label)} and shows up at the next progression decision.</p>
     <button class="primary big-btn" onclick="closeModal(); render();">Understood</button>`);
 }
 let restHandle = null;
@@ -1385,86 +1636,42 @@ function startRestTick(){
   }, 500);
 }
 
-/* ===================== make-up sessions =====================
-   A missed strength day can be picked up on a later day. The work is logged
-   against the day it is ACTUALLY performed, never backdated into the day that
-   was missed: the 24-hour check reads yesterday's `work` to decide what a
-   symptom is attributable to, and the volume-cut rule keys off that, so
-   backfilling would silently misattribute the load. The missed day instead
-   carries a `madeUpOn` pointer, which is what credits it in the week view. */
-
-function specFor(date, mid){
+/* ===================== make-up =====================
+   Section 7. Each strength day has exactly one slot, the next day: Monday to
+   Tuesday, Thursday to Friday, Saturday to Sunday. Nothing stacks two strength
+   sessions on one day, and the Floor is never made up — each day stands alone. */
+function makeupSourceDow(todayDow){
+  const entry = Object.entries(PROGRAM.makeup).find(([, slot]) => Number(slot) === todayDow);
+  return entry ? Number(entry[0]) : null;
+}
+function makeupCandidate(){
+  const t = todayStr();
+  if (isStrengthDay(t)) return null;                   // never stack two sessions
+  const srcDow = makeupSourceDow(dowOf(t));
+  if (srcDow == null) return null;
+  const date = addDays(t, -1);
+  if (dowOf(date) !== srcDow) return null;
   const rot = rotationFor(date);
-  let spec = rot.movements.find(x => x.id === mid);
-  if (spec) return spec;
   const d = state.days[date];
-  if (d && d.makeup){
-    spec = rotationFor(d.makeup.from).movements.find(x => x.id === mid);
-    if (spec) return spec;
-  }
-  return null;
+  if (d && d.madeUpOn) return null;
+  const missing = rot.movements.filter(spec => !movementComplete(d, spec.id, spec.sets));
+  if (!missing.length) return null;
+  return { date, rot, missing, deferred: !!(d && d.deferred),
+           partial: missing.length < rot.movements.length };
 }
-
-/* `evaluated` is set by closeOutMovement, so it is the authoritative record
-   that a movement was finished on that day — including sessions that ran at
-   half volume under a cut, which a raw set count would misread as unfinished. */
-function movementDone(d, spec){
-  const w = d && d.work && d.work[spec.id];
-  if (!w) return false;
-  return !!w.evaluated || w.stopped || w.sets.length >= targetEntries(spec.id, spec.sets);
-}
-
-function missedSessions(){
-  const t = todayStr(), out = [];
-  for (let k = 1; k <= PROGRAM.makeupWindow; k++){
-    const date = addDays(t, -k);
-    if (date < state.program.start) break;
-    const rot = rotationFor(date);
-    if (rot.type !== "strength") continue;
-    const d = state.days[date];
-    if (d && d.madeUpOn) continue;
-    const missing = rot.movements.filter(spec => !movementDone(d, spec));
-    if (missing.length)
-      out.push({ date, rot, missing, partial: missing.length < rot.movements.length });
-  }
-  return out;
-}
-
-function nextMatchWithin(fromDate, days){
-  for (let k = 0; k <= days; k++){
-    const dt = addDays(fromDate, k);
-    if (rotationFor(dt).type === "match") return { date: dt, inDays: k };
-  }
-  return null;
-}
-/* The program's own timing rules, checked against the day you want to train —
-   surfaced as warnings, never as blocks. Moving a session is your call. */
-function makeupConflicts(srcRot, onDate){
-  const out = [];
-  if (rotationFor(onDate).type === "match")
-    out.push("There is a match today — that plus the 11+ is already the week's highest load.");
-  const m = nextMatchWithin(onDate, 2);
-  const when = m ? (m.inDays === 0 ? "today" : m.inDays === 1 ? "tomorrow" : "in two days") : "";
-  if (srcRot.eccentric && m)
-    out.push(`Standing rule: never add novel high-volume eccentrics within 48 hours of a match, and the next match is ${when}.`);
-  if (srcRot.lowerBody && !srcRot.eccentric && m && m.inDays === 1)
-    out.push(`This is lower-body loading the day before a match (${fmtShort(m.date)}). The program deliberately keeps that day clear of it.`);
-  return out;
-}
-
 function startMakeup(date){
   const t = todayStr(), d = getDay(t, true);
-  if (d.makeup){ toast("Finish or remove the current make-up session first."); return; }
+  if (d.makeup){ toast("A make-up is already running today."); return; }
   d.makeup = { from: date, addedAt: Date.now() };
   getDay(date, true).madeUpOn = t;
-  save(); closeModal(); render(); window.scrollTo(0, 0);
-  toast(`${DOW[rotationFor(date).day]}'s session added to today ✓`);
+  save(); closeModal(); render(); window.scrollTo(0,0);
+  toast(`${DOW[dowOf(date)]}'s session added to today ✓`);
 }
 function cancelMakeup(){
   const t = todayStr(), d = getDay(t, true);
   if (!d.makeup) return;
   const specs = rotationFor(d.makeup.from).movements;
-  if (specs.some(s => ((d.work[s.id] || {}).sets || []).length)){
+  if (specs.some(s => ((d.work[s.id]||{}).sets||[]).length)){
     toast("Undo the logged sets first."); return;
   }
   const src = state.days[d.makeup.from];
@@ -1472,84 +1679,49 @@ function cancelMakeup(){
   specs.forEach(s => { delete d.work[s.id]; });
   delete d.makeup;
   save(); render();
-  toast("Make-up session removed.");
+  toast("Make-up removed.");
 }
 
-function makeupBlockHTML(d){
-  if (!d.makeup) return "";
-  const src = rotationFor(d.makeup.from);
-  const specs = src.movements;
-  const anyWork = specs.some(s => ((d.work[s.id] || {}).sets || []).length);
-  const allDone = specs.every(s => movementComplete(d, s.id, s.sets));
-  const conflicts = makeupConflicts(src, d.date);
-  return `
-    <div class="makeup-head">
-      <div class="nu-label">Make-up session</div>
-      <h2>${DOW[src.day]} · ${esc(src.label)}</h2>
-      <p class="faint" style="margin:4px 0 0;">Missed ${esc(fmtDate(d.makeup.from))}. It logs against today, so tomorrow's 24-hour check still attributes the load to the day you actually trained.</p>
-    </div>
-    ${conflicts.map(c => `<div class="banner amber"><span>⚠️ ${esc(c)}</span></div>`).join("")}
-    ${allDone ? `<div class="banner green"><span>✓ Made up — ${esc(fmtShort(d.makeup.from))} is credited in the week view.</span></div>` : ""}
-    ${specs.map(spec => movementCardHTML(d, spec)).join("")}
-    ${!anyWork ? `<button class="ghost big-btn" onclick="cancelMakeup()">Remove this make-up session</button>` : ""}
-  `;
+/* ===================== never zero ===================== */
+function shortOnTime(){
+  const t = todayStr(), d = getDay(t, true);
+  showModal(`<h2>Short on time</h2>
+    <p>Today becomes <b>Floor only</b>. ${esc(rotationFor(t).label)} is marked deferred, and you can pick it up tomorrow.</p>
+    <p class="dim">The day still counts as a successful one. That is the point of the Floor.</p>
+    <div class="yn">
+      <button class="primary" onclick="confirmShortOnTime()">Floor only today</button>
+      <button class="ghost" onclick="closeModal()">Cancel</button></div>`);
 }
-function makeupPromptHTML(d){
-  if (d.makeup) return "";
-  const missed = missedSessions();
-  if (!missed.length) return "";
-  const list = missed.slice(0, 3).map(x =>
-    `<li>${DOW[x.rot.day]} ${esc(fmtShort(x.date))} — ${esc(x.rot.label)}${x.partial ? " <span class=\"faint\">(part done)</span>" : ""}</li>`).join("");
-  return `<div class="card">
-    <div class="set-head"><h2 style="margin:0;">Missed sessions</h2>
-      <span class="chip amber">${missed.length}</span></div>
-    <ul class="tight dim" style="margin:6px 0 10px;">${list}${missed.length > 3 ? `<li class="faint">and ${missed.length - 3} more</li>` : ""}</ul>
-    <button class="big-btn" style="margin-top:0;" onclick="showModal(chooseMakeupHTML())">Make one up today</button>
-  </div>`;
+function confirmShortOnTime(){
+  const d = getDay(todayStr(), true);
+  d.deferred = true;
+  save(); closeModal(); render();
+  toast("Floor only today. Still a win ✓");
 }
-function chooseMakeupHTML(){
-  const missed = missedSessions(), t = todayStr();
-  if (!missed.length)
-    return `<h2>Nothing outstanding</h2>
-      <p class="dim">No missed strength session in the last ${PROGRAM.makeupWindow} days.</p>
-      <button class="ghost big-btn" onclick="closeModal()">Close</button>`;
-  const rows = missed.map(x => {
-    const conflicts = makeupConflicts(x.rot, t);
-    return `<div class="card" style="margin-bottom:10px;">
-      <div class="set-head"><h2 style="margin:0; font-size:1.05rem;">${DOW[x.rot.day]} · ${esc(x.rot.label)}</h2>
-        <span class="chip">${esc(fmtShort(x.date))}</span></div>
-      <p class="faint" style="margin:4px 0 6px;">${x.partial ? "Part done — still " : "Outstanding: "}${x.missing.map(s => esc(MOVEMENTS[s.id].short)).join(", ")}</p>
-      ${conflicts.map(c => `<div class="banner amber" style="margin:8px 0;"><span>⚠️ ${esc(c)}</span></div>`).join("")}
-      <button class="${conflicts.length ? "" : "primary"} big-btn" style="margin-top:0;" onclick="startMakeup('${x.date}')">
-        ${conflicts.length ? "Do it today anyway" : "Do it today"}</button>
-    </div>`;
-  }).join("");
-  return `<h2>Make up a session</h2>
-    <p class="faint" style="margin:0 0 10px;">One at a time. The work is logged against today, not backdated.</p>
-    ${rows}
-    <button class="ghost big-btn" onclick="closeModal()">Cancel</button>`;
+function undoShortOnTime(){
+  const d = getDay(todayStr(), true);
+  d.deferred = false;
+  save(); render();
 }
 
-/* ===================== match / run / reassessment ===================== */
+/* ===================== soccer ===================== */
 function matchFormHTML(){
-  const rot = rotationFor(todayStr());
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,"0"), mm = String(now.getMinutes()).padStart(2,"0");
-  const mins = rot.match ? rot.match.minutes : 50;
-  return `<h2>Log the match</h2>
-    <label>Match ended at</label>
+  return `<h2>Log soccer</h2>
+    <label>Finished at</label>
     <input type="time" id="m-end" value="${hh}:${mm}">
     <label>Minutes played</label>
-    <input type="number" id="m-min" inputmode="numeric" min="0" value="${mins}">
-    <label>Right knee pain during the match (0–10)</label>
+    <input type="number" id="m-min" inputmode="numeric" min="0" value="40">
+    <label>Knee pain during (0–10)</label>
     <input type="number" id="m-pain" inputmode="numeric" min="0" max="10" value="0">
-    <label>Kicking range / hip restriction — note it while it is fresh</label>
-    <textarea id="m-note" placeholder="e.g. kick height better than last week, still tight stretching for a wide ball"></textarea>
+    <label>Note (optional)</label>
+    <textarea id="m-note" placeholder="e.g. felt good on cuts"></textarea>
     <div class="yn"><button class="primary" onclick="saveMatch()">Save ✓</button>
     <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
 }
 function saveMatch(){
-  const d = getDay(todayStr(), true), rot = rotationFor(todayStr());
+  const d = getDay(todayStr(), true);
   const t = document.getElementById("m-end").value || "";
   const [hh,mm] = t.split(":").map(Number);
   const now = new Date();
@@ -1558,67 +1730,38 @@ function saveMatch(){
   d.match = {
     endTime: end.getTime(),
     minutes: parseInt(document.getElementById("m-min").value)||0,
-    format: rot.match ? rot.match.format : null,
+    format: "7-a-side",
     painDuring: Math.min(10, Math.max(0, parseInt(document.getElementById("m-pain").value)||0)),
     note: document.getElementById("m-note").value.trim()
   };
   save(); closeModal(); render();
-  toast("Match logged ✓");
+  toast("Soccer logged ✓");
 }
 
-function runsThisWeek(ref){
-  const mon = mondayOf(ref || todayStr());
-  let n = 0, mins = 0;
-  for (let i=0;i<7;i++){
-    const d = state.days[addDays(mon,i)];
-    if (d && d.run){ n++; mins += (d.run.intervals||0) * (d.run.runMin||0); }
+/* ===================== assessments ===================== */
+function assessDue(){
+  const t = todayStr();
+  const due = PROGRAM.assessDates.filter(d => d <= t);
+  if (!due.length) return null;
+  const latest = due[due.length-1];
+  return state.assessments.some(a => a.date >= latest && a.source !== "push-up max test") ? null : latest;
+}
+function nextAssessDate(){
+  const t = todayStr();
+  return PROGRAM.assessDates.find(d => d > t) || null;
+}
+function assessFlags(values){
+  const out = [];
+  const num = k => values[k] != null && !isNaN(Number(values[k])) ? Number(values[k]) : null;
+  const kl = num("ktw_l"), kr = num("ktw_r");
+  if (kl != null && kr != null && Math.abs(kl-kr) > 0.8)
+    out.push(`Knee-to-wall asymmetry ${Math.abs(kl-kr).toFixed(2)} in — over the 0.8 in threshold.`);
+  const hl = num("hop_l"), hr = num("hop_r");
+  if (hl != null && hr != null && Math.max(hl,hr) > 0){
+    const pct = Math.abs(hl-hr)/Math.max(hl,hr)*100;
+    if (pct > 10) out.push(`Hop asymmetry ${pct.toFixed(0)}% — over the 10% threshold (${hl < hr ? "left" : "right"} is lower).`);
   }
-  return { n, mins };
-}
-function runFormHTML(){
-  const R = PROGRAM.running, t = todayStr();
-  const wk = runsThisWeek(t), prev = runsThisWeek(addDays(t,-7));
-  const cap = prev.mins ? Math.floor(prev.mins * (1 + R.growthCap)) : null;
-  const warns = [];
-  if (wk.n >= R.maxPerWeek)
-    warns.push(`${wk.n} runs already this week — the cap is ${R.maxPerWeek}.`);
-  if (dowOf(t) === 6 && weeksIn() < R.protectedWeeks)
-    warns.push(`It is Saturday, week ${weeksIn()+1} of the program. Never run the day before Sunday's match during the first ${R.protectedWeeks} weeks.`);
-  if (cap != null && wk.mins >= cap)
-    warns.push(`This week is at ${wk.mins} run-minutes against last week's ${prev.mins}. The 10% cap is ${cap}.`);
-  return `<h2>Log a run</h2>
-    ${warns.map(w=>`<div class="banner amber" style="margin:10px 0 0;"><span>⚠️ ${esc(w)}</span></div>`).join("")}
-    <label>Intervals completed</label>
-    <input type="number" id="r-int" inputmode="numeric" min="0" value="${R.intervals}">
-    <label>Run minutes per interval</label>
-    <input type="number" id="r-run" inputmode="numeric" min="0" value="${R.runMin}">
-    <label>Walk minutes per interval</label>
-    <input type="number" id="r-walk" inputmode="numeric" min="0" value="${R.walkMin}">
-    <label>Metronome cadence (steps/min, optional)</label>
-    <input type="number" id="r-cad" inputmode="numeric" min="0" placeholder="5–10% above current">
-    <label>Note (optional)</label>
-    <textarea id="r-note" placeholder="e.g. flat route, felt fine throughout"></textarea>
-    <div class="yn"><button class="primary" onclick="saveRun()">Save ✓</button>
-    <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
-}
-function saveRun(){
-  const d = getDay(todayStr(), true);
-  const num = id => parseInt(document.getElementById(id).value) || 0;
-  d.run = {
-    intervals: num("r-int"), runMin: num("r-run"), walkMin: num("r-walk"),
-    cadence: num("r-cad") || null,
-    note: document.getElementById("r-note").value.trim()
-  };
-  save(); closeModal(); render();
-  toast(`Run logged — ${d.run.intervals * d.run.runMin} run-minutes ✓`);
-}
-
-function reassessDue(){
-  const w = weeksIn();
-  const target = PROGRAM.reassessWeeks.filter(x => w >= x);
-  if (!target.length) return null;
-  const latest = target[target.length-1];
-  return state.assessments.some(a => a.weeksIn >= latest) ? null : latest;
+  return out;
 }
 function assessFormHTML(){
   const prev = state.assessments.length ? state.assessments[state.assessments.length-1] : null;
@@ -1628,13 +1771,11 @@ function assessFormHTML(){
     if (m.type === "bool")
       return `<label>${esc(m.label)}<br>${hint}</label>
         <select id="a-${m.id}"><option value="">—</option><option value="yes">Yes</option><option value="no">No</option></select>`;
-    if (m.type === "text")
-      return `<label>${esc(m.label)}<br>${hint}</label><textarea id="a-${m.id}"></textarea>`;
     return `<label>${esc(m.label)}<br>${hint}</label>
       <input type="number" id="a-${m.id}" inputmode="decimal" step="0.25">`;
   }).join("");
-  return `<h2>Reassessment — week ${weeksIn()}</h2>
-    <p class="faint" style="margin:0;">Leave anything you did not measure blank. Partial entries are fine and still export.</p>
+  return `<h2>Assessment — week ${blockWeek()}</h2>
+    <p class="faint" style="margin:0;">Before Strength C. Leave anything you did not measure blank.</p>
     ${fields}
     <div class="yn"><button class="primary" onclick="saveAssessment()">Save ✓</button>
     <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
@@ -1647,14 +1788,36 @@ function saveAssessment(){
     const v = String(el.value).trim();
     if (v !== "") values[m.id] = m.type === "num" ? parseFloat(v) : v;
   });
-  state.assessments.push({ id: uid(), date: todayStr(), weeksIn: weeksIn(), values });
+  state.assessments.push({ id: uid(), date: todayStr(), weekOfBlock: blockWeek(), values });
+  state.assessments.sort((a,b)=>a.date.localeCompare(b.date));
+  applyAssessmentToBonus(values);
+  if (values.pushup_max != null) state.needPushupMax = false;
   save(); closeModal(); render();
-  const n = Object.keys(values).length;
-  toast(n ? `Reassessment saved — ${n} measures ✓` : "Reassessment saved (empty).");
+  const flags = assessFlags(values);
+  if (flags.length){
+    showModal(`<h2 style="color:var(--amber)">Worth noting</h2>
+      <ul class="tight dim">${flags.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
+      <button class="primary big-btn" onclick="closeModal(); render();">Got it</button>`);
+  } else {
+    toast(`Assessment saved — ${Object.keys(values).length} measures ✓`);
+  }
+}
+function deleteSeededAssessment(){
+  state.assessments = state.assessments.filter(a => a.source !== PROGRAM.seedAssessment.source);
+  save(); render();
+  toast("Seeded baseline removed.");
 }
 
 /* ===================== views ===================== */
 let view = "today";
+let bonusHoldTimer = null, bonusHeld = false;
+function bonusHoldStart(mid){
+  bonusHeld = false;
+  clearTimeout(bonusHoldTimer);
+  bonusHoldTimer = setTimeout(()=>{ bonusHeld = true; buzz(40); showModal(bonusEditorHTML(mid)); }, 550);
+}
+function bonusHoldEnd(){ clearTimeout(bonusHoldTimer); }
+
 function nav(v){ view = v; render(); window.scrollTo(0,0); }
 document.getElementById("nav").addEventListener("click", e=>{
   const b = e.target.closest("button"); if (b) nav(b.dataset.v);
@@ -1674,105 +1837,198 @@ function todayHTML(){
   const banners = [];
 
   if (state.program.notice)
-    banners.push(`<div class="banner amber"><span>ℹ️ ${esc(state.program.notice)}</span>
+    banners.push(`<div class="banner blue"><span>ℹ️ ${esc(state.program.notice)}</span>
       <button onclick="dismissNotice()">Dismiss</button></div>`);
 
-  if (!baselineKnown())
-    banners.push(`<div class="banner blue"><span>🎯 No knee baseline set. The 24-hour checks are read against it.</span>
-      <button onclick="askBaseline()">Set it</button></div>`);
+  if (!blockStarted())
+    banners.push(`<div class="banner amber"><span>📅 The block starts ${esc(fmtDate(PROGRAM.blockStart))}. Everything works now; the week counter begins then.</span></div>`);
+
+  if (d.reentry && d.reentry.note)
+    banners.push(`<div class="banner green"><span>👋 ${esc(d.reentry.note)}${d.reentry.dropped && d.reentry.dropped.length ? " Dropped a rung on " + esc(d.reentry.dropped.join(", ")) + "." : ""}</span></div>`);
 
   if (checkDue())
     banners.push(`<div class="banner blue"><span>🌅 24-hour check not logged yet.</span>
       <button onclick="askCheck()">Log it</button></div>`);
 
-  if (escalationFlagged())
-    banners.push(`<div class="banner red"><span>🚩 Two consecutive weeks without improvement — the program's escalation flag.</span>
-      <button onclick="nav('prog')">Review</button></div>`);
+  const ready = readyMovements();
+  if (ready.length)
+    banners.push(`<div class="banner green"><span>⬆️ Ready to move up: ${esc(ready.map(m=>MOVEMENTS[m].short).join(", "))}.</span>
+      <button onclick="offerAdvance('${ready[0]}')">Review</button></div>`);
 
-  const due = reassessDue();
+  const due = assessDue();
   if (due)
-    banners.push(`<div class="banner amber"><span>📋 Week ${due} reassessment is due (you are ${weeksIn()} weeks in).</span>
+    banners.push(`<div class="banner amber"><span>📋 Assessment due (${esc(fmtShort(due))}) — do it before Strength C.</span>
       <button onclick="showModal(assessFormHTML())">Do it</button></div>`);
 
-  const logged = Object.values(state.days).filter(x =>
-    Object.keys(x.work||{}).length || x.mobilityComplete || x.match || x.run).length;
-  if (!logged && !state.painChecks.length)
-    banners.push(`<div class="banner blue"><span>📭 No training history on this device. An app added to the Home Screen can keep its own storage, separate from Safari — if your history is in Safari, export a JSON backup there and import it here.</span>
-      <button onclick="nav('data')">Import</button></div>`);
-
-  const cuts = Object.keys(state.cuts).filter(m=>MOVEMENTS[m]);
-  if (cuts.length)
-    banners.push(`<div class="banner amber"><span>➗ Half volume queued for ${esc(cuts.map(m=>MOVEMENTS[m].short).join(", "))} after a 24-hour check above baseline.</span></div>`);
+  if (bonusResting())
+    banners.push(`<div class="banner amber"><span>🛑 Bonus sets resting until ${esc(fmtShort(state.bonusRestUntil))} after reported elbow or shoulder pain.</span></div>`);
 
   const exportRef = state.lastExport || state.firstSeen;
-  if (daysBetween(exportRef, t) >= 7 && Object.keys(state.days).length)
+  if (daysBetween(exportRef, t) >= 14 && Object.keys(state.days).length)
     banners.push(`<div class="banner amber"><span>💾 ${state.lastExport ? "It's been "+daysBetween(state.lastExport,t)+" days since your last backup" : "No backup yet"}. Your data lives only in this browser.</span>
       <button onclick="exportJSON()">Back up</button></div>`);
 
   const resume = state.activeSession
-    ? `<div class="banner green"><span>▶ Mobility block in progress.</span><button onclick="resumeFromBanner()">Resume</button></div>` : "";
+    ? `<div class="banner green"><span>▶ Guided Floor in progress.</span><button onclick="resumeFromBanner()">Resume</button></div>` : "";
+
+  const wk = weekStats(mondayOf(t));
+  const bw = blockWeek();
 
   return `
     <h1>${DOW[rot.day]} · ${esc(rot.label)}</h1>
     <div style="margin-bottom:12px;">
       <span class="chip">${fmtDate(t)}</span>
-      <span class="chip green">Week ${weeksIn()+1}</span>
+      ${bw ? `<span class="chip green">Week ${bw} of ${PROGRAM.blockWeeks}</span>` : `<span class="chip">Pre-block</span>`}
       <span class="chip">${esc(rot.est)}</span>
     </div>
     ${resume}${banners.join("")}
+    ${weekStripHTML(wk)}
     ${rot.note ? `<p class="dim" style="margin:0 0 12px; font-size:.95rem;">${esc(rot.note)}</p>` : ""}
-    ${rot.type === "match" ? matchDayHTML(d, rot) : strengthDayHTML(d, rot)}
+    ${floorCardHTML(d)}
+    ${bonusCardHTML(d)}
+    ${rot.type === "match" ? matchCardHTML(d) : ""}
+    ${strengthSectionHTML(d, rot)}
     ${makeupBlockHTML(d)}
     ${makeupPromptHTML(d)}
-    ${mobilityCardHTML(d)}
-    ${runCardHTML(d)}
+    ${morningFlowHTML()}
   `;
 }
 
-function matchDayHTML(d, rot){
-  const m = d.match;
-  return `<div class="card ${d.warmupDone?"":"accent"}">
-    <div class="set-head"><h2 style="margin:0;">FIFA 11+ warm-up</h2>
-      ${d.warmupDone ? '<span class="chip green">done</span>' : `<span class="chip">${esc(PROGRAM.warmup.total)}</span>`}</div>
-    <p class="faint" style="margin:4px 0 8px;">The highest-yield single thing in the program, and it only works if it is actually run at both matches. Every exercise is called out loud, so the phone can stay in your bag.</p>
-    <a href="${PROGRAM.warmup.href}" style="text-decoration:none;">
-      <button class="primary big-btn" style="margin-top:0;">▶ Open the 11+ warm-up</button></a>
-    <div class="checkrow">
-      <button onclick="toggleFlag('warmupDone')">
-        <span class="cbox ${d.warmupDone?"on":""}">${d.warmupDone?"✓":""}</span>
-        <span>11+ completed before kick-off</span></button>
+function weekStripHTML(wk){
+  const f = PROGRAM.win.floorDays, s = PROGRAM.win.strengthSessions;
+  return `<div class="card ${wk.win?"accent":""}">
+    <div class="set-head"><h2 style="margin:0;">This week</h2>
+      ${wk.win ? '<span class="chip green">win ✓</span>' : `<span class="chip">${(wk.floor>=f?1:0)+(wk.strength>=s?1:0)}/2 targets</span>`}</div>
+    <div class="winrow">
+      <div class="winstat"><b class="${wk.floor>=f?"hit":""}">${wk.floor}/7</b><span>Floor days</span></div>
+      <div class="winstat"><b class="${wk.strength>=s?"hit":""}">${wk.strength}/${wk.slots||3}</b><span>Strength</span></div>
+      <div class="winstat"><b>${winStreak()}</b><span>Win streak</span></div>
+      <div class="winstat"><b>${winWeeksTotal()}</b><span>Wins / ${PROGRAM.blockWeeks}</span></div>
     </div>
-    <details style="margin-top:6px;"><summary class="faint" style="cursor:pointer;">The 15 exercises</summary>
-      ${PROGRAM.warmup.parts.map(p=>`<h3 style="margin-top:10px;">${esc(p.name)}</h3>
-        <ul class="tight faint">${p.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`).join("")}
-    </details>
-  </div>
-  <div class="card ${m?"":"accent"}">
-    <div class="set-head"><h2 style="margin:0;">${esc(rot.match.format)} match</h2>
-      ${m ? `<span class="chip green">${m.minutes} min</span>` : `<span class="chip">${rot.match.minutes} min</span>`}</div>
-    <p class="faint" style="margin:4px 0 8px;">No separate strength work today. Note the kicking range while it is fresh — it is one of the reassessment measures.</p>
-    <button class="${m?"ghost":""} big-btn" onclick="showModal(matchFormHTML())">${m ? "Update the match log" : "Log the match"}</button>
-    ${m ? `<p class="faint" style="margin-top:8px;">Ended ${fmtTime(m.endTime)} · ${m.minutes} min · knee ${m.painDuring}/10 during${m.note?` · “${esc(m.note)}”`:""}</p>` : ""}
+    <p class="faint" style="margin:8px 0 0;">A week wins at ${f}+ Floor days and ${s}+ strength sessions. There is no daily streak here on purpose.</p>
   </div>`;
 }
 
-function strengthDayHTML(d, rot){
-  return rot.movements.map(spec => movementCardHTML(d, spec)).join("");
+function floorCardHTML(d){
+  const items = floorItemsFor(d.date);
+  const extended = dowOf(d.date) === 6;
+  const ticked = items.filter(it => d.floorItems.includes(it.id)).length;
+  return `<div class="card ${d.floorComplete?"":"accent"}">
+    <div class="set-head"><h2 style="margin:0;">Daily Floor</h2>
+      ${d.floorComplete ? '<span class="chip green">done</span>'
+        : `<span class="chip">${extended ? PROGRAM.floor.extendedMinutes : PROGRAM.floor.minutes} min · ${ticked}/${items.length}</span>`}</div>
+    <p class="faint" style="margin:4px 0 10px;">Every day, in order, no rest between items.${extended ? " Saturday adds the foam rolling." : ""} This on its own is a successful day.</p>
+    ${items.map(it=>{
+      const on = d.floorItems.includes(it.id);
+      return `<div class="floorrow ${on?"on":""}">
+        <button onclick="toggleFloorItem('${it.id}')">
+          <span class="cbox ${on?"on":""}">${on?"✓":""}</span>
+          <span class="ftext"><b>${esc(it.name)}</b><span>${esc(it.dose)} · ${esc(it.cue)}</span></span>
+        </button></div>`;
+    }).join("")}
+    <button class="${d.floorComplete?"ghost":"primary"} big-btn" onclick="completeFloor()">
+      ${d.floorComplete ? "✓ Floor complete — undo" : "Floor complete"}</button>
+    <button class="ghost big-btn" onclick="startFloorRun()">▶ Run it guided, hands-free</button>
+  </div>`;
+}
+
+function bonusCardHTML(d){
+  if (bonusResting()){
+    return `<div class="card muted">
+      <h2 style="margin:0;">Bonus sets</h2>
+      <p class="faint" style="margin:6px 0 0;">Resting until ${esc(fmtShort(state.bonusRestUntil))}.</p>
+    </div>`;
+  }
+  const btn = (mid, label) => {
+    const allowed = bonusAllowedToday(mid);
+    const dose = bonusDose(mid);
+    const n = bonusCount(mid);
+    const cfg = PROGRAM.bonus[mid];
+    return `<button class="bonusbtn" ${allowed?"":"disabled"}
+      onclick="logBonusSet('${mid}')"
+      onpointerdown="bonusHoldStart('${mid}')" onpointerup="bonusHoldEnd()"
+      onpointercancel="bonusHoldEnd()" onpointerleave="bonusHoldEnd()">
+      ${allowed && bonusNag(mid) ? '<span class="nag"></span>' : ""}
+      <b>${n}</b>
+      <span>${esc(label)}<br>${allowed ? (dose.reps != null ? dose.reps + " reps · target " + cfg.setsPerDay[0] + "–" + cfg.setsPerDay[1] : "set your max first")
+        : (cfg.note ? esc(cfg.note) : "not today")}</span>
+    </button>`;
+  };
+  return `<div class="card">
+    <div class="set-head"><h2 style="margin:0;">Bonus sets</h2>
+      <span class="chip">week: ${bonusWeekCount("pullup_bonus")} / ${bonusWeekCount("pushup_bonus")}</span></div>
+    <p class="faint" style="margin:4px 0 8px;">Spread through the work day, at least an hour apart, never to failure. Extras — they do not count toward the weekly win. Hold a button to edit today's sets.</p>
+    <div class="bonusgrid">
+      ${btn("pullup_bonus","+1 pull-up set")}
+      ${btn("pushup_bonus","+1 push-up set")}
+    </div>
+    <div class="bonusmeta">
+      <span class="faint">Today: ${bonusCount("pullup_bonus")} pull-up · ${bonusCount("pushup_bonus")} push-up</span>
+      <button class="ghost small" onclick="showModal(bonusPainHTML())">Elbow / shoulder pain</button>
+    </div>
+  </div>`;
+}
+function bonusPainHTML(){
+  return `<h2>Elbow or shoulder pain</h2>
+    <p class="dim" style="margin:0;">Bonus sets pause for ${PROGRAM.bonus.painRestDays} days and the counters disappear. The Floor and the strength sessions carry on.</p>
+    <div class="yn"><button class="warn" onclick="reportBonusPain()">Rest bonus sets 3 days</button>
+    <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
+}
+
+function matchCardHTML(d){
+  const m = d.match;
+  return `<div class="card ${m?"":"accent"}">
+    <div class="set-head"><h2 style="margin:0;">Soccer — 7-a-side</h2>
+      ${m ? `<span class="chip green">${m.minutes} min</span>` : `<span class="chip">evening</span>`}</div>
+    <p class="faint" style="margin:4px 0 8px;">Floor in the morning, soccer in the evening. No loaded lower-body work tomorrow.</p>
+    <a href="${PROGRAM.warmup.href}" style="text-decoration:none;">
+      <button class="ghost big-btn" style="margin-top:0;">▶ 11+ warm-up (${esc(PROGRAM.warmup.total)})</button></a>
+    <button class="${m?"ghost":""} big-btn" onclick="showModal(matchFormHTML())">${m ? "Update the soccer log" : "Log soccer"}</button>
+    ${m ? `<p class="faint" style="margin-top:8px;">Ended ${fmtTime(m.endTime)} · ${m.minutes} min · knee ${m.painDuring}/10${m.note?` · “${esc(m.note)}”`:""}</p>` : ""}
+  </div>`;
+}
+
+function strengthSectionHTML(d, rot){
+  if (!isStrengthDay(d.date)) return "";
+  if (d.deferred){
+    return `<div class="card">
+      <div class="set-head"><h2 style="margin:0;">${esc(rot.label)}</h2>
+        <span class="chip amber">deferred</span></div>
+      <p class="faint" style="margin:6px 0 8px;">Floor only today. Pick this up tomorrow — it is still eligible for the week's strength count.</p>
+      <button class="ghost big-btn" style="margin-top:0;" onclick="undoShortOnTime()">Actually, let's do it</button>
+    </div>`;
+  }
+  const allDone = rot.movements.every(spec => movementComplete(d, spec.id, spec.sets));
+  const started = rot.movements.some(spec => ((d.work[spec.id]||{}).sets||[]).length);
+  const pairs = rot.supersets || [];
+  let body = "";
+  pairs.forEach((pair, i)=>{
+    body += `<div class="supset">Superset ${i+1} · ${pair.map(id=>esc(MOVEMENTS[id].short)).join(" + ")}</div>`;
+    pair.forEach(id=>{
+      const spec = rot.movements.find(s=>s.id===id);
+      if (spec) body += movementCardHTML(d, spec);
+    });
+  });
+  const unpaired = rot.movements.filter(s => !pairs.some(p=>p.includes(s.id)));
+  unpaired.forEach(spec => { body += movementCardHTML(d, spec); });
+
+  return `${body}
+    ${!started && !allDone ? `<button class="ghost big-btn" onclick="shortOnTime()">Short on time — Floor only today</button>` : ""}
+    ${allDone ? `<div class="banner green"><span>✓ ${esc(rot.label)} complete.</span></div>` : ""}`;
 }
 
 function movementCardHTML(d, spec){
-  const mid = spec.id, m = MOVEMENTS[mid], r = rung(mid);
+  const mid = spec.id, m = MOVEMENTS[mid];
+  const dose = doseFor(mid, spec.sets, d.date);
   const w = d.work[mid] || { sets: [], stopped:false };
-  const effSets = setsFor(mid, spec.sets);
-  const target = targetEntries(mid, spec.sets);
+  const target = targetEntries(mid, spec.sets, d.date);
   const done = w.sets.length;
   const complete = movementComplete(d, mid, spec.sets);
-  const cut = state.cuts[mid];
   const p = state.progress[mid];
 
-  const dose = m.kind === "hold"
-    ? `${effSets} × ${m.hold} sec${m.perSide ? " per side" : ""}`
-    : `${effSets} × ${m.reps ? m.reps : "max−2"}${m.perSide ? "/side" : ""}`;
+  const doseTxt = m.kind === "hold"
+    ? `${dose.sets} × ${dose.hold} sec${m.perSide ? " per side" : ""}`
+    : `${dose.sets} × ${dose.reps != null ? dose.reps : "max−2"}${m.perSide ? "/side" : ""}`;
 
   const rows = [];
   for (let i=1; i<=target; i++){
@@ -1789,49 +2045,46 @@ function movementCardHTML(d, spec){
       rows.push(`<div class="setblock blocked"><div class="set-head"><span>${m.kind==="hold"?"Hold":"Set"} ${i}</span>
         <span class="faint">${w.stopped ? "not performed" : "—"}</span></div></div>`);
     } else if (i === done + 1){
-      rows.push(m.kind === "hold" ? activeHoldHTML(mid, i, target, spec) : activeSetHTML(mid, i, target, spec));
+      rows.push(m.kind === "hold" ? activeHoldHTML(mid, i, target, spec, dose) : activeSetHTML(mid, i, target, spec, dose));
     } else {
       rows.push(`<div class="setblock pending"><div class="set-head"><span>${m.kind==="hold"?"Hold":"Set"} ${i}</span>
-        <span class="faint">${esc(r.label)}</span></div></div>`);
+        <span class="faint">${esc(dose.label)}</span></div></div>`);
     }
   }
-
   const restChip = (!complete && restFor === mid && restUntil && Date.now() < restUntil)
     ? `<span class="chip blue" id="restchip">Rest ${fmtClock((restUntil-Date.now())/1000)}</span>` : "";
-  const streakBit = m.gate.type === "none" ? ""
-    : ` · <span class="faint">${p.streak}/${m.gate.need||1} toward the next step</span>`;
 
   return `<div class="card ${complete?"":"accent"}">
     <div class="set-head">
       <h2 style="margin:0;">${esc(m.name)}</h2>
       ${complete ? '<span class="chip green">done</span>' : `<span class="chip">${done}/${target}</span>`}
     </div>
-    <div class="loadbig" style="margin-top:8px;">${esc(r.label)}</div>
-    <div class="faint">${dose} · ${esc(m.tempo)}${m.kind==="reps"&&m.reps?` · target RIR ${PROGRAM.rir}`:""}${streakBit}</div>
-    ${cut ? `<div class="banner amber" style="margin:10px 0 0;"><span>➗ Half volume today — ${esc(cut.reason)}.</span></div>` : ""}
+    <div class="loadbig" style="margin-top:8px;">${esc(dose.label)}</div>
+    <div class="faint">${doseTxt} · ${esc(m.tempo)}${m.kind==="reps"?` · target RIR ${PROGRAM.rir}`:""}
+      ${!dose.top ? ` · <span class="faint">${p.streak}/2 toward the next rung</span>` : ` · top of ladder`}</div>
+    ${d.reentry && d.reentry.setCut ? `<div class="banner green" style="margin:10px 0 0;"><span>One fewer set today — ${d.reentry.gap}-day gap.</span></div>` : ""}
     <div class="dim" style="font-size:.92rem; margin-top:6px;">${esc(m.cue)}</div>
     ${restChip}
     ${rows.join("")}
-    ${w.stopped ? `<div class="banner red" style="margin:10px 0 0;"><span>Stopped for today — ${esc(w.stopReason)}. Substitute an isometric or a pain-free range.</span></div>` : ""}
+    ${w.stopped ? `<div class="banner red" style="margin:10px 0 0;"><span>Stopped today — ${esc(w.stopReason)}.</span></div>` : ""}
     ${done ? `<button class="ghost small" style="margin-top:10px;" onclick="undoSet('${mid}')">↩ Undo last</button>` : ""}
   </div>`;
 }
-
 function painRowHTML(mid, draft){
   const btns = [0,1,2,3,4,5,6].map(v=>
     `<button class="${draft.pain===v?"sel":""} ${v>PROGRAM.painLimit?"hot":""}" onclick="setPain('${mid}',${v})">${v===6?"6+":v}</button>`).join("");
-  return `<label style="margin-top:12px;">Right knee pain this set — over ${PROGRAM.painLimit} stops the exercise</label>
+  return `<label style="margin-top:12px;">Knee pain this set — over ${PROGRAM.painLimit} stops the exercise</label>
     <div class="painrow">${btns}</div>
     <button class="sharpbtn ${draft.sharp?"on":""}" onclick="toggleSharp('${mid}')">
       ${draft.sharp ? "✕ Sharp, catching or rising" : "Sharp, catching or rising?"}</button>`;
 }
-function activeSetHTML(mid, i, total, spec){
-  const m = MOVEMENTS[mid], draft = draftFor(mid), r = rung(mid);
-  const rirBtns = [1,2,3,4].map(v=>
+function activeSetHTML(mid, i, total, spec, dose){
+  const m = MOVEMENTS[mid], draft = draftFor(mid);
+  const rirBtns = [0,1,2,3,4].map(v=>
     `<button class="${draft.rir===v?"sel":""} ${v===PROGRAM.rir?"target":""}" onclick="setRir('${mid}',${v})">${v===4?"4+":v}</button>`).join("");
   return `<div class="setblock">
     <div class="set-head"><span class="set-title">Set ${i} of ${total}</span>
-      <span class="faint">${esc(r.label)}</span></div>
+      <span class="faint">${esc(dose.label)}</span></div>
     <div class="entrygrid">
       <div><label>Reps${m.perSide?"/side":""}</label>
         <input type="number" id="reps-${mid}" inputmode="numeric" min="0" value="${draft.reps}"></div>
@@ -1841,49 +2094,55 @@ function activeSetHTML(mid, i, total, spec){
     <button class="primary big-btn" onclick="logStrengthSet('${mid}',${spec.sets})">Log set ${i} ✓</button>
   </div>`;
 }
-function activeHoldHTML(mid, i, total, spec){
-  const m = MOVEMENTS[mid], draft = draftFor(mid), r = rung(mid);
+function activeHoldHTML(mid, i, total, spec, dose){
+  const m = MOVEMENTS[mid], draft = draftFor(mid);
   const side = m.perSide ? (i % 2 === 1 ? "Left" : "Right") : null;
   const live = holdState && holdState.mid === mid;
   const body = live
     ? `<div class="bigtime" id="holdclock" style="font-size:clamp(56px,17vw,96px); margin:14px 0;">${fmtClock(holdLeft())}</div>
        <button class="ghost big-btn" onclick="cancelHold()">Stop the hold</button>`
     : `${painRowHTML(mid, draft)}
-       <button class="primary big-btn" onclick="startHold('${mid}'${side?`,'${side}'`:""})">
-         ▶ Start ${m.hold} sec${side ? " — " + side.toLowerCase() : ""}</button>`;
+       <button class="primary big-btn" onclick="startHold('${mid}'${side?`,'${side}'`:",null"},${dose.hold})">
+         ▶ Start ${dose.hold} sec${side ? " — " + side.toLowerCase() : ""}</button>`;
   return `<div class="setblock">
     <div class="set-head"><span class="set-title">Hold ${i} of ${total}${side?" — "+side:""}</span>
-      <span class="faint">${esc(r.label)}</span></div>
+      <span class="faint">${esc(dose.label)}</span></div>
     ${body}
   </div>`;
 }
 
-function mobilityCardHTML(d){
-  return `<div class="card">
-    <div class="set-head"><h2 style="margin:0;">Daily mobility block</h2>
-      ${d.mobilityComplete ? '<span class="chip green">done</span>' : ""}</div>
-    <p class="faint" style="margin:4px 0 8px;">~12 min, every day. Hip-weighted, loaded and active throughout — no passive hold longer than 30 seconds. Tap Start once and it chains every hold, side switch and section rest.</p>
-    <button class="${d.mobilityComplete?"ghost":"primary"} big-btn" onclick="startMobility()">
-      ${d.mobilityComplete ? "Run it again" : "▶ Start mobility block"}</button>
-    <div class="checkrow">
-      <button onclick="toggleFlag('mobilityComplete')">
-        <span class="cbox ${d.mobilityComplete?"on":""}">${d.mobilityComplete?"✓":""}</span>
-        <span>Mobility block complete</span></button>
+function makeupBlockHTML(d){
+  if (!d.makeup) return "";
+  const src = rotationFor(d.makeup.from);
+  const specs = src.movements;
+  const anyWork = specs.some(s => ((d.work[s.id]||{}).sets||[]).length);
+  const allDone = specs.every(s => movementComplete(d, s.id, s.sets));
+  return `
+    <div class="makeup-head">
+      <div class="nu-label">Make-up session</div>
+      <h2>${DOW[src.day]} · ${esc(src.label)}</h2>
+      <p class="faint" style="margin:4px 0 0;">Missed ${esc(fmtDate(d.makeup.from))}. Logged against today, so tomorrow's check attributes it to the day you actually trained.</p>
     </div>
-    <p class="faint" style="margin:8px 0 0;">${esc(PROGRAM.mobility.primer)}</p>
+    ${allDone ? `<div class="banner green"><span>✓ Made up — ${esc(fmtShort(d.makeup.from))} counts toward this week.</span></div>` : ""}
+    ${specs.map(spec => movementCardHTML(d, spec)).join("")}
+    ${!anyWork ? `<button class="ghost big-btn" onclick="cancelMakeup()">Remove this make-up</button>` : ""}`;
+}
+function makeupPromptHTML(d){
+  if (d.makeup) return "";
+  const c = makeupCandidate();
+  if (!c) return "";
+  return `<div class="card accent">
+    <div class="set-head"><h2 style="margin:0;">Yesterday's session</h2>
+      <span class="chip amber">${c.deferred ? "deferred" : "missed"}</span></div>
+    <p class="faint" style="margin:4px 0 8px;">${DOW[c.rot.day]} · ${esc(c.rot.label)} — ${c.partial ? "part done, still " : "outstanding: "}${esc(c.missing.map(s=>MOVEMENTS[s.id].short).join(", "))}. Today is its only make-up slot.</p>
+    <button class="primary big-btn" style="margin-top:0;" onclick="startMakeup('${c.date}')">Do it today</button>
   </div>`;
 }
-function runCardHTML(d){
-  const R = PROGRAM.running, wk = runsThisWeek(todayStr());
-  const sat = dowOf(todayStr()) === 6 && weeksIn() < R.protectedWeeks;
+function morningFlowHTML(){
   return `<div class="card">
-    <div class="set-head"><h2 style="margin:0;">Running</h2>
-      ${d.run ? `<span class="chip green">${d.run.intervals * d.run.runMin} run-min</span>`
-              : `<span class="chip">${wk.n}/${R.maxPerWeek} this week</span>`}</div>
-    <p class="faint" style="margin:4px 0 8px;">${R.runMin} min run / ${R.walkMin} min walk × ${R.intervals}. Optional — it is not tied to a day.</p>
-    ${sat ? `<div class="banner amber" style="margin:0 0 10px;"><span>⚠️ Never run the day before Sunday's match during the first ${R.protectedWeeks} weeks.</span></div>` : ""}
-    <button class="${d.run?"ghost":""} big-btn" style="margin-top:0;" onclick="showModal(runFormHTML())">${d.run ? "Update the run log" : "Log a run"}</button>
-    ${d.run ? `<p class="faint" style="margin-top:8px;">${d.run.intervals} × ${d.run.runMin}/${d.run.walkMin}${d.run.cadence?` · cadence ${d.run.cadence}`:""}${d.run.note?` · “${esc(d.run.note)}”`:""}</p>` : ""}
+    <details><summary class="faint">Morning flow</summary>
+      <ol class="tight dim" style="margin-top:8px;">${PROGRAM.morning.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+    </details>
   </div>`;
 }
 function toggleFlag(flag){
@@ -1901,7 +2160,7 @@ function weekHTML(){
   const mon = addDays(mondayStr(new Date()), weekOffset*7);
   const t = todayStr();
   const names = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  let done = 0, possible = 0;
+  const wk = weekStats(mon);
 
   const rows = names.map((nm,i)=>{
     const date = addDays(mon, i);
@@ -1910,195 +2169,187 @@ function weekHTML(){
     const isToday = date === t, future = date > t;
     const bits = [];
 
-    if (rot.type === "match"){
-      bits.push(d.match ? `<span class="faint">match ${d.match.minutes} min · knee ${d.match.painDuring}/10</span>`
-                        : `<span class="faint">match not logged</span>`);
-      if (!future){ possible++; if (d.warmupDone) done++; }
-      if (!future){ possible++; if (d.match) done++; }
-    } else if (d.madeUpOn){
-      // Missed on the day, trained later. Credit it here rather than leaving a
-      // permanent hole — the session happened, just not when it was scheduled.
-      bits.push(`<span class="faint">missed — made up ${esc(fmtShort(d.madeUpOn))}</span>`);
-      if (!future) rot.movements.forEach(()=>{ possible++; done++; });
+    if (isStrengthDay(date)){
+      if (d.madeUpOn) bits.push(`<span class="faint">missed — made up ${esc(fmtShort(d.madeUpOn))}</span>`);
+      else if (d.deferred) bits.push(`<span style="color:var(--amber)">deferred</span>`);
+      else rot.movements.forEach(spec=>{
+        const w = d.work[spec.id] || { sets: [], stopped:false };
+        const tgt = targetEntries(spec.id, spec.sets, date);
+        bits.push(`${esc(MOVEMENTS[spec.id].short)} <span class="faint">${w.sets.length}/${tgt}</span>${w.stopped?' <span style="color:var(--red)">✕</span>':""}`);
+      });
+    } else if (rot.type === "match"){
+      bits.push(d.match ? `<span class="faint">soccer ${d.match.minutes} min · knee ${d.match.painDuring}/10</span>`
+                        : `<span class="faint">soccer not logged</span>`);
     } else {
-      rot.movements.forEach(spec=>{
-        const m = MOVEMENTS[spec.id];
-        const w = d.work[spec.id] || { sets: [], stopped:false };
-        const tgt = targetEntries(spec.id, spec.sets);
-        bits.push(`${esc(m.short)} <span class="faint">${w.sets.length}/${tgt}</span>${w.stopped?' <span style="color:var(--red)">✕pain</span>':""}`);
-        if (!future){ possible++; if (w.sets.length >= tgt || w.stopped) done++; }
-      });
+      bits.push(`<span class="faint">Floor day</span>`);
     }
-    if (d.makeup){
-      rotationFor(d.makeup.from).movements.forEach(spec=>{
-        const m = MOVEMENTS[spec.id];
-        const w = d.work[spec.id] || { sets: [], stopped:false };
-        const tgt = targetEntries(spec.id, spec.sets);
-        bits.push(`<span style="color:var(--blue)">+${esc(m.short)}</span> <span class="faint">${w.sets.length}/${tgt}</span>`);
-        if (!future){ possible++; if (w.sets.length >= tgt || w.stopped) done++; }
-      });
-    }
-    if (d.run) bits.push(`<span class="faint">run ${d.run.intervals * d.run.runMin}m</span>`);
-    if (!future){ possible++; if (d.mobilityComplete) done++; }
+    if (d.makeup) bits.push(`<span style="color:var(--blue)">+ ${esc(rotationFor(d.makeup.from).label)}</span>`);
+    const nb = (d.bonusSets||[]).length;
+    if (nb) bits.push(`<span class="faint">${nb} bonus</span>`);
 
-    const chk = state.painChecks.find(c=>c.date===date);
-    return `<div class="weekrow ${isToday?"today":""}">
-      <div class="wd">${nm}<small>${fmtShort(date).replace(/^\w+\s/,"")}</small></div>
-      <div class="wbody">${bits.join(" · ")}
-        ${chk ? `<div class="faint">24h check: ${chk.score}/10 vs baseline ${chk.baseline} (${esc(chk.attribution)})</div>` : ""}</div>
-      <div class="wstat" title="mobility / 11+ or session">
-        <span class="dot ${d.mobilityComplete?"on":(future?"":"miss")}"></span>
-        <span class="dot ${(rot.type==="match" ? d.warmupDone : (Object.keys(d.work||{}).length || d.madeUpOn))?"on":(future?"":"miss")}"></span>
+    const chk = state.painChecks.find(c=>c.forDate===date);
+    return `<div class="weekrow ${isToday?"today":""}" style="display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line);">
+      <div style="width:52px; flex-shrink:0; font-weight:600; font-size:.9rem;">${nm}
+        <small style="display:block; color:var(--faint); font-weight:400; font-size:.75rem;">${fmtShort(date).replace(/^\w+\s/,"")}</small></div>
+      <div style="flex:1; font-size:.88rem; line-height:1.4;">${bits.join(" · ")}
+        ${chk ? `<div class="faint">next morning: ${chk.score}/10</div>` : ""}</div>
+      <div style="display:flex; gap:5px; flex-shrink:0; padding-top:3px;">
+        <span title="Floor" style="width:11px;height:11px;border-radius:50%;${d.floorComplete?"background:var(--accent);border:1px solid var(--accent)":(future?"background:var(--panel2);border:1px solid var(--line)":"background:transparent;border:1px solid #5a2b28")}"></span>
+        <span title="Session" style="width:11px;height:11px;border-radius:50%;${(isStrengthDay(date) ? strengthSessionDone(date) : (rot.type==="match" ? !!d.match : d.floorComplete))?"background:var(--accent);border:1px solid var(--accent)":(future?"background:var(--panel2);border:1px solid var(--line)":"background:transparent;border:1px solid #5a2b28")}"></span>
       </div>
     </div>`;
   }).join("");
 
-  const pct = possible ? Math.round(done/possible*100) : 0;
-  const wk = runsThisWeek(mon);
   return `<h1>Week</h1>
     <div class="row" style="margin-bottom:10px;">
       <button class="ghost small" onclick="shiftWeek(-1)">← Prev</button>
       <button class="ghost small" onclick="weekOffset=0; render();">${weekOffset===0?"This week":"Back to now"}</button>
       <button class="ghost small" onclick="shiftWeek(1)" ${weekOffset>=0?"disabled":""}>Next →</button>
     </div>
-    <div class="card">
+    <div class="card ${wk.win?"accent":""}">
       <div class="set-head"><h2 style="margin:0;">Week of ${fmtShort(mon)}</h2>
-        <span class="chip ${pct>=80?"green":(pct>=50?"amber":"red")}">${pct}% adherence</span></div>
-      <p class="faint" style="margin:4px 0 6px;">Dots: mobility block / session done. ${wk.n} run${wk.n===1?"":"s"} (${wk.mins} run-min).</p>
+        ${wk.win ? '<span class="chip green">win ✓</span>' : (wk.complete ? '<span class="chip">no win</span>' : '<span class="chip">in progress</span>')}</div>
+      <div class="winrow">
+        <div class="winstat"><b class="${wk.floor>=PROGRAM.win.floorDays?"hit":""}">${wk.floor}/7</b><span>Floor</span></div>
+        <div class="winstat"><b class="${wk.strength>=PROGRAM.win.strengthSessions?"hit":""}">${wk.strength}/${wk.slots}</b><span>Strength</span></div>
+      </div>
+      <p class="faint" style="margin:8px 0 2px;">Dots: Floor / session done.</p>
       ${rows}
     </div>
     <div class="card">
-      <h3>The split</h3>
-      <p class="faint" style="margin:2px 0;">One focus per day, no rest days. Sun 11-a-side · Mon hips and adductors · Tue core and upper · Wed 7-a-side · Thu eccentrics · Fri posterior chain · Sat unilateral quad and balance. Mobility block every day.</p>
+      <h3>The block</h3>
+      <p class="faint" style="margin:2px 0;">${esc(PROGRAM.programVersion)} · ${esc(fmtShort(PROGRAM.blockStart))} to ${esc(fmtShort(PROGRAM.blockEnd))} · ${winWeeksTotal()} win weeks so far of ${PROGRAM.blockWeeks}.</p>
+      <p class="faint" style="margin:6px 0 0;">Mon Strength A · Tue Floor · Wed soccer · Thu Strength B · Fri Floor · Sat Strength C · Sun Floor.</p>
     </div>`;
 }
 
 /* ---------- 3. PROGRESS ---------- */
 function progHTML(){
-  const cards = Object.keys(MOVEMENTS).map(mid=>{
+  const live = Object.keys(MOVEMENTS).filter(mid => !MOVEMENTS[mid].retired && !MOVEMENTS[mid].bonus);
+  const cards = live.map(mid=>{
     const m = MOVEMENTS[mid], p = state.progress[mid], r = rung(mid);
-    const fixed = m.gate.type === "none";
-    const waitDays = m.gate.minDays ? Math.max(0, m.gate.minDays - daysAtRung(mid)) : 0;
     const ready = eligibleToAdvance(mid);
+    const waiting = waitingFor(mid);
     const ladder = m.ladder.map((L,i)=>
       `<tr><td>${i===r.i?"▶ ":""}<b style="${i===r.i?"color:var(--accent)":""}">${esc(L.label)}</b></td>
-       <td class="num">${i===r.i?`<button class="ghost small" onclick="stepTo('${mid}',${i})">current</button>`
-         :`<button class="ghost small" onclick="stepTo('${mid}',${i})">set</button>`}</td></tr>`).join("");
+       <td class="num"><button class="ghost small" onclick="stepTo('${mid}',${i})">${i===r.i?"current":"set"}</button></td></tr>`).join("");
     return `<div class="card">
       <div class="set-head"><h2 style="margin:0;">${esc(m.name)}</h2>
-        ${fixed ? '<span class="chip">fixed dose</span>'
-          : ready ? '<span class="chip green">ready to progress</span>'
-          : r.top ? '<span class="chip">top of ladder</span>'
-          : `<span class="chip">${p.streak}/${m.gate.need||1}</span>`}</div>
+        ${ready ? '<span class="chip green">ready</span>'
+          : r.top ? '<span class="chip">top</span>'
+          : `<span class="chip">${p.streak}/2</span>`}</div>
       <div class="loadbig" style="margin-top:8px;">${esc(r.label)}</div>
-      <p class="faint" style="margin:4px 0 0;">${daysAtRung(mid)} days at this dose${waitDays?` · ${waitDays} more before it can move`:""}${state.cuts[mid]?' · <span style="color:var(--amber)">half volume queued</span>':""}</p>
-      <p class="dim" style="font-size:.9rem; margin:8px 0 0;">${esc(m.gate.rule)}</p>
-      ${fixed ? "" : `<table style="margin-top:10px;">${ladder}</table>`}
-      ${ready ? `<button class="primary big-btn" onclick="offerAdvance('${mid}')">Move up a step</button>` : ""}
-      ${p.history.length ? `<p class="faint" style="margin:8px 0 0;">Last change ${esc(fmtShort(p.history[p.history.length-1].date))}: ${esc(p.history[p.history.length-1].from)} → ${esc(p.history[p.history.length-1].to)}</p>` : ""}
+      <p class="faint" style="margin:4px 0 0;">${daysBetween(p.since, todayStr())} days at this rung${m.kneeCheck?" · knee-tracking checked on advance":""}</p>
+      ${waiting.length ? `<div class="banner blue" style="margin:10px 0 0;"><span>⏳ ${waiting.length} session${waiting.length>1?"s":""} waiting on a 24-hour check.</span>
+        <button onclick="backfillCheck('${waiting[0]}')">Log it</button></div>` : ""}
+      <table style="margin-top:10px;">${ladder}</table>
+      ${ready ? `<button class="primary big-btn" onclick="offerAdvance('${mid}')">Move up a rung</button>` : ""}
+      ${p.history.length ? `<p class="faint" style="margin:8px 0 0;">Last change ${esc(fmtShort(p.history[p.history.length-1].date))}: ${esc(p.history[p.history.length-1].from)} → ${esc(p.history[p.history.length-1].to)}${p.history[p.history.length-1].drop?" (drop)":""}</p>` : ""}
     </div>`;
   }).join("");
 
-  const checks = [...state.painChecks].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
-  const m7 = recentPainMean(7), m28 = recentPainMean(28);
+  const checks = [...state.painChecks].sort((a,b)=>b.forDate.localeCompare(a.forDate)).slice(0,14);
+  const bonusCards = ["pullup_bonus","pushup_bonus"].map(mid=>{
+    const m = MOVEMENTS[mid], dose = bonusDose(mid);
+    return `<div class="card">
+      <div class="set-head"><h2 style="margin:0;font-size:1.05rem;">${esc(m.name)}</h2>
+        <span class="chip">${bonusWeekCount(mid)} this week</span></div>
+      <p class="faint" style="margin:4px 0 0;">${esc(dose.label)}${dose.reps!=null?` — ${dose.reps} reps per set`:" — needs a max test"}</p>
+      <p class="faint" style="margin:4px 0 0;">Moves only at an assessment, never on a session streak.</p>
+    </div>`;
+  }).join("");
 
   return `<h1>Progress</h1>
-    <div class="card ${escalationFlagged()?"":""}">
-      <div class="set-head"><h2 style="margin:0;">Right medial knee</h2>
-        <span class="chip ${baselineKnown()?"green":"amber"}">baseline ${baselineKnown()?state.baseline+"/10":"unset"}</span></div>
-      <p class="faint" style="margin:4px 0 8px;">Mean 7 days: <b>${m7==null?"—":m7}</b> · 28 days: <b>${m28==null?"—":m28}</b></p>
-      ${escalationFlagged() ? `<div class="banner red" style="margin:0 0 10px;"><span>🚩 ${esc(PROGRAM.pain.escalation)}</span></div>` : ""}
-      <button class="ghost big-btn" style="margin-top:0;" onclick="askBaseline()">${baselineKnown()?"Change the baseline":"Set the baseline"}</button>
+    <div class="card">
+      <div class="set-head"><h2 style="margin:0;">How a rung moves</h2></div>
+      <ul class="tight dim" style="font-size:.92rem;">
+        <li><b>Up</b> — all sets at RIR ${PROGRAM.rir} or easier, two sessions running, each followed by a morning check of ${PROGRAM.advancePainMax} or less.</li>
+        <li><b>Hold</b> — any set below RIR ${PROGRAM.rir}, or reps missed.</li>
+        <li><b>Down</b> — a morning check of ${PROGRAM.dropPainMin}+, or any set logged sharp.</li>
+      </ul>
+    </div>
+    ${cards}
+    <h3 style="margin-top:18px;">Bonus sets</h3>
+    ${bonusCards}
+    <div class="card">
+      <h2>Knee, last 14 checks</h2>
       ${checks.length ? `<div class="tablewrap"><table>
-        <tr><th>Date</th><th class="num">0–10</th><th>Attributed to</th></tr>
-        ${checks.map(c=>`<tr><td>${esc(fmtShort(c.date))}</td>
-          <td class="num" style="color:${c.score>c.baseline?"var(--red)":"var(--accent)"}">${c.score}</td>
-          <td>${esc(c.attribution)}${(c.movements||[]).length?' <span class="faint">'+c.movements.filter(x=>MOVEMENTS[x]).map(x=>MOVEMENTS[x].short).join(", ")+'</span>':""}</td></tr>`).join("")}
+        <tr><th>Morning after</th><th class="num">0–10</th><th>Attributed to</th></tr>
+        ${checks.map(c=>`<tr><td>${esc(fmtShort(c.forDate))}</td>
+          <td class="num" style="color:${c.score>=PROGRAM.dropPainMin?"var(--red)":(c.score<=PROGRAM.advancePainMax?"var(--accent)":"var(--amber)")}">${c.score}</td>
+          <td>${esc(c.attribution)}</td></tr>`).join("")}
       </table></div>` : '<p class="faint">No checks logged yet.</p>'}
     </div>
-
+    <div class="card">
+      <div class="set-head"><h2 style="margin:0;">Assessments</h2>
+        <span class="chip">${nextAssessDate() ? "next " + esc(fmtShort(nextAssessDate())) : "block complete"}</span></div>
+      <button class="${assessDue()?"primary":"ghost"} big-btn" style="margin-top:6px;" onclick="showModal(assessFormHTML())">
+        ${assessDue() ? "Do the assessment" : "Record an assessment"}</button>
+      ${state.assessments.length ? `<div class="tablewrap"><table>
+        <tr><th>Measure</th>${state.assessments.slice(-4).map(a=>`<th class="num">${esc(fmtShort(a.date))}</th>`).join("")}</tr>
+        ${PROGRAM.measures.map(mm=>`<tr><td>${esc(mm.label)}</td>${state.assessments.slice(-4).map(a=>
+          `<td class="num">${a.values[mm.id]!=null?esc(String(a.values[mm.id])):"—"}</td>`).join("")}</tr>`).join("")}
+      </table></div>
+      ${(()=>{ const last = state.assessments[state.assessments.length-1];
+         const f = assessFlags(last.values||{});
+         return f.length ? `<div class="banner amber" style="margin-top:10px;"><span>⚠️ ${f.map(esc).join(" ")}</span></div>` : ""; })()}`
+      : `<p class="faint" style="margin-top:8px;">Nothing recorded yet.</p>`}
+    </div>
     <div class="card">
       <h2>Stop and see a clinician</h2>
-      <p class="faint" style="margin:2px 0 4px;">Any one of these, on its own:</p>
       <ul class="tight dim">${PROGRAM.pain.redFlags.map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
-    </div>
-
-    <h3 style="margin-top:18px;">Progression — criteria-based, never calendar-based</h3>
-    ${cards}
-
-    <div class="card">
-      <div class="set-head"><h2 style="margin:0;">Reassessment</h2>
-        <span class="chip">week ${weeksIn()}</span></div>
-      <p class="faint" style="margin:4px 0 8px;">Due at ${PROGRAM.reassessWeeks.join(" and ")} weeks.</p>
-      <button class="${reassessDue()?"primary":"ghost"} big-btn" style="margin-top:0;" onclick="showModal(assessFormHTML())">
-        ${reassessDue()?`Do the week ${reassessDue()} reassessment`:"Record a reassessment"}</button>
-      ${state.assessments.length ? `<div class="tablewrap"><table>
-        <tr><th>Measure</th>${state.assessments.slice(-3).map(a=>`<th class="num">wk ${a.weeksIn}</th>`).join("")}</tr>
-        ${PROGRAM.measures.map(mm=>`<tr><td>${esc(mm.label)}</td>${state.assessments.slice(-3).map(a=>
-          `<td class="num">${a.values[mm.id]!=null?esc(String(a.values[mm.id])):"—"}</td>`).join("")}</tr>`).join("")}
-      </table></div>` : `<p class="faint" style="margin-top:8px;">Nothing recorded yet. Several measures need a first baseline before they mean anything.</p>`}
     </div>`;
 }
 
 /* ---------- 4. DATA ---------- */
 function dataHTML(){
+  const dates = Object.keys(state.days).sort();
+  const logged = Object.values(state.days).filter(x =>
+    Object.keys(x.work||{}).length || x.floorComplete || x.match || (x.bonusSets||[]).length).length;
+  const seeded = state.assessments.some(a => a.source === PROGRAM.seedAssessment.source);
   return `<h1>Data & backup</h1>
-    <div class="banner amber"><span>⚠️ All your data lives in <b>this browser on this device</b>. Clearing browsing data deletes it. Export a backup regularly — you'll be reminded after 7 days.</span></div>
+    <div class="banner amber"><span>⚠️ All your data lives in <b>this browser on this device</b>. Clearing browsing data deletes it.</span></div>
     <div class="card">
       <h2>Export</h2>
-      <p class="faint">Markdown covers the last 4 weeks, formatted for a program review. JSON is a full backup you can re-import.</p>
       <button class="primary big-btn" onclick="exportMarkdown()">⬇ Export Markdown (last 4 weeks)</button>
       <button class="big-btn" onclick="exportJSON()">⬇ Export JSON backup</button>
       <p class="faint" style="margin-top:8px;">Last export: ${state.lastExport ? esc(fmtDate(state.lastExport)) : "never"}</p>
     </div>
     <div class="card">
       <h2>This device</h2>
-      ${(()=>{
-        const dates = Object.keys(state.days).sort();
-        const logged = Object.values(state.days).filter(x =>
-          Object.keys(x.work||{}).length || x.mobilityComplete || x.match || x.run).length;
-        const missed = missedSessions().length;
-        return `<table>
-          <tr><th>Days with logged work</th><td class="num">${logged}</td></tr>
-          <tr><th>Range</th><td class="num">${dates.length ? esc(fmtShort(dates[0])) + " – " + esc(fmtShort(dates[dates.length-1])) : "—"}</td></tr>
-          <tr><th>24-hour checks</th><td class="num">${state.painChecks.length}</td></tr>
-          <tr><th>Missed sessions outstanding</th><td class="num">${missed}</td></tr>
-          <tr><th>Build</th><td class="num">${esc(PROGRAM.build)}</td></tr>
-        </table>`;
-      })()}
-      <p class="faint" style="margin:8px 0 0;">If this is empty but your phone has history elsewhere, you are looking at a second copy of the app with its own storage — import a backup to bring it across.</p>
+      <table>
+        <tr><th>Days with logged work</th><td class="num">${logged}</td></tr>
+        <tr><th>Range</th><td class="num">${dates.length ? esc(fmtShort(dates[0])) + " – " + esc(fmtShort(dates[dates.length-1])) : "—"}</td></tr>
+        <tr><th>24-hour checks</th><td class="num">${state.painChecks.length}</td></tr>
+        <tr><th>Win weeks</th><td class="num">${winWeeksTotal()} / ${PROGRAM.blockWeeks}</td></tr>
+        <tr><th>Build</th><td class="num">${esc(PROGRAM.build)}</td></tr>
+      </table>
     </div>
     <div class="card">
       <h2>Import</h2>
-      <p class="faint">Restore a JSON backup or move data from another browser.</p>
       <input type="file" id="importfile" accept=".json,application/json" onchange="importJSON(this)">
     </div>
-    <div class="card">
-      <h2>Priority stack</h2>
-      <ol class="tight dim">${PROGRAM.priorities.map(p=>`<li>${esc(p)}</li>`).join("")}</ol>
-    </div>
-    <div class="card">
-      <h2>Running rules</h2>
-      <ul class="tight dim">${PROGRAM.running.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>
-    </div>
+    ${seeded ? `<div class="card">
+      <h2>Seeded baseline</h2>
+      <p class="faint" style="margin:4px 0 8px;">The 31 Oct measurements from the v3 handoff were added so the first assessment has something to move against. They were not measured in this app.</p>
+      <button class="ghost big-btn" style="margin-top:0;" onclick="deleteSeededAssessment()">Remove them</button>
+    </div>` : ""}
     <div class="card">
       <h2>Settings</h2>
       <label style="display:flex; align-items:center; gap:10px; font-size:1rem; color:var(--text);">
         <input type="checkbox" style="width:auto; min-height:auto;" ${state.settings.sound?"checked":""}
-          onchange="state.settings.sound=this.checked; save();"> Sound cues (beeps)</label>
+          onchange="state.settings.sound=this.checked; save();"> Sound cues</label>
       <label style="display:flex; align-items:center; gap:10px; font-size:1rem; color:var(--text);">
         <input type="checkbox" style="width:auto; min-height:auto;" ${state.settings.vibrate?"checked":""}
-          onchange="state.settings.vibrate=this.checked; save();"> Vibration (where supported)</label>
-    </div>
-    <div class="card">
-      <h2>Standing caveats</h2>
-      <ul class="tight faint">${PROGRAM.caveats.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>
+          onchange="state.settings.vibrate=this.checked; save();"> Vibration</label>
+      <button class="ghost big-btn" onclick="askPushupMax()">Retest push-up max</button>
     </div>
     <div class="card">
       <h2>About</h2>
-      <p class="faint">${esc(PROGRAM.title)} · spec v${PROGRAM.specVersion}, ${esc(PROGRAM.revision)} revision · build ${esc(PROGRAM.build)} ·
-      single offline file · zero network requests · no accounts.
-      ${state.legacySymptomChecks ? `<br><br>${state.legacySymptomChecks.length} morning checks from the previous version are kept in your backup on the old 0–3 scale. They are not mixed into the 0–10 pain history, because they are a different instrument.` : ""}</p>
+      <p class="faint">${esc(PROGRAM.title)} ${esc(PROGRAM.programVersion)} · app spec v${PROGRAM.specVersion} · build ${esc(PROGRAM.build)} ·
+      single offline file · no network requests · no accounts.
+      ${state.cutsClearedOnMigration && state.cutsClearedOnMigration.length
+        ? `<br><br>Migrating cleared ${state.cutsClearedOnMigration.length} load cut${state.cutsClearedOnMigration.length>1?"s":""} left by the previous block. The re-entry rule keeps the weight and trims a set instead.` : ""}</p>
     </div>`;
 }
 
@@ -2121,85 +2372,64 @@ function exportJSON(){
 function exportMarkdown(){
   const t = todayStr(), thisMon = mondayStr(new Date());
   let md = `# Kinetic Chain Tracker — Export ${t}\n\n`;
-  md += `**Program:** ${PROGRAM.title}, spec v${PROGRAM.specVersion} (${PROGRAM.revision} revision)\n`;
-  md += `**Week:** ${weeksIn()} weeks in (started ${state.program.start})\n`;
-  md += `**Knee baseline:** ${baselineKnown() ? state.baseline + "/10" : "not set"}`;
-  const m7 = recentPainMean(7), m28 = recentPainMean(28);
-  md += ` · mean 7d ${m7==null?"—":m7} · mean 28d ${m28==null?"—":m28}`;
-  md += escalationFlagged() ? ` · **ESCALATION FLAG: two weeks without improvement**\n\n` : `\n\n`;
+  md += `**Program:** ${PROGRAM.title} ${PROGRAM.programVersion} (app spec v${PROGRAM.specVersion})\n`;
+  md += `**Block:** ${PROGRAM.blockStart} to ${PROGRAM.blockEnd}, week ${blockWeek()} of ${PROGRAM.blockWeeks}\n`;
+  md += `**Win weeks:** ${winWeeksTotal()} of ${PROGRAM.blockWeeks} · current streak ${winStreak()}\n\n`;
 
-  md += `## Current doses\n\n| Movement | Dose | Days at dose | Toward next | Criterion |\n|---|---|---|---|---|\n`;
-  Object.keys(MOVEMENTS).forEach(mid=>{
+  md += `## Current rungs\n\n| Movement | Rung | Days at rung | Toward next |\n|---|---|---|---|\n`;
+  Object.keys(MOVEMENTS).filter(m=>!MOVEMENTS[m].retired).forEach(mid=>{
     const m = MOVEMENTS[mid], p = state.progress[mid], r = rung(mid);
-    const toward = m.gate.type === "none" ? "fixed" : `${p.streak}/${m.gate.need||1}${eligibleToAdvance(mid)?" — READY":""}`;
-    md += `| ${m.name} | ${r.label} | ${daysAtRung(mid)} | ${toward} | ${m.gate.rule} |\n`;
+    const toward = m.bonus ? "assessment-driven"
+      : (eligibleToAdvance(mid) ? "READY" : `${p.streak}/2${waitingFor(mid).length?" (waiting on a check)":""}`);
+    md += `| ${m.name} | ${r.label} | ${daysBetween(p.since, todayStr())} | ${toward} |\n`;
   });
-  const cuts = Object.keys(state.cuts).filter(m=>MOVEMENTS[m]);
-  md += `\n**Half-volume queued:** ${cuts.length ? cuts.map(m=>`${MOVEMENTS[m].name} (${state.cuts[m].reason})`).join("; ") : "none"}\n\n---\n\n`;
+  md += `\n---\n\n`;
 
   for (let wk = 3; wk >= 0; wk--){
     const mon = addDays(thisMon, -wk*7);
-    md += `## Week of ${mon}${wk===0?" (current)":""}\n\n`;
-    md += `| Date | Day | Work | Mobility | Knee 24h |\n|---|---|---|---|---|\n`;
+    const s = weekStats(mon);
+    md += `## Week of ${mon} — Floor ${s.floor}/7, strength ${s.strength}/${s.slots} ${s.win ? "**WIN**" : ""}\n\n`;
+    md += `| Date | Day | Work | Floor | Bonus | Next morning |\n|---|---|---|---|---|---|\n`;
     for (let i=0; i<7; i++){
       const date = addDays(mon, i);
       if (date > t) continue;
       const rot = rotationFor(date), d = state.days[date];
-      const chk = state.painChecks.find(c=>c.date===date);
-      const score = chk ? `${chk.score}/10 (vs ${chk.baseline}, ${chk.attribution})` : "—";
-      const mob = d && d.mobilityComplete ? "✓" : "✗";
+      const chk = state.painChecks.find(c=>c.forDate===date);
+      const floor = d && d.floorComplete ? "✓" : "✗";
+      const bonus = d && (d.bonusSets||[]).length
+        ? ["pullup_bonus","pushup_bonus"].map(b=>{
+            const n = (d.bonusSets||[]).filter(x=>x.movement===b).length;
+            return n ? `${MOVEMENTS[b].short} ×${n}` : null; }).filter(Boolean).join(", ")
+        : "—";
       let work;
-      if (rot.type === "match"){
-        const parts = [];
-        parts.push(d && d.warmupDone ? "11+ ✓" : "11+ ✗");
-        parts.push(d && d.match ? `${rot.match.format} ${d.match.minutes} min, knee ${d.match.painDuring}/10${d.match.note?` — "${d.match.note}"`:""}` : "match not logged");
-        work = parts.join("; ");
-      } else {
-        work = rot.movements.map(spec=>{
-          const m = MOVEMENTS[spec.id];
-          const w = (d && d.work[spec.id]) || { sets: [], stopped:false };
-          if (!w.sets.length) return `${m.short} none`;
-          const detail = m.kind === "hold"
-            ? w.sets.map(s=>`${s.seconds}s${s.side?s.side[0]:""}`).join(" ")
-            : w.sets.map(s=>`${s.reps}@${s.rung}/RIR${s.rir}`).join(" ");
-          const pain = Math.max(...w.sets.map(s=>s.pain||0));
-          return `${m.short} ${w.sets.length}/${targetEntries(spec.id, spec.sets)} — ${detail}${pain?` (peak knee ${pain}/10)`:""}${w.stopped?` — STOPPED: ${w.stopReason}`:""}`;
-        }).join("; ");
-      }
       if (d && d.madeUpOn) work = `missed — made up ${d.madeUpOn}`;
-      if (d && d.makeup){
-        const mk = rotationFor(d.makeup.from);
-        work += `; MAKE-UP of ${d.makeup.from} (${mk.label}): ` + mk.movements.map(spec=>{
-          const m = MOVEMENTS[spec.id];
-          const w = d.work[spec.id] || { sets: [] };
-          return `${m.short} ${w.sets.length}/${targetEntries(spec.id, spec.sets)}`;
-        }).join(" ");
-      }
-      if (d && d.run) work += `; run ${d.run.intervals}×${d.run.runMin}/${d.run.walkMin}`;
-      md += `| ${date} | ${DOW[rot.day]} · ${rot.label} | ${work} | ${mob} | ${score} |\n`;
+      else if (d && d.deferred) work = `deferred (Short on time)`;
+      else if (rot.type === "match") work = d && d.match ? `soccer ${d.match.minutes} min, knee ${d.match.painDuring}/10` : "soccer not logged";
+      else if (!isStrengthDay(date)) work = "floor day";
+      else work = rot.movements.map(spec=>{
+        const m = MOVEMENTS[spec.id];
+        const w = (d && d.work[spec.id]) || { sets: [] };
+        if (!w.sets.length) return `${m.short} none`;
+        const detail = m.kind === "hold"
+          ? w.sets.map(s=>`${s.seconds}s`).join(" ")
+          : w.sets.map(s=>`${s.reps}@${s.rung}/RIR${s.rir}`).join(" ");
+        return `${m.short} ${w.sets.length}/${targetEntries(spec.id, spec.sets, date)} — ${detail}${w.stopped?" STOPPED":""}`;
+      }).join("; ");
+      if (d && d.makeup) work += `; MAKE-UP of ${d.makeup.from}`;
+      if (d && d.reentry) work += `; re-entry after ${d.reentry.gap}d`;
+      md += `| ${date} | ${DOW[rot.day]} | ${work} | ${floor} | ${bonus} | ${chk ? chk.score+"/10" : "—"} |\n`;
     }
     md += `\n`;
   }
-
   if (state.assessments.length){
-    md += `## Reassessments\n\n| Measure | ${state.assessments.map(a=>`wk ${a.weeksIn} (${a.date})`).join(" | ")} |\n`;
+    md += `## Assessments\n\n| Measure | ${state.assessments.map(a=>a.date).join(" | ")} |\n`;
     md += `|---|${state.assessments.map(()=>"---").join("|")}|\n`;
     PROGRAM.measures.forEach(mm=>{
       md += `| ${mm.label} | ${state.assessments.map(a=>a.values[mm.id]!=null?a.values[mm.id]:"—").join(" | ")} |\n`;
     });
     md += `\n`;
   }
-  const wblts = state.logs.filter(l=>l.type==="wblt");
-  if (wblts.length){
-    md += `## Archived WBLT spot checks (previous version)\n\n| Date | Left | Right | L behind R |\n|---|---|---|---|\n`;
-    wblts.forEach(w=>{ md += `| ${w.date} | ${w.left} | ${w.right} | ${w.asym} |\n`; });
-    md += `\n`;
-  }
-  if (state.legacySymptomChecks && state.legacySymptomChecks.length){
-    md += `## Archived morning checks (previous 0–3 scale — a different instrument, not converted)\n\n`;
-    md += `${state.legacySymptomChecks.length} entries, ${state.legacySymptomChecks[0].date} to ${state.legacySymptomChecks[state.legacySymptomChecks.length-1].date}. Full detail is in the JSON backup.\n\n`;
-  }
-  md += `---\n_Generated by the offline Kinetic Chain Tracker (single HTML file, localStorage only)._\n`;
+  md += `---\n_Generated by the offline Kinetic Chain Tracker._\n`;
   download(`kinetic-tracker-report-${t}.md`, md, "text/markdown");
   markExported();
   toast("Markdown report downloaded ✓");
@@ -2214,11 +2444,8 @@ function importJSON(input){
     if (!data || !data.program){ toast("That doesn't look like a tracker backup."); return; }
     data = migrate(data);
     window._pendingImport = data;
-    const nDays = Object.keys(data.days||{}).length;
     showModal(`<h2>Import backup</h2>
-      <p>Backup contains <b>${nDays}</b> logged days and <b>${(data.painChecks||[]).length}</b> knee checks.</p>
-      <p class="dim"><b>Replace</b> wipes current data and restores the backup.<br>
-      <b>Merge</b> keeps everything from both and prefers the more complete record for any day present in each.</p>
+      <p>Backup holds <b>${Object.keys(data.days||{}).length}</b> days and <b>${(data.painChecks||[]).length}</b> checks.</p>
       <div class="yn"><button class="warn" onclick="applyImport('replace')">Replace</button>
       <button class="primary" onclick="applyImport('merge')">Merge</button></div>
       <button class="ghost big-btn" onclick="closeModal()">Cancel</button>`);
@@ -2236,30 +2463,24 @@ function applyImport(mode){
       if (!mine){ state.days[date] = day; return; }
       const count = o => Object.values(o.work||{}).reduce((a,w)=>a+(w.sets||[]).length,0);
       if (count(day) > count(mine)) state.days[date] = Object.assign({}, mine, day);
-      const m = state.days[date];
-      m.mobilityComplete = mine.mobilityComplete || day.mobilityComplete;
-      m.warmupDone = mine.warmupDone || day.warmupDone;
-      m.match = mine.match || day.match;
-      m.run = mine.run || day.run;
+      const m2 = state.days[date];
+      m2.floorComplete = mine.floorComplete || day.floorComplete;
+      m2.match = mine.match || day.match;
+      m2.bonusSets = (mine.bonusSets||[]).length >= (day.bonusSets||[]).length ? mine.bonusSets : day.bonusSets;
     });
-    const have = new Set(state.painChecks.map(c=>c.date));
-    (data.painChecks||[]).forEach(c=>{ if (!have.has(c.date)) state.painChecks.push(c); });
-    const haveA = new Set(state.assessments.map(a=>a.id));
-    (data.assessments||[]).forEach(a=>{ if (!haveA.has(a.id)) state.assessments.push(a); });
-    const haveL = new Set(state.logs.map(l=>l.id));
-    (data.logs||[]).forEach(l=>{ if (!haveL.has(l.id)) state.logs.push(l); });
-    // Keep whichever rung is further along, so a merge never silently de-loads.
+    const have = new Set(state.painChecks.map(c=>c.forDate));
+    (data.painChecks||[]).forEach(c=>{ if (!have.has(c.forDate)) state.painChecks.push(c); });
+    const haveA = new Set(state.assessments.map(a=>a.date));
+    (data.assessments||[]).forEach(a=>{ if (!haveA.has(a.date)) state.assessments.push(a); });
     Object.keys(MOVEMENTS).forEach(mid=>{
       const theirs = (data.progress||{})[mid];
       if (theirs && theirs.step > state.progress[mid].step) state.progress[mid] = theirs;
     });
-    if (state.baseline == null && data.baseline != null) state.baseline = data.baseline;
-    if (data.lastExport && (!state.lastExport || data.lastExport > state.lastExport)) state.lastExport = data.lastExport;
   }
-  state.painChecks.sort((a,b)=>a.date.localeCompare(b.date));
+  state.painChecks.sort((a,b)=>a.forDate.localeCompare(b.forDate));
   state.assessments.sort((a,b)=>a.date.localeCompare(b.date));
   window._pendingImport = null;
-  save(); closeModal(); render();
+  recomputeStreaks(); save(); closeModal(); render();
   toast(mode === "replace" ? "Backup restored ✓" : "Backups merged ✓");
 }
 
@@ -2285,20 +2506,17 @@ function toast(msg){
 /* ===================== boot ===================== */
 load();
 getDay(todayStr(), true);
+applyReentry(todayStr());
+recomputeStreaks();
 save();
 render();
 if (state.activeSession) resumeSession();
-else if (!baselineKnown() && Object.keys(state.days).length > 1) askBaseline();
+else if (state.needPushupMax) askPushupMax();
 else if (checkDue()) askCheck();
 window.addEventListener("beforeunload", save);
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
-  /* The page you are looking at was served by whichever worker was already in
-     control, so the launch that installs a new build still shows the old one.
-     Reload once when the new worker takes over, and an installed Home Screen
-     app lands on the new build in the same launch instead of the next.
-     Guarded three ways: only when replacing an existing worker (not on first
-     install), only once, and only in the first few seconds — never yanking the
-     page out from under a session already in progress. */
+  /* Reload once when a new worker takes over, so an installed Home Screen app
+     lands on a new build in the same launch. Never mid-session. */
   const bootedAt = Date.now();
   const hadController = !!navigator.serviceWorker.controller;
   let reloaded = false;

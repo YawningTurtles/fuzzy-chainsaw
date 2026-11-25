@@ -233,9 +233,9 @@ const MOVEMENTS = {
     kind:"reps", reps:8, perSide:false, rest:90,
     tempo:"3-0-1", cue:"Hips back, neutral spine.",
     ladder:[
-      { label:"25 lb", num:25 }, { label:"30 lb", num:30 }, { label:"35 lb", num:35 },
-      { label:"40 lb", num:40 }, { label:"45 lb", num:45 }, { label:"50 lb", num:50 },
-      { label:"Single-leg B-stance, 25 lb", num:25 }
+      { label:"25 lb/hand", num:25 }, { label:"30 lb/hand", num:30 }, { label:"35 lb/hand", num:35 },
+      { label:"40 lb/hand", num:40 }, { label:"45 lb/hand", num:45 }, { label:"50 lb/hand", num:50 },
+      { label:"Single-leg B-stance, 25 lb/hand", num:25 }
     ]
   },
   copenhagen: {
@@ -388,7 +388,7 @@ const PROGRAM = {
   title: "Kinetic Chain Program",
   programVersion: "v3 — Winter Consistency Block",
   specVersion: 5,
-  build: "2026-11-21.3",
+  build: "2026-11-25.1",
   blockStart: "2026-11-23",
   blockEnd:   "2027-03-14",
   blockWeeks: 16,
@@ -403,7 +403,7 @@ const PROGRAM = {
 
   /* Index 0 = Sunday … 6 = Saturday. */
   rotation: [
-    { day:0, type:"floor",      label:"Floor", est:"10 min", movements:[] },
+    { day:0, type:"floor",      label:"Floor", est:"10 min + optional aerobic", movements:[] },
     { day:1, type:"strength_a", label:"Strength A — Lower", est:"10 + 25 min",
       movements:[{ id:"bss", sets:3 }, { id:"copenhagen", sets:2 },
                  { id:"db_rdl", sets:3 }, { id:"sl_calf", sets:2 }],
@@ -516,7 +516,31 @@ const PROGRAM = {
       "A discrete traumatic pop with rapid swelling"]
   },
 
-  warmup: { total:"13:30", href:"warmup/" }
+  warmup: { total:"13:30", href:"warmup/" },
+
+  /* ---------- section 4b: aerobic ----------
+     One match a week through mid-March is thin aerobic cover, so a weekly easy
+     session protects the base. Optional, and deliberately outside the weekly
+     win — making it a target would turn a 5-day Floor habit into a 6-day one. */
+  cardio: {
+    sunday:           { minutes:[30,40], rpe:[3,4] },
+    noMatchWednesday: { minutes:35,      rpe:[3,4] },
+    modalities: [
+      { id:"jog",       label:"Easy jog on flat ground" },
+      { id:"bike",      label:"Outdoor cycling, 80+ rpm, no grinding" },
+      { id:"hill_walk", label:"Patterson Park hill walks — fast up, controlled down" },
+      { id:"walk",      label:"Walk" }
+    ],
+    easyNote:"RPE 3 to 4 — you should be able to speak in full sentences.",
+    skipIfPainAtLeast: 3,
+    gameSpeedAfterDays: 14,
+    gameSpeed: [
+      "10 min easy jog",
+      "6 × (30 sec hard at RPE 8, 90 sec easy walk or jog)",
+      "4 × 20 m lateral shuffle with a cut at each end, walk back between reps",
+      "6 min easy jog"
+    ]
+  }
 };
 
 /* ===================== date helpers ===================== */
@@ -596,6 +620,8 @@ function blankDay(date){
     bonusSets: [],       // {movement, rung, reps, loggedAt}
     warmupDone: false,
     match: null,
+    noMatch: false,      // Wednesday declared match-free this week
+    cardio: null,        // {type, modality, minutes, rpe, pain, loggedAt}
     makeup: null,        // {from}
     madeUpOn: null,
     reentry: null        // {gap, setCut, rungDrop, appliedAt}
@@ -615,6 +641,15 @@ function getDay(date, create){
   if (!d.work) d.work = {};
   if (!d.floorItems) d.floorItems = [];
   if (!d.bonusSets) d.bonusSets = [];
+  if (d.cardio === undefined) d.cardio = null;
+  if (d.noMatch === undefined) d.noMatch = false;
+  // A run logged under the previous block is the same kind of session.
+  if (!d.cardio && d.legacyRun){
+    const r = d.legacyRun;
+    d.cardio = { type:"aerobic", modality:"jog",
+                 minutes:(r.intervals||0)*(r.runMin||0) + (r.intervals||0)*(r.walkMin||0),
+                 rpe:null, pain:null, note:r.note || "", migrated:true };
+  }
   return d;
 }
 function dayOrBlank(date){ return state.days[date] || blankDay(date); }
@@ -838,10 +873,27 @@ function sessionDatesFor(mid){
    date guard alone is not enough: advancing on the same day you trained would
    otherwise credit that session, which was done at the rung below, to the new
    one. Every set records the rung it was performed at, so use that. */
+/* Resolve a logged set back to a ladder position. Matching the raw label
+   string would break every time a rung is reworded — renaming the RDL ladder
+   to "per hand" would have stopped recognising sets already logged as "25 lb"
+   and silently zeroed a streak. Normalise the label first, then fall back to
+   the load the set actually carried, which survives any rewording. */
+function rungIndexOfSet(mid, set){
+  const L = MOVEMENTS[mid].ladder;
+  if (!set) return -1;
+  const n = normRung(set.rung);
+  let i = L.findIndex(x => normRung(x.label) === n);
+  if (i >= 0) return i;
+  if (set.load > 0){
+    i = L.findIndex(x => x.num === set.load);
+    if (i >= 0) return i;
+  }
+  return -1;
+}
 function atCurrentRung(mid, dt){
   const w = state.days[dt] && state.days[dt].work[mid];
   if (!w || !w.sets.length) return false;
-  return w.sets[0].rung === rung(mid).label;
+  return rungIndexOfSet(mid, w.sets[0]) === rung(mid).i;
 }
 function countableSessions(mid){
   const since = state.progress[mid].since;
@@ -1022,10 +1074,13 @@ function attributionFor(checkDate){
   const worked = d ? Object.keys(d.work||{}).filter(mid =>
     MOVEMENTS[mid] && !MOVEMENTS[mid].bonus && (d.work[mid].sets||[]).length) : [];
   const matched = !!(d && d.match);
+  const cardio = d && d.cardio ? (d.cardio.type === "game_speed" ? "game-speed prep" : "aerobic") : null;
   let attribution;
   if (rot.type === "match" && matched && worked.length) attribution = "soccer + lift";
   else if (rot.type === "match" && matched) attribution = "soccer";
+  else if (worked.length && cardio) attribution = "lift + " + cardio;
   else if (worked.length) attribution = "lift";
+  else if (cardio) attribution = cardio;
   else if (d && d.floorComplete) attribution = "floor only";
   else attribution = "no logged load";
   return { attribution, movements: worked, forDate: prev };
@@ -1814,6 +1869,133 @@ function undoShortOnTime(){
   save(); render();
 }
 
+/* ===================== aerobic (section 4b) =====================
+   Sunday carries an easy session by default. A match-free Wednesday becomes an
+   easy session too, and pushes the following Sunday to Game-Speed Prep — the
+   point being that you do not go back to a match cold after a quiet fortnight.
+   None of it counts toward the weekly win. */
+function lastMatchDate(onOrBefore){
+  const dates = Object.keys(state.days)
+    .filter(dt => (!onOrBefore || dt <= onOrBefore) && state.days[dt].match).sort();
+  return dates.length ? dates[dates.length-1] : null;
+}
+function daysSinceMatch(date){
+  const last = lastMatchDate(date);
+  return last ? daysBetween(last, date) : null;
+}
+/* The Wednesday of this date's own Mon–Sun week. */
+function weekWednesday(date){ return addDays(mondayOf(date), 2); }
+function gameSpeedOverdue(date){
+  const since = daysSinceMatch(date);
+  return since != null && since >= PROGRAM.cardio.gameSpeedAfterDays;
+}
+function cardioPlanFor(date){
+  const dow = dowOf(date), d = state.days[date], C = PROGRAM.cardio;
+  if (dow === 3 && d && d.noMatch)
+    return { type:"aerobic", title:"Easy Aerobic", minutes:C.noMatchWednesday.minutes,
+             rpe:C.noMatchWednesday.rpe, required:false, why:"No match this week." };
+  if (dow !== 0) return null;
+  const wed = state.days[weekWednesday(date)];
+  const overdue = gameSpeedOverdue(date);
+  if ((wed && wed.noMatch) || overdue){
+    const since = daysSinceMatch(date);
+    return { type:"game_speed", title:"Game-Speed Prep", required: overdue,
+             why: overdue ? `${since} days since your last logged match.`
+                          : "No match this week — sharpen up before the next one." };
+  }
+  return { type:"aerobic", title:"Sunday Aerobic", minutes:C.sunday.minutes,
+           rpe:C.sunday.rpe, required:false };
+}
+/* Section 4b: skip the Sunday session if Saturday's next-morning check was 3+. */
+function cardioSkipAdvised(date){
+  if (dowOf(date) !== 0) return null;
+  const chk = checkForDay(addDays(date, -1));
+  return chk && chk.score >= PROGRAM.cardio.skipIfPainAtLeast ? chk.score : null;
+}
+function toggleNoMatch(){
+  const t = todayStr(), d = getDay(t, true);
+  if (d.match){ toast("A match is already logged today."); return; }
+  d.noMatch = !d.noMatch;
+  save(); render();
+  toast(d.noMatch ? "No match this week — Sunday becomes Game-Speed Prep."
+                  : "Match back on for today.");
+}
+function cardioFormHTML(){
+  const t = todayStr(), plan = cardioPlanFor(t);
+  const type = plan ? plan.type : "aerobic";
+  const mins = plan && plan.minutes
+    ? (Array.isArray(plan.minutes) ? plan.minutes[0] : plan.minutes) : 30;
+  const opts = PROGRAM.cardio.modalities.map(m =>
+    `<option value="${m.id}">${esc(m.label)}</option>`).join("");
+  return `<h2>Log ${esc(plan ? plan.title : "an aerobic session")}</h2>
+    ${type === "game_speed" ? `<ol class="tight dim" style="margin:0 0 4px;">${PROGRAM.cardio.gameSpeed.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>` : ""}
+    <label>Session</label>
+    <select id="c-type">
+      <option value="aerobic" ${type==="aerobic"?"selected":""}>Easy aerobic</option>
+      <option value="game_speed" ${type==="game_speed"?"selected":""}>Game-speed prep</option>
+    </select>
+    <label>Modality</label>
+    <select id="c-mod">${opts}</select>
+    <label>Minutes</label>
+    <input type="number" id="c-min" inputmode="numeric" min="0" value="${mins}">
+    <label>RPE (1–10)</label>
+    <input type="number" id="c-rpe" inputmode="numeric" min="1" max="10" value="${type==="game_speed"?6:3}">
+    <label>Knee pain during (0–10)</label>
+    <input type="number" id="c-pain" inputmode="numeric" min="0" max="10" value="0">
+    <div class="yn"><button class="primary" onclick="saveCardio()">Save ✓</button>
+    <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
+}
+function saveCardio(){
+  const d = getDay(todayStr(), true);
+  const num = (id, lo, hi) => {
+    const v = parseInt((document.getElementById(id)||{}).value);
+    return isNaN(v) ? null : Math.min(hi, Math.max(lo, v));
+  };
+  d.cardio = {
+    type: (document.getElementById("c-type")||{}).value || "aerobic",
+    modality: (document.getElementById("c-mod")||{}).value || "jog",
+    minutes: num("c-min", 0, 600) || 0,
+    rpe: num("c-rpe", 1, 10),
+    pain: num("c-pain", 0, 10),
+    loggedAt: Date.now()
+  };
+  save(); closeModal(); render();
+  toast(`${d.cardio.minutes} min logged ✓`);
+}
+function cardioCardHTML(d){
+  const plan = cardioPlanFor(d.date), c = d.cardio;
+  if (!plan && !c){
+    return `<div class="card">
+      <div class="set-head"><h2 style="margin:0;">Aerobic</h2>
+        <span class="chip">optional</span></div>
+      <p class="faint" style="margin:4px 0 8px;">Nothing scheduled today. Log one anyway if you did something easy.</p>
+      <button class="ghost big-btn" style="margin-top:0;" onclick="showModal(cardioFormHTML())">Log an aerobic session</button>
+    </div>`;
+  }
+  const skip = cardioSkipAdvised(d.date);
+  const C = PROGRAM.cardio;
+  const dose = plan && plan.minutes
+    ? (Array.isArray(plan.minutes) ? `${plan.minutes[0]}–${plan.minutes[1]} min` : `${plan.minutes} min`)
+    : "";
+  const modList = C.modalities.slice(0,3).map(m=>`<li>${esc(m.label)}</li>`).join("");
+  return `<div class="card ${c ? "" : (plan && plan.required ? "accent" : "")}">
+    <div class="set-head"><h2 style="margin:0;">${esc(plan ? plan.title : "Aerobic")}</h2>
+      ${c ? `<span class="chip green">${c.minutes} min</span>`
+          : `<span class="chip ${plan && plan.required ? "amber" : ""}">${plan && plan.required ? "required" : "optional"}</span>`}</div>
+    ${plan && plan.why ? `<p class="faint" style="margin:4px 0 0;">${esc(plan.why)}</p>` : ""}
+    ${plan && plan.required ? `<p class="faint" style="margin:4px 0 0;">Counts logged matches only. If you have been playing, <a href="#" onclick="showModal(logPastMatchHTML());return false;" style="color:var(--blue)">log one</a> and this drops back to an easy session.</p>` : ""}
+    ${plan && plan.type === "game_speed"
+      ? `<ol class="tight dim" style="margin:8px 0 10px;">${C.gameSpeed.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`
+      : `<p class="faint" style="margin:4px 0 6px;">${dose} · ${esc(C.easyNote)}</p>
+         <ul class="tight faint" style="margin:0 0 10px;">${modList}</ul>`}
+    ${skip != null && !c
+      ? `<div class="banner amber" style="margin:0 0 10px;"><span>⚠️ Yesterday's check came back ${skip}/10. The program says skip this one.</span></div>` : ""}
+    <button class="${c ? "ghost" : (plan && plan.required ? "primary" : "")} big-btn" style="margin-top:0;"
+      onclick="showModal(cardioFormHTML())">${c ? "Update the session" : "Log it"}</button>
+    ${c ? `<p class="faint" style="margin-top:8px;">${esc((C.modalities.find(m=>m.id===c.modality)||{}).label || c.modality)} · ${c.minutes} min${c.rpe!=null?` · RPE ${c.rpe}`:""}${c.pain!=null?` · knee ${c.pain}/10`:""}</p>` : ""}
+  </div>`;
+}
+
 /* ===================== soccer ===================== */
 function matchFormHTML(){
   const now = new Date();
@@ -1846,6 +2028,43 @@ function saveMatch(){
   };
   save(); closeModal(); render();
   toast("Soccer logged ✓");
+}
+
+/* Matches are often played and not logged. Rather than let the game-speed
+   rule run on a stale number, allow a match to be entered after the fact —
+   on its own date, never silently on today's. */
+function logPastMatchHTML(){
+  const t = todayStr();
+  const wed = weekWednesday(t);
+  const choices = [];
+  for (let k = 0; k <= 28; k++){
+    const dt = addDays(t, -k);
+    if (dowOf(dt) === 3) choices.push(dt);
+  }
+  return `<h2>Log a match you played</h2>
+    <p class="faint" style="margin:0;">Only Wednesdays are offered — that is the match day in this block.</p>
+    <label>Which Wednesday</label>
+    <select id="pm-date">${choices.map(d=>`<option value="${d}">${esc(fmtDate(d))}</option>`).join("")}</select>
+    <label>Minutes played</label>
+    <input type="number" id="pm-min" inputmode="numeric" min="0" value="40">
+    <label>Knee pain during (0–10)</label>
+    <input type="number" id="pm-pain" inputmode="numeric" min="0" max="10" value="0">
+    <div class="yn"><button class="primary" onclick="savePastMatch()">Save ✓</button>
+    <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
+}
+function savePastMatch(){
+  const date = (document.getElementById("pm-date")||{}).value;
+  if (!date) return;
+  const d = getDay(date, true);
+  const num = (id, hi) => {
+    const v = parseInt((document.getElementById(id)||{}).value);
+    return isNaN(v) ? 0 : Math.min(hi, Math.max(0, v));
+  };
+  d.match = { endTime:null, minutes:num("pm-min",300), format:"7-a-side",
+              painDuring:num("pm-pain",10), note:"", backdated:true };
+  d.noMatch = false;
+  save(); closeModal(); render();
+  toast(`Match on ${fmtShort(date)} logged ✓`);
 }
 
 /* ===================== assessments ===================== */
@@ -1974,6 +2193,10 @@ function todayHTML(){
     banners.push(`<div class="banner amber"><span>📋 Assessment due (${esc(fmtShort(due))}) — do it before Strength C.</span>
       <button onclick="showModal(assessFormHTML())">Do it</button></div>`);
 
+  if (gameSpeedOverdue(t) && dowOf(t) !== 0)
+    banners.push(`<div class="banner amber"><span>🏃 ${daysSinceMatch(t)} days since your last <b>logged</b> match — Game-Speed Prep is required on the Sunday before you play again. If you have been playing, log one and this clears.</span>
+      <button onclick="showModal(logPastMatchHTML())">Log a match</button></div>`);
+
   if (bonusResting())
     banners.push(`<div class="banner amber"><span>🛑 Bonus sets resting until ${esc(fmtShort(state.bonusRestUntil))} after reported elbow or shoulder pain.</span></div>`);
 
@@ -2000,8 +2223,9 @@ function todayHTML(){
     ${rot.note ? `<p class="dim" style="margin:0 0 12px; font-size:.95rem;">${esc(rot.note)}</p>` : ""}
     ${floorCardHTML(d)}
     ${bonusCardHTML(d)}
-    ${rot.type === "match" ? matchCardHTML(d) : ""}
+    ${rot.type === "match" ? (d.noMatch ? noMatchCardHTML(d) : matchCardHTML(d)) : ""}
     ${strengthSectionHTML(d, rot)}
+    ${cardioCardHTML(d)}
     ${makeupBlockHTML(d)}
     ${makeupPromptHTML(d)}
     ${morningFlowHTML()}
@@ -2089,6 +2313,14 @@ function bonusPainHTML(){
     <button class="ghost" onclick="closeModal()">Cancel</button></div>`;
 }
 
+function noMatchCardHTML(d){
+  return `<div class="card">
+    <div class="set-head"><h2 style="margin:0;">Soccer — 7-a-side</h2>
+      <span class="chip amber">no match</span></div>
+    <p class="faint" style="margin:4px 0 8px;">Marked match-free. Today is an easy aerobic session instead, and Sunday becomes Game-Speed Prep.</p>
+    <button class="ghost big-btn" style="margin-top:0;" onclick="toggleNoMatch()">Actually, there is a match</button>
+  </div>`;
+}
 function matchCardHTML(d){
   const m = d.match;
   return `<div class="card ${m?"":"accent"}">
@@ -2098,7 +2330,8 @@ function matchCardHTML(d){
     <a href="${PROGRAM.warmup.href}" style="text-decoration:none;">
       <button class="ghost big-btn" style="margin-top:0;">▶ 11+ warm-up (${esc(PROGRAM.warmup.total)})</button></a>
     <button class="${m?"ghost":""} big-btn" onclick="showModal(matchFormHTML())">${m ? "Update the soccer log" : "Log soccer"}</button>
-    ${m ? `<p class="faint" style="margin-top:8px;">Ended ${fmtTime(m.endTime)} · ${m.minutes} min · knee ${m.painDuring}/10${m.note?` · “${esc(m.note)}”`:""}</p>` : ""}
+    ${m ? `<p class="faint" style="margin-top:8px;">Ended ${fmtTime(m.endTime)} · ${m.minutes} min · knee ${m.painDuring}/10${m.note?` · “${esc(m.note)}”`:""}</p>`
+        : `<button class="ghost big-btn" onclick="toggleNoMatch()">No match this week</button>`}
   </div>`;
 }
 
@@ -2297,6 +2530,8 @@ function weekHTML(){
     } else {
       bits.push(`<span class="faint">Floor day</span>`);
     }
+    if (d.noMatch && rot.type === "match") bits.push(`<span class="faint">no match this week</span>`);
+    if (d.cardio) bits.push(`<span style="color:var(--blue)">${d.cardio.type==="game_speed"?"game-speed":"aerobic"} ${d.cardio.minutes}m</span>`);
     if (d.makeup) bits.push(`<span style="color:var(--blue)">+ ${esc(rotationFor(d.makeup.from).label)}</span>`);
     const nb = (d.bonusSets||[]).length;
     if (nb) bits.push(`<span class="faint">${nb} bonus</span>`);
@@ -2540,6 +2775,8 @@ function exportMarkdown(){
           : w.sets.map(s=>`${s.reps}@${s.rung}/RIR${s.rir}`).join(" ");
         return `${m.short} ${w.sets.length}/${targetEntries(spec.id, spec.sets, date)} — ${detail}${w.stopped?" STOPPED":""}`;
       }).join("; ");
+      if (d && d.noMatch) work += `; NO MATCH this week`;
+      if (d && d.cardio) work += `; ${d.cardio.type === "game_speed" ? "game-speed prep" : "aerobic"} ${d.cardio.minutes} min${d.cardio.modality?` (${d.cardio.modality})`:""}${d.cardio.rpe!=null?` RPE ${d.cardio.rpe}`:""}${d.cardio.pain?` knee ${d.cardio.pain}/10`:""}`;
       if (d && d.makeup) work += `; MAKE-UP of ${d.makeup.from}`;
       if (d && d.reentry) work += `; re-entry after ${d.reentry.gap}d`;
       md += `| ${date} | ${DOW[rot.day]} | ${work} | ${floor} | ${bonus} | ${chk ? chk.score+"/10" : "—"} |\n`;
@@ -2591,6 +2828,8 @@ function applyImport(mode){
       const m2 = state.days[date];
       m2.floorComplete = mine.floorComplete || day.floorComplete;
       m2.match = mine.match || day.match;
+      m2.cardio = mine.cardio || day.cardio;
+      m2.noMatch = mine.noMatch || day.noMatch;
       m2.bonusSets = (mine.bonusSets||[]).length >= (day.bonusSets||[]).length ? mine.bonusSets : day.bonusSets;
     });
     const have = new Set(state.painChecks.map(c=>c.forDate));

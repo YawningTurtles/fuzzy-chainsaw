@@ -43,7 +43,7 @@ No current knee pain. Sunday league is over. Wednesday soccer only through mid-M
 | Thu | Floor + Strength B (Upper + Core) | 10 + 20 min |
 | Fri | Floor | 10 min |
 | Sat | Floor (extended) + Strength C (Lower) | 15 + 25 min |
-| Sun | Floor | 10 min |
+| Sun | Floor + optional Aerobic session (section 4b) | 10 + 30 to 40 min |
 
 Rules:
 - No loaded lower-body work on Thursday (day after soccer).
@@ -78,7 +78,7 @@ Default effort: RIR 2 on every working set. Rest 60 to 90 sec between sets, or s
 | Movement ID | Exercise | Sets x Reps | Tempo | Start load | Cue |
 |-------------|----------|-------------|-------|------------|-----|
 | `bss` | Bulgarian split squat | 3 x 8/side | 3-1-1 | 10 lb/hand | Knee over 2nd toe, no medial collapse |
-| `db_rdl` | DB Romanian deadlift | 3 x 8 | 3-0-1 | 25 lb | Hips back, neutral spine |
+| `db_rdl` | DB Romanian deadlift | 3 x 8 | 3-0-1 | 25 lb/hand | Hips back, neutral spine |
 | `copenhagen` | Copenhagen plank, short lever (knee on bench) | 2 x 6/side | 3 sec eccentric | Bodyweight | Hips stacked, body straight |
 | `sl_calf` | Single-leg calf raise | 2 x 12/side | 2-1-2 | Bodyweight | Full range, push through big toe |
 
@@ -136,6 +136,34 @@ UI:
 - One tap logs one set at the current prescribed dose with a timestamp. Long-press to edit reps or delete.
 - Optional gentle reminder: if fewer than 2 sets logged by 2:00 pm on a bonus day, show a badge on the counter. No push notifications.
 
+## 4b. Aerobic sessions
+
+With one match per week through mid-March, a weekly easy aerobic session protects the aerobic base. Optional: it does not count toward the weekly win (section 9).
+
+### Sunday Aerobic (default, most weeks)
+
+| Field | Prescription |
+|-------|--------------|
+| Duration | 30 to 40 min |
+| Intensity | RPE 3 to 4, can speak in full sentences |
+| Modality (in order of preference) | Easy jog on flat ground; outdoor cycling at 80+ rpm, no grinding; Patterson Park hill walks (fast up, controlled down) |
+| Skip if | Next-morning pain check after Saturday was 3 or higher |
+
+### No-match weeks (holidays, cancellations)
+
+If Wednesday has no match:
+- **Wednesday:** Easy Aerobic, 35 min, RPE 3 to 4 (same modalities as above).
+- **Sunday before the next match:** Game-Speed Prep instead of Sunday Aerobic:
+  1. 10 min easy jog
+  2. 6 x (30 sec hard at RPE 8, 90 sec easy walk or jog)
+  3. 4 x 20 m lateral shuffle with a cut at each end, walk back between reps
+  4. 6 min easy jog
+- If 2 or more weeks pass without a match, Game-Speed Prep is required (not optional) on the Sunday before the return match.
+
+### Logging
+
+One entry per session: `type` ("aerobic" | "game_speed"), `modality` ("jog" | "bike" | "hill_walk" | "walk"), `minutes`, `rpe` (1 to 10), `pain` (0 to 10). Feeds the next-morning pain check like a lift.
+
 ### Retired from v2
 
 - `t9090` (90/90 transitions as a separate lift): moved into the Daily Floor, item 3. Keep its history; stop scheduling it.
@@ -157,7 +185,7 @@ Rung ladders:
 | Movement | Rungs |
 |----------|-------|
 | `bss` | Bodyweight, 10 lb/hand, 15, 20, 25, 30 |
-| `db_rdl` | 25, 30, 35, 40, 45, 50 lb (then single-leg B-stance at 25) |
+| `db_rdl` | 25, 30, 35, 40, 45, 50 lb/hand (then single-leg B-stance at 25/hand) |
 | `copenhagen` | Short lever 2x6, short lever 3x8, long lever 2x6, long lever 3x8 |
 | `sl_calf` | Bodyweight, 10, 15, 20, 25 lb |
 | `pullup` | Eccentric 3x3, max minus 2, max minus 1, +5 lb (DB between feet) |
@@ -263,6 +291,9 @@ Flag in the UI:
 - `mobilityComplete` from v2 maps to `floorComplete` for historical days.
 - Day type values: `strength_a`, `strength_b`, `strength_c`, `floor`, `match`.
 - Wednesday auto-types as `match`, with the match log (minutes, format 7-a-side, pain during) kept from v2.
+- Per-day `cardio` field (object or null) using the logging shape in section 4b. Any `run` data from the previous block migrates into it.
+- The Wednesday match card has a "No match this week" button. Tapping it swaps Wednesday to Easy Aerobic and flags that week's Sunday as Game-Speed Prep.
+- Days since the last logged match are tracked. At 14+ days the Sunday card shows Game-Speed Prep as required, and a banner says so on other days.
 - Kept: next-morning pain check prompt, JSON export/import, sound/vibrate settings, markdown export for review.
 - No network requests, no external libraries, single HTML file.
 
@@ -273,3 +304,5 @@ Flag in the UI:
 - **Only sessions performed at the current rung count toward leaving it**, matched on the rung recorded against each logged set. A date guard alone would credit a session done at the rung below if the advance happened the same day.
 - **A session that has no next-morning check yet is "waiting", not banked and not broken.** The Progress tab shows what is waiting and offers to backfill the check, rather than assuming a score.
 - The guided, audio-cued Floor runner from the previous block is kept as a second way in, alongside the checklist. The checklist is primary, per section 3.
+- **A logged set resolves to a ladder position, not to a label string.** Renaming the RDL ladder to "per hand" would otherwise have stopped recognising sets already logged as "25 lb" and silently zeroed a live streak. Matching normalises the label first, then falls back to the load the set carried, which survives any rewording.
+- **The game-speed rule can only count matches that were logged.** At the time of writing, one match had been logged since September while Wednesday soccer continued, so the rule read as permanently overdue. The card says plainly that it counts logged matches only, and offers to enter a past match on its own Wednesday rather than silently on today's date.
